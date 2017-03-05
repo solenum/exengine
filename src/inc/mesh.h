@@ -32,14 +32,16 @@ typedef struct {
 typedef struct {
   vec3 translate, scale;
   quat rotate;
-} frame_t;
+} pose_t;
+
+typedef pose_t* frame_t;
 
 typedef struct {
   GLuint texture, VAO, VBO, EBO, vcount, icount;
   mat4x4 transform, *inverse_base, *skeleton;
   bone_t *bones;
   anim_t *anims;
-  frame_t **frames, *bind_pose, *pose;
+  frame_t *frames, bind_pose, pose;
   size_t bones_len, anims_len, frames_len;
 } mesh_t;
 
@@ -67,9 +69,9 @@ void mesh_draw(mesh_t* m, GLuint shader_program);
  */
 void mesh_destroy(mesh_t *m);
 
-void mesh_update_matrices(mesh_t *m, frame_t *pose);
+void mesh_update_matrices(mesh_t *m, frame_t pose);
 
-void mesh_set_pose(mesh_t *m, frame_t *frame);
+void mesh_set_pose(mesh_t *m, frame_t frame);
 
 void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale);
 

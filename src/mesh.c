@@ -105,7 +105,7 @@ void mesh_destroy(mesh_t* m)
   m = NULL;
 }
 
-void mesh_update_matrices(mesh_t *m, frame_t *pose)
+void mesh_update_matrices(mesh_t *m, frame_t pose)
 {
   mat4x4 transform[m->bones_len];
 
@@ -128,12 +128,10 @@ void mesh_update_matrices(mesh_t *m, frame_t *pose)
   }
 }
 
-void mesh_set_pose(mesh_t *m, frame_t *frame)
+void mesh_set_pose(mesh_t *m, frame_t frame)
 {
-  mat4x4 transform[m->bones_len];
-
   for (int i=0; i<m->bones_len; i++) {
-    frame_t f = frame[i];
+    pose_t f = frame[i];
     
     vec3 translate, scale;
     quat rotate;    
@@ -158,7 +156,7 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 
   mat4x4 mat;
   mat4x4_from_quat(mat, rot);
-  //mat4x4_mul(m, m, mat);
+  // mat4x4_mul(m, m, mat);
 
   //mat4x4_scale_aniso(m, m, scale[0], scale[1], scale[2]);
 }

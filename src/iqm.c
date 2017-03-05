@@ -27,32 +27,7 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   // get the rest of the header weeeeee
-  header.filesize           = head[1];
-  header.flags              = head[2];
-  header.num_text           = head[3];
-  header.ofs_text           = head[4];
-  header.num_meshes         = head[5];
-  header.ofs_meshes         = head[6];
-  header.num_vertexarrays   = head[7];
-  header.num_vertexes       = head[8];
-  header.ofs_vertexarrays   = head[9];
-  header.num_triangles      = head[10];
-  header.ofs_triangles      = head[11];
-  header.ofs_adjacency      = head[12];
-  header.num_joints         = head[13];
-  header.ofs_joints         = head[14];
-  header.num_poses          = head[15];
-  header.ofs_poses          = head[16];
-  header.num_anims          = head[17];
-  header.ofs_anims          = head[18];
-  header.num_frames         = head[19];
-  header.num_framechannels  = head[20];
-  header.ofs_frames         = head[21];
-  header.ofs_bounds         = head[22];
-  header.num_comment        = head[23];
-  header.ofs_comment        = head[24];
-  header.num_extensions     = head[25];
-  header.ofs_extensions     = head[26];
+  memcpy(&header, data, sizeof(iqm_header_t));
 
   iqmmesh_t *meshes = (iqmmesh_t *)&data[header.ofs_meshes];
 
@@ -111,14 +86,14 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   // bones and joints
-  bone_t *bones       = NULL;
-  frame_t *bind_pose  = NULL;
-  frame_t *pose       = NULL;
+  bone_t *bones      = NULL;
+  frame_t bind_pose  = NULL;
+  frame_t pose       = NULL;
   iqmjoint_t *joints  = (iqmjoint_t *)&data[header.ofs_joints];
   if (header.ofs_joints > 0) {
     bones     = malloc(sizeof(bone_t)*header.num_joints);
-    bind_pose = malloc(sizeof(bone_t)*header.num_joints);
-    pose      = malloc(sizeof(bone_t)*header.num_joints);
+    bind_pose = malloc(sizeof(pose_t)*header.num_joints);
+    pose      = malloc(sizeof(pose_t)*header.num_joints);
     for (int i=0; i<header.num_joints; i++) {
       iqmjoint_t *j   = &joints[i];
       bones[i].name   = j->name;
@@ -149,15 +124,14 @@ mesh_t *iqm_load_model(const char *path)
 
   // poses
   unsigned short *framedata = NULL;
-  frame_t **frames = NULL;
+  frame_t *frames = NULL;
   iqmpose_t *posedata = (iqmpose_t *)&data[header.ofs_poses];
   if (header.ofs_poses > 0) {
     frames = malloc(sizeof(frame_t)*header.num_frames);
     framedata = (unsigned short *)&data[header.ofs_frames];
     
     for (int i=0; i<header.num_frames; i++) {
-
-      frame_t frame[header.num_poses];
+      pose_t *frame = malloc(header.num_poses*sizeof(pose_t));
       for (int p=0; p<header.num_poses; p++) {
         iqmpose_t *pose = &posedata[p];
         
@@ -179,15 +153,13 @@ mesh_t *iqm_load_model(const char *path)
         printf("R: %f %f %f %f \nV: %f %f %f %f\n", frame[p].rotate[0], frame[p].rotate[1], frame[p].rotate[2], frame[p].rotate[3], v[3], v[4], v[5], v[6]);
         printf("S: %f %f %f \nV: %f %f %f\n", frame[p].scale[0], frame[p].scale[1], frame[p].scale[2], v[7], v[8], v[9]);*/
       }
-
-      frames[i] = malloc(header.num_poses*sizeof(frame_t));
-      memcpy(frames[i], frame, header.num_poses*sizeof(frame_t));
+      frames[i] = frame;
     }
   }
 
   // indices
   GLuint *indices = malloc(sizeof(GLuint)*(header.num_triangles*3));
-  memcpy(&indices[0], &data[header.ofs_triangles], (header.num_triangles*3)*sizeof(GLuint));
+  memcpy(indices, &data[header.ofs_triangles], (header.num_triangles*3)*sizeof(GLuint));
   int i, a;
   for (i=0; i<header.num_triangles*3; i+=3) {
     a = indices[i+0];
@@ -232,8 +204,8 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   if (m->bind_pose != NULL) {
-    //mesh_set_pose(m, &m->frames[0][200]);
-    mesh_update_matrices(m, &m->frames[0][200]);
+    // mesh_set_pose(m, m->frames[0]);
+    mesh_update_matrices(m, m->frames[0]);
   }
 
   //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
