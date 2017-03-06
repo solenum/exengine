@@ -204,9 +204,9 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   if (m->bind_pose != NULL) {
-    // m->current_anim = &m->anims[0];
-    mesh_set_pose(m, m->frames[0]);
-    mesh_update_matrices(m);
+    m->current_anim = &m->anims[5];
+    //mesh_set_pose(m, m->frames[0]);
+    //mesh_update_matrices(m);
   }
 
   //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );

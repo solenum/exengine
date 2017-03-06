@@ -24,7 +24,6 @@ files:
 	mkdir -p $(ODIR)
 	mkdir -p build
 	cp -RTv data build/data/
-	cp -RTv ../editor/data build/data/maps
 
 .PHONY: clean
 

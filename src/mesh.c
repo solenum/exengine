@@ -117,7 +117,7 @@ void mesh_update(mesh_t *m, float delta_time)
 
   uint32_t current_frame = m->current_time * anim->rate;
   uint32_t len = anim->last - anim->first;
-  if (current_frame > len)
+  if (current_frame > len && !anim->loop)
     return;
 
   m->current_time += delta_time;
@@ -138,6 +138,7 @@ void mesh_update(mesh_t *m, float delta_time)
 
   printf("FRAME: %d (%f)\n", m->current_frame, m->current_time);
 
+  mesh_set_pose(m, m->frames[m->current_frame]);
   mesh_update_matrices(m);
 }
 
@@ -189,13 +190,14 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
   printf("SCALE: %f %f %f\n", scale[0], scale[1], scale[2]);
 
   mat4x4_identity(m);
-
   mat4x4_translate(mat, pos);
   mat4x4_mul(m, m, mat);
 
-  mat4x4_rotate_quat(mat, rot);
-  mat4x4_mul(m, m, mat);
+  //mat4x4_rotate_quat(mat, rot);
+  mat4x4 m2;
+  mat4x4_from_quat(m2, rot);
+  mat4x4_mul(m, m, m2);
 
-  mat4x4_scale_xyz(mat, scale);
-  mat4x4_mul(m, m, mat);
+  //mat4x4_scale_xyz(mat, scale);
+  //mat4x4_mul(m, m, mat);
 }
