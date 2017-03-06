@@ -149,15 +149,12 @@ static inline void mat4x4_scale(mat4x4 M, mat4x4 a, float k)
   for(i=0; i<4; ++i)
     vec4_scale(M[i], a[i], k);
 }
-static inline void mat4x4_scale_aniso(mat4x4 M, mat4x4 a, float x, float y, float z)
+static inline void mat4x4_scale_xyz(mat4x4 M, vec3 const s)
 {
-  int i;
-  vec4_scale(M[0], a[0], x);
-  vec4_scale(M[1], a[1], y);
-  vec4_scale(M[2], a[2], z);
-  for(i = 0; i < 4; ++i) {
-    M[3][i] = a[3][i];
-  }
+  mat4x4_identity(M);
+  M[0][0] = s[0];
+  M[1][1] = s[1];
+  M[2][2] = s[2];
 }
 static inline void mat4x4_mul(mat4x4 M, mat4x4 a, mat4x4 b)
 {
@@ -179,12 +176,12 @@ static inline void mat4x4_mul_vec4(vec4 r, mat4x4 M, vec4 v)
       r[j] += M[i][j] * v[i];
   }
 }
-static inline void mat4x4_translate(mat4x4 T, float x, float y, float z)
+static inline void mat4x4_translate(mat4x4 T, vec3 const t)
 {
   mat4x4_identity(T);
-  T[3][0] = x;
-  T[3][1] = y;
-  T[3][2] = z;
+  T[0][3] = t[0];
+  T[1][3] = t[1];
+  T[2][3] = t[2];
 }
 static inline void mat4x4_translate_in_place(mat4x4 M, float x, float y, float z)
 {
@@ -515,8 +512,53 @@ v' = v + q.w * t + cross(q.xyz, t)
   vec3_add(r, v, t);
   vec3_add(r, r, u);
 }
+#include <float.h>
+static inline void mat4x4_rotate_quat(mat4x4 M, quat q) {
+  float axis[3] = { 0.0f, 0.0f, 0.0f };
+
+  quat a;
+  quat_norm(a, q);
+  float angle = 2.0f * acosf(a[3]);
+  float s = sqrtf(1 - q[3] * q[3]);
+
+  int i;
+  if (s < FLT_EPSILON)
+  {
+    for (i = 0; i < 3; i++)
+      axis[i] = a[i];
+  }
+  else
+  {
+    for (i = 0; i < 3; i++)
+      axis[i] = a[i] / s;
+  }
+
+  mat4x4_identity(M);
+
+  float l = vec4_len(axis);
+  if (l == 0)
+    return;
+
+  for (i = 0; i < 3; i++)
+    axis[i] /= l;
+
+  float ca = cosf(angle);
+  float sa = sinf(angle);
+
+  M[0][0] = axis[0] * axis[0] * (1 - ca) + ca;
+  M[0][1] = axis[1] * axis[0] * (1 - ca) + axis[2] * sa;
+  M[0][2] = axis[0] * axis[2] * (1 - ca) - axis[1] * sa;
+  M[1][0] = axis[0] * axis[1] * (1 - ca) - axis[2] * sa;
+  M[1][1] = axis[1] * axis[1] * (1 - ca) + ca;
+  M[1][2] = axis[1] * axis[2] * (1 - ca) + axis[0] * sa;
+  M[2][0] = axis[0] * axis[2] * (1 - ca) + axis[1] * sa;
+  M[2][1] = axis[1] * axis[2] * (1 - ca) - axis[0] * sa;
+  M[2][2] = axis[2] * axis[2] * (1 - ca) + ca;
+}
+
 static inline void mat4x4_from_quat(mat4x4 M, quat q)
 {
+  mat4x4_identity(M);
   float a = q[3];
   float b = q[0];
   float c = q[1];

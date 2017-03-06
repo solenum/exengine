@@ -89,6 +89,7 @@ void game_run()
     /* ------ */
 
     iso_camera_update(camera, display.shader_program);
+    mesh_update(m, delta_time);
     mesh_draw(m, display.shader_program);
 
     glfwSwapBuffers(display.window);

@@ -10,6 +10,9 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
   m->texture = texture;
   m->vcount = vcount;
   m->icount = icount;
+  m->current_anim  = NULL;
+  m->current_time  = 0.0;
+  m->current_frame = 0;
 
   mat4x4_identity(m->transform);
 
@@ -105,9 +108,43 @@ void mesh_destroy(mesh_t* m)
   m = NULL;
 }
 
-void mesh_update_matrices(mesh_t *m, frame_t pose)
+void mesh_update(mesh_t *m, float delta_time)
+{
+  anim_t *anim = m->current_anim;
+
+  if (anim == NULL)
+    return;
+
+  uint32_t current_frame = m->current_time * anim->rate;
+  uint32_t len = anim->last - anim->first;
+  if (current_frame > len)
+    return;
+
+  m->current_time += delta_time;
+  m->current_frame = anim->first + current_frame;
+
+  if (m->current_frame > len)
+  {
+    if (anim->loop)
+    {
+      m->current_time -= len / anim->rate;
+      m->current_frame = anim->first + m->current_time * anim->rate;
+    }
+    else
+    {
+      m->current_frame = anim->last;
+    }
+  }
+
+  printf("FRAME: %d (%f)\n", m->current_frame, m->current_time);
+
+  mesh_update_matrices(m);
+}
+
+void mesh_update_matrices(mesh_t *m)
 {
   mat4x4 transform[m->bones_len];
+  frame_t pose = m->pose;
 
   for (int i=0; i<m->bones_len; i++) {
     bone_t b = m->bones[i];
@@ -133,30 +170,32 @@ void mesh_set_pose(mesh_t *m, frame_t frame)
   for (int i=0; i<m->bones_len; i++) {
     pose_t f = frame[i];
     
-    vec3 translate, scale;
-    quat rotate;    
-    memcpy(translate,   f.translate, sizeof(vec3));
-    memcpy(rotate,      f.rotate,    sizeof(quat));
-    memcpy(scale,       f.scale,     sizeof(vec3));
+    quat rotate;
+    memcpy(rotate, f.rotate, sizeof(quat));
     quat_norm(rotate, rotate);
-    memcpy(m->pose[i].translate,  translate, sizeof(vec3));
-    memcpy(m->pose[i].rotate,     rotate,    sizeof(quat));
-    memcpy(m->pose[i].scale,      scale,     sizeof(vec3));
+
+    memcpy(m->pose[i].translate,  f.translate, sizeof(vec3));
+    memcpy(m->pose[i].rotate,     rotate,      sizeof(quat));
+    memcpy(m->pose[i].scale,      f.scale,     sizeof(vec3));
   }
 }
 
 void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 {
-  mat4x4_identity(m);
-  mat4x4_translate(m, pos[0], pos[1], pos[2]);
-
-  printf("TRANSLATE: %f %f %f \n", pos[0], pos[1], pos[2]);
-  printf("ROTATE: %f %f %f \n", rot[0], rot[1], rot[2]);
-  printf("SCALE: %f %f %f \n", scale[0], scale[1], scale[2]);
-
   mat4x4 mat;
-  mat4x4_from_quat(mat, rot);
-  // mat4x4_mul(m, m, mat);
 
-  //mat4x4_scale_aniso(m, m, scale[0], scale[1], scale[2]);
+  printf("TRANSLATE: %f %f %f\n", pos[0], pos[1], pos[2]);
+  printf("ROTATE: %f %f %f\n", rot[0], rot[1], rot[2]);
+  printf("SCALE: %f %f %f\n", scale[0], scale[1], scale[2]);
+
+  mat4x4_identity(m);
+
+  mat4x4_translate(mat, pos);
+  mat4x4_mul(m, m, mat);
+
+  mat4x4_rotate_quat(mat, rot);
+  mat4x4_mul(m, m, mat);
+
+  mat4x4_scale_xyz(mat, scale);
+  mat4x4_mul(m, m, mat);
 }

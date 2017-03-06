@@ -43,6 +43,10 @@ typedef struct {
   anim_t *anims;
   frame_t *frames, bind_pose, pose;
   size_t bones_len, anims_len, frames_len;
+
+  anim_t   *current_anim;
+  float    current_time;
+  uint32_t current_frame;
 } mesh_t;
 
 /**
@@ -69,7 +73,9 @@ void mesh_draw(mesh_t* m, GLuint shader_program);
  */
 void mesh_destroy(mesh_t *m);
 
-void mesh_update_matrices(mesh_t *m, frame_t pose);
+void mesh_update(mesh_t *m, float delta_time);
+
+void mesh_update_matrices(mesh_t *m);
 
 void mesh_set_pose(mesh_t *m, frame_t frame);
 
