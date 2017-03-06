@@ -190,14 +190,13 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
   printf("SCALE: %f %f %f\n", scale[0], scale[1], scale[2]);
 
   mat4x4_identity(m);
-  mat4x4_translate(mat, pos);
+  mat4x4_identity(mat);
+  mat4x4_translate_in_place(mat, pos[0], pos[1], pos[2]);
   mat4x4_mul(m, m, mat);
 
-  //mat4x4_rotate_quat(mat, rot);
-  mat4x4 m2;
-  mat4x4_from_quat(m2, rot);
-  mat4x4_mul(m, m, m2);
+  mat4x4_rotate_quat(mat, rot);
+  mat4x4_mul(m, m, mat);
 
-  //mat4x4_scale_xyz(mat, scale);
-  //mat4x4_mul(m, m, mat);
+  mat4x4_scale_xyz(mat, scale);
+  mat4x4_mul(m, m, mat);
 }
