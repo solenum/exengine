@@ -187,12 +187,12 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 
   mat4x4_identity(m);
 
-  mat4x4_translate(mat, pos);
+  mat4x4_scale_xyz(mat, scale);
   mat4x4_mul(m, m, mat);
 
   mat4x4_rotate_quat(mat, rot);
   mat4x4_mul(m, m, mat);
 
-  mat4x4_scale_xyz(mat, scale);
+  mat4x4_translate(mat, pos);
   mat4x4_mul(m, m, mat);
 }
