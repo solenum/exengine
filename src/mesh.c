@@ -43,8 +43,8 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
   glEnableVertexAttribArray(2);
 
   // tangents
-  glEnableVertexAttribArray(3);
   glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (GLvoid*)(8 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(3);
 
   // color
   glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)));
@@ -77,7 +77,7 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
   // pass bone data
   if (m->bones != NULL) {
     GLuint bone_loc = glGetUniformLocation(shader_program, "u_bone_matrix");
-    glUniformMatrix4fv(bone_loc, m->bones_len, GL_FALSE, &m->skeleton[0][0][0]);
+    glUniformMatrix4fv(bone_loc, m->bones_len, GL_TRUE, &m->skeleton[0][0][0]);
   }
 
   // draw mesh
@@ -123,15 +123,11 @@ void mesh_update(mesh_t *m, float delta_time)
   m->current_time += delta_time;
   m->current_frame = anim->first + current_frame;
 
-  if (m->current_frame > len)
-  {
-    if (anim->loop)
-    {
+  if (m->current_frame > len) {
+    if (anim->loop) {
       m->current_time -= len / anim->rate;
       m->current_frame = anim->first + m->current_time * anim->rate;
-    }
-    else
-    {
+    } else {
       m->current_frame = anim->last;
     }
   }
@@ -190,8 +186,8 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
   printf("SCALE: %f %f %f\n", scale[0], scale[1], scale[2]);
 
   mat4x4_identity(m);
-  mat4x4_identity(mat);
-  mat4x4_translate_in_place(mat, pos[0], pos[1], pos[2]);
+
+  mat4x4_translate(mat, pos);
   mat4x4_mul(m, m, mat);
 
   mat4x4_rotate_quat(mat, rot);

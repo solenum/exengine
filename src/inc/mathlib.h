@@ -518,17 +518,15 @@ static inline void mat4x4_rotate_quat(mat4x4 M, quat q) {
 
   quat a;
   quat_norm(a, q);
+  
   float angle = 2.0f * acosf(a[3]);
-  float s = sqrtf(1 - q[3] * q[3]);
+  float s = sqrtf(1 - a[3] * a[3]);
 
   int i;
-  if (s < FLT_EPSILON)
-  {
+  if (s < FLT_EPSILON) {
     for (i = 0; i < 3; i++)
       axis[i] = a[i];
-  }
-  else
-  {
+  } else {
     for (i = 0; i < 3; i++)
       axis[i] = a[i] / s;
   }
@@ -554,6 +552,7 @@ static inline void mat4x4_rotate_quat(mat4x4 M, quat q) {
   M[2][0] = axis[0] * axis[2] * (1 - ca) + axis[1] * sa;
   M[2][1] = axis[1] * axis[2] * (1 - ca) - axis[0] * sa;
   M[2][2] = axis[2] * axis[2] * (1 - ca) + ca;
+  M[3][3] = 1;
 }
 
 static inline void mat4x4_from_quat(mat4x4 M, quat q)
