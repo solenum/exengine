@@ -116,7 +116,7 @@ mesh_t *iqm_load_model(const char *path)
       iqmanim_t *a    = &animdata[i];
       anims[i].name   = a->name;
       anims[i].first  = a->first_frame;
-      anims[i].last   = a->first_frame+a->num_frames;
+      anims[i].last   = a->num_frames;
       anims[i].rate   = a->framerate;
       anims[i].loop   = a->flags || (1<<0);
     }  
@@ -149,9 +149,6 @@ mesh_t *iqm_load_model(const char *path)
         memcpy(frame[p].translate, &v[0], sizeof(vec3));
         memcpy(frame[p].rotate,    &v[3], sizeof(quat));
         memcpy(frame[p].scale,     &v[7], sizeof(vec3));
-        /*printf("F: %f %f %f \nV: %f %f %f\n", frame[p].translate[0], frame[p].translate[1], frame[p].translate[2], v[0], v[1], v[2]);
-        printf("R: %f %f %f %f \nV: %f %f %f %f\n", frame[p].rotate[0], frame[p].rotate[1], frame[p].rotate[2], frame[p].rotate[3], v[3], v[4], v[5], v[6]);
-        printf("S: %f %f %f \nV: %f %f %f\n", frame[p].scale[0], frame[p].scale[1], frame[p].scale[2], v[7], v[8], v[9]);*/
       }
       frames[i] = frame;
     }
@@ -168,13 +165,13 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   // create the mesh
-  mesh_t *m = mesh_new(vertices, header.num_vertexes, indices, header.num_triangles*3, 2);
+  mesh_t *m = mesh_new(vertices, header.num_vertexes, indices, header.num_triangles*3, 0);
   m->bones      = bones;
   m->anims      = anims;
   m->frames     = frames;
   m->bones_len  = header.num_joints;
   m->anims_len  = header.num_anims;
-  m->frames_len = header.num_frames;
+  m->frames_len = header.num_frames; 
   m->bind_pose  = bind_pose;
   m->pose       = pose;
 
@@ -196,7 +193,7 @@ mesh_t *iqm_load_model(const char *path)
     calc_bone_matrix(mat, b.position, b.rotation, b.scale);
     mat4x4_invert(inv, mat);
 
-    if (b.parent > 0) {
+    if (b.parent >= 0) {
       mat4x4_mul(m->inverse_base[i], m->inverse_base[b.parent], inv);
     } else {
       mat4x4_dup(m->inverse_base[i], inv);
@@ -204,12 +201,9 @@ mesh_t *iqm_load_model(const char *path)
   }
 
   if (m->bind_pose != NULL) {
-    m->current_anim = &m->anims[5];
-    //mesh_set_pose(m, m->frames[0]);
-    //mesh_update_matrices(m);
+    m->current_anim = &m->anims[0];
   }
 
-  //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
   printf("Finished loading IQM model %s\n", path);
 
   free(vertices);

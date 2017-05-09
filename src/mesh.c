@@ -13,6 +13,11 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
   m->current_anim  = NULL;
   m->current_time  = 0.0;
   m->current_frame = 0;
+  m->is_lit = 1;
+  m->scale  = 1.0f;
+
+  memset(m->position, 0, sizeof(vec3));
+  memset(m->rotation, 0, sizeof(vec3));
 
   mat4x4_identity(m->transform);
 
@@ -47,15 +52,15 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
   glEnableVertexAttribArray(3);
 
   // color
-  glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)));
+  glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)));
   glEnableVertexAttribArray(4);
 
   // blend indexes
-  glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(4 * sizeof(GLubyte))));
+  glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(4 * sizeof(GLubyte))));
   glEnableVertexAttribArray(5);
 
   // blend weights
-  glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(8 * sizeof(GLubyte))));
+  glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(8 * sizeof(GLubyte))));
   glEnableVertexAttribArray(6);
 
   glBindVertexArray(0);
@@ -65,17 +70,41 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
 
 void mesh_draw(mesh_t* m, GLuint shader_program)
 {
+  // handle transformations
+  mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
+  mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
+  mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
+  mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
+  mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
+
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m->texture);
+  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 0);
+  
+  GLuint is_lit_loc = glGetUniformLocation(shader_program, "u_is_lit");
+  glUniform1i(is_lit_loc, m->is_lit);
+
+  GLuint is_texture_loc = glGetUniformLocation(shader_program, "u_is_textured");
+  
+  if (m->texture < 1)
+    glUniform1i(is_texture_loc, 0);
+  else
+    glUniform1i(is_texture_loc, 1);
 
   // pass transform matrix to shader
   GLuint transform_loc = glGetUniformLocation(shader_program, "u_model");
   glUniformMatrix4fv(transform_loc, 1, GL_FALSE, m->transform[0]);
   
+  GLuint has_skeleton_loc = glGetUniformLocation(shader_program, "u_has_skeleton");
+  glUniform1i(has_skeleton_loc, 0);
+  
   // pass bone data
   if (m->bones != NULL) {
+    glUniform1i(has_skeleton_loc, 1);
+    
     GLuint bone_loc = glGetUniformLocation(shader_program, "u_bone_matrix");
     glUniformMatrix4fv(bone_loc, m->bones_len, GL_TRUE, &m->skeleton[0][0][0]);
   }
@@ -87,25 +116,9 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-}
 
-void mesh_destroy(mesh_t* m)
-{
-  glDeleteVertexArrays(1, &m->VAO);
-  glDeleteBuffers(1, &m->VBO);
-  glDeleteBuffers(1, &m->EBO);
-
-  if (m->bones != NULL)
-    free(m->bones);
-
-  if (m->anims != NULL)
-    free(m->anims);
-
-  if (m->frames != NULL)
-    free(m->frames);
-
-  free(m);
-  m = NULL;
+  // reset transform
+  mat4x4_identity(m->transform);
 }
 
 void mesh_update(mesh_t *m, float delta_time)
@@ -114,27 +127,35 @@ void mesh_update(mesh_t *m, float delta_time)
 
   if (anim == NULL)
     return;
-
+  
   uint32_t current_frame = m->current_time * anim->rate;
-  uint32_t len = anim->last - anim->first;
+  uint32_t len = anim->last + anim->first;
+  float position = m->current_time * anim->rate;
+  
   if (current_frame > len && !anim->loop)
     return;
 
   m->current_time += delta_time;
   m->current_frame = anim->first + current_frame;
+  int next_frame = m->current_frame+1;
 
-  if (m->current_frame > len) {
+  if (m->current_frame >= len) {
+    //exit(1);
     if (anim->loop) {
       m->current_time -= len / anim->rate;
+      m->current_time  = 0;
       m->current_frame = anim->first + m->current_time * anim->rate;
     } else {
       m->current_frame = anim->last;
     }
   }
 
-  printf("FRAME: %d (%f)\n", m->current_frame, m->current_time);
+  if (next_frame >= len) {
+    next_frame = anim->first;
+  }
 
-  mesh_set_pose(m, m->frames[m->current_frame]);
+  mix_pose(m, m->frames[m->current_frame], m->frames[next_frame], position - (float)floor(position));
+
   mesh_update_matrices(m);
 }
 
@@ -150,7 +171,7 @@ void mesh_update_matrices(mesh_t *m)
     calc_bone_matrix(mat, pose[i].translate, pose[i].rotate, pose[i].scale);
     mat4x4_identity(result);
 
-    if (b.parent > 0) {
+    if (b.parent >= 0) {
       mat4x4_mul(transform[i], mat, transform[b.parent]);
       mat4x4_mul(result, m->inverse_base[i], transform[i]);
     } else {
@@ -177,13 +198,54 @@ void mesh_set_pose(mesh_t *m, frame_t frame)
   }
 }
 
+void mesh_set_anim(mesh_t *m, size_t index)
+{
+  if (index > m->anims_len)
+    return;
+
+  m->current_anim  = &m->anims[index];
+  m->current_time  = 0;
+  m->current_frame = m->current_anim->first;
+}
+
+void mesh_destroy(mesh_t* m)
+{
+  glDeleteVertexArrays(1, &m->VAO);
+  glDeleteBuffers(1, &m->VBO);
+  glDeleteBuffers(1, &m->EBO);
+
+  if (m->bones != NULL)
+    free(m->bones);
+
+  if (m->anims != NULL)
+    free(m->anims);
+
+  if (m->bind_pose != NULL)
+    free(m->bind_pose);
+
+  if (m->pose != NULL)
+    free(m->pose);
+
+  if (m->frames != NULL) {
+    for (int i=0; i<m->frames_len; i++)
+      free(m->frames[i]);
+    
+    free(m->frames);
+  }
+
+  if (m->inverse_base != NULL)
+    free(m->inverse_base);
+
+  if (m->skeleton != NULL)
+    free(m->skeleton);
+
+  free(m);
+  m = NULL;
+}
+
 void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 {
   mat4x4 mat;
-
-  printf("TRANSLATE: %f %f %f\n", pos[0], pos[1], pos[2]);
-  printf("ROTATE: %f %f %f\n", rot[0], rot[1], rot[2]);
-  printf("SCALE: %f %f %f\n", scale[0], scale[1], scale[2]);
 
   mat4x4_identity(m);
 
@@ -195,4 +257,24 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 
   mat4x4_translate(mat, pos);
   mat4x4_mul(m, m, mat);
+}
+
+void mix_pose(mesh_t *m, frame_t a, frame_t b, float weight)
+{
+  weight = MIN(MAX(weight, 0.0f), 1.0f);
+  for (int i=0; i<m->bones_len; i++) {
+    vec3 t;
+    vec3_lerp(t, a[i].translate, b[i].translate, weight);
+
+    quat r;
+    quat_slerp(r, a[i].rotate, b[i].rotate, weight);
+    quat_norm(r, r);
+
+    vec3 s;
+    vec3_lerp(s, a[i].scale, b[i].scale, weight);
+
+    memcpy(m->pose[i].translate,  t, sizeof(vec3));
+    memcpy(m->pose[i].rotate,     r, sizeof(quat));
+    memcpy(m->pose[i].scale,      s, sizeof(vec3));
+  }
 }

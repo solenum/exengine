@@ -11,28 +11,28 @@ typedef struct {
   vec3 position, front, up;
   float yaw, pitch, last_x, last_y, fov, sensitivity;
   mat4x4 view, projection;
-} iso_camera_t;
+  int width, height;
+} fps_camera_t;
 
 /**
- * [iso_camera_new create a new isometric ortho camera]
+ * [fps_camera_new create a new isometric ortho camera]
  * @param  x [x position]
  * @param  y [y position]
  * @param  z [z position]
- * @return   [iso_camera_t pointer]
  */
-iso_camera_t* iso_camera_new(float x, float y, float z, float sensitivity, float fov);
+fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float fov);
 
 /**
  * [iso_cam_resize reset projections etc]
- * @param cam [iso_camera_t pointer]
+ * @param cam [fps_camera_t pointer]
  */
-void iso_camera_resize(iso_camera_t *cam);
+void fps_camera_resize(fps_camera_t *cam);
 
 /**
- * [iso_camera_update update the cams projections etc]
- * @param cam            [iso_camera_t pointer]
+ * [fps_camera_update update the cams projections etc]
+ * @param cam            [fps_camera_t pointer]
  * @param shader_program [shader program to use]
  */
-void iso_camera_update(iso_camera_t *cam, GLuint shader_program);
+void fps_camera_update(fps_camera_t *cam, GLuint shader_program);
 
 #endif // CAMERA_H

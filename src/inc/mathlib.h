@@ -7,6 +7,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define DOT_THRESHOLD 0.9995
+
 static inline float rad(float degrees) {
     return degrees * M_PI / 180.0f;
 }
@@ -78,6 +82,13 @@ static inline void vec3_reflect(vec3 r, vec3 const v, vec3 const n)
   int i;
   for(i=0;i<3;++i)
     r[i] = v[i] - p*n[i];
+}
+
+static inline void vec3_lerp(vec3 v, vec3 a, vec3 b, float weight)
+{
+  vec3_sub(v, b, a);
+  vec3_scale(v, v, weight);
+  vec3_add(v, v, a);
 }
 
 static inline void vec4_mul_cross(vec4 r, vec4 a, vec4 b)
@@ -155,6 +166,16 @@ static inline void mat4x4_scale_xyz(mat4x4 M, vec3 const s)
   M[0][0] = s[0];
   M[1][1] = s[1];
   M[2][2] = s[2];
+}
+static inline void mat4x4_scale_aniso(mat4x4 M, mat4x4 a, float x, float y, float z)
+{
+  int i;
+  vec4_scale(M[0], a[0], x);
+  vec4_scale(M[1], a[1], y);
+  vec4_scale(M[2], a[2], z);
+  for(i = 0; i < 4; ++i) {
+    M[3][i] = a[3][i];
+  }
 }
 static inline void mat4x4_mul(mat4x4 M, mat4x4 a, mat4x4 b)
 {
@@ -512,48 +533,68 @@ v' = v + q.w * t + cross(q.xyz, t)
   vec3_add(r, v, t);
   vec3_add(r, r, u);
 }
-#include <float.h>
-static inline void mat4x4_rotate_quat(mat4x4 M, quat q) {
-  float axis[3] = { 0.0f, 0.0f, 0.0f };
 
-  quat a;
-  quat_norm(a, q);
-  
-  float angle = 2.0f * acosf(a[3]);
-  float s = sqrtf(1 - a[3] * a[3]);
+static inline void quat_lerp(quat q, quat a, quat b, float weight)
+{
+  quat_sub(q, b, a);
+  quat_scale(q, q, weight);
+  quat_add(q, q, a);
+  quat_norm(q, q);
+}
 
-  int i;
-  if (s < FLT_EPSILON) {
-    for (i = 0; i < 3; i++)
-      axis[i] = a[i];
-  } else {
-    for (i = 0; i < 3; i++)
-      axis[i] = a[i] / s;
+static inline void quat_slerp(quat q, quat a, quat b, float weight)
+{
+  float dot = quat_inner_product(b, a);
+
+  quat a2 = {a[0], a[1], a[2], a[3]};
+
+  if (dot < 0) {
+    quat_scale(a2, a, -1);
+    dot = -dot;
   }
 
-  mat4x4_identity(M);
-
-  float l = vec4_len(axis);
-  if (l == 0)
+  if (dot > DOT_THRESHOLD) {
+    quat_lerp(q, a2, b, weight);
     return;
+  }
 
-  for (i = 0; i < 3; i++)
-    axis[i] /= l;
+  dot = MIN(MAX(dot, -1.0f), 1.0f);
 
-  float ca = cosf(angle);
-  float sa = sinf(angle);
+  float theta = acos(dot) * weight;
 
-  M[0][0] = axis[0] * axis[0] * (1 - ca) + ca;
-  M[0][1] = axis[1] * axis[0] * (1 - ca) + axis[2] * sa;
-  M[0][2] = axis[0] * axis[2] * (1 - ca) - axis[1] * sa;
-  M[1][0] = axis[0] * axis[1] * (1 - ca) - axis[2] * sa;
-  M[1][1] = axis[1] * axis[1] * (1 - ca) + ca;
-  M[1][2] = axis[1] * axis[2] * (1 - ca) + axis[0] * sa;
-  M[2][0] = axis[0] * axis[2] * (1 - ca) + axis[1] * sa;
-  M[2][1] = axis[1] * axis[2] * (1 - ca) - axis[0] * sa;
-  M[2][2] = axis[2] * axis[2] * (1 - ca) + ca;
-  M[3][3] = 1;
+  quat c;
+  quat_scale(c, a2, dot);
+  quat_sub(c, b, c);
+  quat_norm(c, c);
+
+  quat_scale(a2, a2, cos(theta));
+  quat_scale(c, c, sin(theta));
+  quat_add(q, a, c);
 }
+
+#include <float.h>
+static inline void mat4x4_rotate_quat(mat4x4 mat, quat q) {
+  float qxx = q[0] * q[0];
+  float qyy = q[1] * q[1];
+  float qzz = q[2] * q[2];
+  float qxz = q[0] * q[2];
+  float qxy = q[0] * q[1];
+  float qyz = q[1] * q[2];
+  float qwx = q[3] * q[0];
+  float qwy = q[3] * q[1];
+  float qwz = q[3] * q[2];
+
+  mat[0][0]  = 1 - 2 * (qyy +  qzz);
+  mat[1][0]  = 2 * (qxy + qwz);
+  mat[2][0]  = 2 * (qxz - qwy);
+  mat[0][1]  = 2 * (qxy - qwz);
+  mat[1][1]  = 1 - 2 * (qxx +  qzz);
+  mat[2][1]  = 2 * (qyz + qwx);
+  mat[0][2]  = 2 * (qxz + qwy);
+  mat[1][2]  = 2 * (qyz - qwx);
+  mat[2][2]  = 1 - 2 * (qxx +  qyy);
+}
+
 
 static inline void mat4x4_from_quat(mat4x4 M, quat q)
 {

@@ -1,11 +1,14 @@
 #include <game.h>
 #include <camera.h>
 #include <texture.h>
+#include <pointlight.h>
+#include <scene.h>
+#include <list.h>
 #include <iqm.h>
 
 float delta_time;
-iso_camera_t *camera;
-texture_t tiles_texture, entities_texture;
+fps_camera_t *camera = NULL;
+scene_t *scene;
 
 void game_init()
 {
@@ -23,22 +26,36 @@ void game_init()
     return;
   }
 
-  // load and compile shaders
-  window_init_shaders("data/shader.vs", "data/shader.fs");
+  // init the scene
+  scene = scene_new();
 
   // init the camera
-  camera = iso_camera_new(0.0f, 0.0f, 0.0f, 0.03f, 75.0f);
-
-  // load textures
-  tiles_texture     = texture_load("data/tiles.png");
-  entities_texture  = texture_load("data/entities_1.png");
+  camera = fps_camera_new(0.0f, 0.0f, 0.0f, 0.03f, 90.0f);
+  scene->fps_camera = camera;
 }
 
 void game_run()
-{
-  // test iqm model
-  mesh_t *m = iqm_load_model("data/cube.iqm");
-  mat4x4_rotate(m->transform, m->transform, 1.0f, 0.0f, 0.0f, rad(-90.0f));
+{ 
+  // test iqm model shit
+  /*mesh_t *m = iqm_load_model("data/cube.iqm");
+  mesh_set_anim(m, 1);
+  m->rotation[0] = -90.0f;
+  m->position[1] = -7.0f;
+  list_add(scene->mesh_list, (void*)m);*/
+
+  mesh_t *m2 = iqm_load_model("data/skelbob.iqm");
+  m2->texture = texture_load("data/san.png").id;
+  m2->scale = 0.3f;
+  m2->rotation[0] = -90.0f;
+  m2->position[1] = -6.0f;
+  m2->position[0] = 10.0f;
+  list_add(scene->mesh_list, (void*)m2);
+
+  mesh_t *m6 = iqm_load_model("data/level.iqm");
+  m6->texture = texture_load("data/o.png").id;
+  m6->rotation[0] = -90.0f;
+  m6->position[1] = -10.0f;
+  list_add(scene->mesh_list, (void*)m6);
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -50,22 +67,31 @@ void game_run()
     delta_time = (float)current_frame_time - (float)last_frame_time;
     last_frame_time = current_frame_time;
 
-    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(display.shader_program);
+    //l->position[0] = 15.0f * sin(glfwGetTime());
+    //l->position[1] = 3 + 5.0f * cos(glfwGetTime());
+    //l->position[2] = 15.0f * cos(glfwGetTime());
+    //memcpy(box->position, l->position, sizeof(vec3));
+    
+    if (keys_down[GLFW_KEY_F]) {
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f, 1.0f, 1.0f}, 100.0f);
+      memcpy(l->position, camera->position, sizeof(vec3));
+      list_add(scene->point_light_list, (void*)l);
+      mesh_t *box  = iqm_load_model("data/box.iqm");
+      box->texture = texture_load("data/o.png").id;
+      box->is_lit  = 0;
+      memcpy(box->position, camera->position, sizeof(vec3));
+      list_add(scene->mesh_list, (void*)box);
+      keys_down[GLFW_KEY_F] = 0;
+    }
 
     /* debug cam movement */
-    if (keys_down[GLFW_KEY_Q])
-      camera->yaw += 1.0f;
-    if (keys_down[GLFW_KEY_E])
-      camera->yaw -= 1.0f;
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
-      vec3_scale(speed, camera->front, 0.2f);
+      vec3_scale(speed, camera->front, 0.3f);
       vec3_add(camera->position, camera->position, speed);
     }
     if (keys_down[GLFW_KEY_S]) {
-      vec3_scale(speed, camera->front, 0.2f);
+      vec3_scale(speed, camera->front, 0.3f);
       vec3_sub(camera->position, camera->position, speed);
     }
     if (keys_down[GLFW_KEY_A]) {
@@ -88,20 +114,18 @@ void game_run()
       break;
     /* ------ */
 
-    iso_camera_update(camera, display.shader_program);
-    mesh_update(m, delta_time);
-    mesh_draw(m, display.shader_program);
+    scene_update(scene, delta_time);
+    scene_draw(scene);
 
     glfwSwapBuffers(display.window);
   }
 
-  printf("Cleaning up\n");
 }
 
 void game_exit()
 {
-  printf("Exiting\n");
+  scene_destroy(scene);
   conf_free();
   window_destroy();
-  free(camera);
+  printf("Exiting\n");
 }

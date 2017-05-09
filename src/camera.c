@@ -2,52 +2,80 @@
 #include <window.h>
 #include <stdlib.h>
 
-iso_camera_t *iso_camera_new(float x, float y, float z, float sensitivity, float fov)
+fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float fov)
 {
-  iso_camera_t* cam = malloc(sizeof(iso_camera_t));
+  fps_camera_t *c = malloc(sizeof(fps_camera_t));
 
-  cam->position[0] = 0.0f+x;
-  cam->position[1] = 0.0f+y;
-  cam->position[2] = 0.0f+z;
+  c->position[0] = 0.0f+x;
+  c->position[1] = 0.0f+y;
+  c->position[2] = 0.0f+z;
   
-  cam->front[0] = 0.0f;
-  cam->front[1] = 0.0f;
-  cam->front[2] = -1.0f;
+  c->front[0] = 0.0f;
+  c->front[1] = 0.0f;
+  c->front[2] = -1.0f;
   
-  cam->up[0] = 0.0f;
-  cam->up[1] = 1.0f;
-  cam->up[2] = 0.0f;
+  c->up[0] = 0.0f;
+  c->up[1] = 1.0f;
+  c->up[2] = 0.0f;
 
-  cam->yaw    = 0.0f;
-  cam->pitch  = 0.0f;
-  cam->fov    = fov;
-  cam->sensitivity = sensitivity;
+  c->yaw    = 0.0f;
+  c->pitch  = 0.0f;
+  c->fov    = fov;
+  c->sensitivity = sensitivity;
 
-  mat4x4_identity(cam->view);
-  mat4x4_identity(cam->projection);
+  c->width  = 0;
+  c->height = 0;
+  c->last_x = 0;
+  c->last_y = 0;
 
-  // setup projection
-  iso_camera_resize(cam);
+  mat4x4_identity(c->view);
+  mat4x4_identity(c->projection);
 
-  return cam;
+  return c;
 }
 
-void iso_camera_resize(iso_camera_t *cam)
+void fps_camera_resize(fps_camera_t *cam)
 {
   int width, height;
   glfwGetFramebufferSize(display.window, &width, &height);
-  mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.1f, 100.0f);
+  
+  if (cam->width != width || cam->height != height) {
+    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.1f, 100.0f);
+    cam->width  = width;
+    cam->height = height;
+  }
 }
 
-void iso_camera_update(iso_camera_t *cam, GLuint shader_program)
+void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
 {
+  fps_camera_resize(cam);
+
+  float x = display.mouse_x;
+  float y = display.mouse_y;
+
+  float offset_x = x - cam->last_x;
+  float offset_y = cam->last_y - y;
+  cam->last_x = x;
+  cam->last_y = y;
+
+  offset_x *= cam->sensitivity;
+  offset_y *= cam->sensitivity;
+
+  cam->yaw += offset_x;
+  cam->pitch += offset_y;
+
+  if(cam->pitch > 89.0f)
+      cam->pitch = 89.0f;
+  if(cam->pitch < -89.0f)
+      cam->pitch = -89.0f;
+
   /* update front vector */
   vec3 front;
   front[0] = cos(rad(cam->yaw)) * cos(rad(cam->pitch));
   front[1] = sin(rad(cam->pitch));
   front[2] = sin(rad(cam->yaw)) * cos(rad(cam->pitch));
   
-  vec3_norm(camera->front, front);
+  vec3_norm(cam->front, front);
 
   vec3 center;
   vec3_add(center, cam->position, cam->front);

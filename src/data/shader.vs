@@ -9,27 +9,51 @@ layout (location = 5) in vec4 in_boneindex;
 layout (location = 6) in vec4 in_boneweights;
 
 out vec3 frag;
-out vec3 normal;
+flat out vec3 normal;
+// out vec3 normal;
 out vec2 uv;
 out vec4 color;
+out float fog;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
+uniform bool u_has_skeleton;
 
 void main() 
 {
-  mat4 skeleton = u_bone_matrix[int(in_boneindex.x)] * in_boneweights.x +
-                  u_bone_matrix[int(in_boneindex.y)] * in_boneweights.y +
-                  u_bone_matrix[int(in_boneindex.z)] * in_boneweights.z +
-                  u_bone_matrix[int(in_boneindex.w)] * in_boneweights.w;
+  mat4 transform = u_model;
+  if (u_has_skeleton == true) {
+    vec4 boneindex = in_boneindex*255.0;
+    vec4 boneweights = in_boneweights*255.0;
+    mat4 skeleton = u_bone_matrix[int(boneindex.x)] * boneweights.x +
+                    u_bone_matrix[int(boneindex.y)] * boneweights.y +
+                    u_bone_matrix[int(boneindex.z)] * boneweights.z +
+                    u_bone_matrix[int(boneindex.w)] * boneweights.w;
 
-  mat4 transform = u_model * skeleton;
+    transform = u_model * skeleton;
+  }
 
-  gl_Position   = u_projection * u_view * transform * vec4(in_position, 1.0); 
-  normal = mat3(transpose(inverse(transform))) * in_normals;
-  frag          = vec3(transform * vec4(in_position, 1.0f));
+  // vertex snapping
+  mat4 mvp = u_projection * u_view * transform;
+  vec4 v = mvp*vec4(in_position, 1.0);
+  vec4 vv = v;
+  vv.xyz = v.xyz / v.w;
+  vv.x = floor(96 * vv.x) / 96;
+  vv.y = floor(64 * vv.y) / 64;
+  vv.xyz *= v.w;
+
+  float dist = length(v);
+
+  float fog_end = 128.0f;
+  float fog_start = 100.0f;
+  float fog_dens = (fog_end - dist) / (fog_end - fog_start);
+  fog = clamp(fog_dens, 0, 1); 
+
+  gl_Position   = vv;
+  normal        = mat3(transpose(inverse(transform))) * in_normals;
+  frag          = vec3(u_model * vec4(in_position, 1.0f));
   uv            = in_uv;
-  color         = in_color;
+  color         = in_color*255.0;
 }

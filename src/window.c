@@ -51,11 +51,6 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   return true;
 }
 
-void window_init_shaders(const char *vertex_path, const char *fragment_path)
-{
-  display.shader_program = shader_compile(vertex_path, fragment_path);
-}
-
 void window_destroy()
 {
   glfwTerminate();
@@ -64,24 +59,10 @@ void window_destroy()
 void resize_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
-  iso_camera_resize(camera);
 }
 
 void mouse_callback(GLFWwindow* window, double x, double y)
 {
-  float offset_x = x - camera->last_x;
-  float offset_y = camera->last_y - y;
-  camera->last_x = x;
-  camera->last_y = y;
-
-  offset_x *= camera->sensitivity;
-  offset_y *= camera->sensitivity;
-
-  camera->yaw += offset_x;
-  camera->pitch += offset_y;
-
-  if(camera->pitch > 89.0f)
-      camera->pitch = 89.0f;
-  if(camera->pitch < -89.0f)
-      camera->pitch = -89.0f;
+  display.mouse_x = x;
+  display.mouse_y = y;
 }

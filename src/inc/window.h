@@ -5,16 +5,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <camera.h>
 #include <game.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <shader.h>
 
 typedef struct {
 	GLFWwindow *window;
-  GLuint shader_program;
+  float mouse_x, mouse_y;
 } window_t;
 
 extern window_t display;
@@ -39,13 +37,6 @@ void resize_callback(GLFWwindow* window, int width, int height);
  * @return        [true on success]
  */
 bool window_init(uint32_t width, uint32_t height, const char *title);
-
-/**
- * [window_init_shaders loads and compiles shaders]
- * @param  vertex_path   [vertex shader file path]
- * @param  fragment_path [fragment shader file path]
- */
-void window_init_shaders(const char *vertex_path, const char *fragment_path);
 
 /**
  * [window_exit clean up any data]

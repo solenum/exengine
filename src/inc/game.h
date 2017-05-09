@@ -12,7 +12,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-extern iso_camera_t *camera;
 extern float delta_time;
 
 /**

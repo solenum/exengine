@@ -15,12 +15,12 @@
  * @param  fragment_path [fragment shader file path]
  * @return               [the shader program GLuint]
  */
-static GLuint shader_compile(const char *vertex_path, const char *fragment_path)
+static GLuint shader_compile(const char *vertex_path, const char *fragment_path, const char *geometry_path)
 {
 	printf("Loading shader files %s and %s\n", vertex_path, fragment_path);
 
 	// load shader files
-	char *vertex_source = NULL, *fragment_source = NULL; 
+	char *vertex_source = NULL, *fragment_source = NULL, *geometry_source = NULL;
 	vertex_source = io_read_file(vertex_path, "r");
 	fragment_source = io_read_file(fragment_path, "r");
 	if (vertex_source == NULL || fragment_source == NULL) {
@@ -35,10 +35,29 @@ static GLuint shader_compile(const char *vertex_path, const char *fragment_path)
 		return 0;
 	}
 
+  if (geometry_path != NULL) {
+    geometry_source = io_read_file(geometry_path, "r");
+
+    if (geometry_source == NULL) {
+      printf("Failed creating geometry shader\n");
+
+      // clean up
+      if (vertex_source != NULL)
+        free(vertex_source);
+      if (fragment_source != NULL)
+        free(fragment_source);
+      if (geometry_source != NULL)
+        free(geometry_source);
+      
+      return 0;      
+    }
+  }
+
 	// create the shaders
-	GLuint vertex_shader, fragment_shader;
+	GLuint vertex_shader, fragment_shader, geometry_shader;
 	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
 
 	// compile the shaders
 	glShaderSource(vertex_shader, 1, (const GLchar**)&vertex_source, NULL);
@@ -64,10 +83,25 @@ static GLuint shader_compile(const char *vertex_path, const char *fragment_path)
 		goto exit;
 	}
 
+  if (geometry_source != NULL) {
+    glShaderSource(geometry_shader, 1, (const GLchar**)&geometry_source, NULL);
+    glCompileShader(geometry_shader);
+
+    success = 0;
+    glGetShaderiv(geometry_shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      glGetShaderInfoLog(geometry_shader, 512, NULL, compile_log);
+      printf("Failed to compile geometry shader\n%s\n", compile_log); 
+      goto exit;
+    }
+  }
+
 	// create shader program
 	GLuint shader_program = glCreateProgram();
 	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
+  glAttachShader(shader_program, fragment_shader);
+  if (geometry_source != NULL)
+	 glAttachShader(shader_program, geometry_shader);
 	glLinkProgram(shader_program);
 
 	success = 0;
@@ -81,8 +115,13 @@ static GLuint shader_compile(const char *vertex_path, const char *fragment_path)
 exit:
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
-	free(vertex_source);
-	free(fragment_source);
+
+  if (vertex_source != NULL)
+    free(vertex_source);
+  if (fragment_source != NULL)
+    free(fragment_source);
+  if (geometry_source != NULL)
+    free(geometry_source);
 
 	printf("Shaders successfully compiled\n");
 
