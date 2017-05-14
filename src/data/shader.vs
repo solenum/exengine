@@ -9,7 +9,7 @@ layout (location = 5) in vec4 in_boneindex;
 layout (location = 6) in vec4 in_boneweights;
 
 out vec3 frag;
-flat out vec3 normal;
+smooth out vec3 normal;
 // out vec3 normal;
 out vec2 uv;
 out vec4 color;
@@ -21,7 +21,7 @@ uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
 uniform bool u_has_skeleton;
 
-void main() 
+void main()
 {
   mat4 transform = u_model;
   if (u_has_skeleton == true) {
@@ -40,20 +40,20 @@ void main()
   vec4 v = mvp*vec4(in_position, 1.0);
   vec4 vv = v;
   vv.xyz = v.xyz / v.w;
-  vv.x = floor(96 * vv.x) / 96;
-  vv.y = floor(64 * vv.y) / 64;
+  vv.x = floor(240 * vv.x) / 240;
+  vv.y = floor(117 *  vv.y) / 117;
   vv.xyz *= v.w;
 
   float dist = length(v);
 
-  float fog_end = 128.0f;
+  float fog_end   = 128.0f;
   float fog_start = 100.0f;
-  float fog_dens = (fog_end - dist) / (fog_end - fog_start);
-  fog = clamp(fog_dens, 0, 1); 
+  float fog_dens  = (fog_end - dist) / (fog_end - fog_start);
+  fog = clamp(fog_dens, 0.0, 1.0); 
 
   gl_Position   = vv;
   normal        = mat3(transpose(inverse(transform))) * in_normals;
   frag          = vec3(u_model * vec4(in_position, 1.0f));
   uv            = in_uv;
-  color         = in_color*255.0;
+  color         = in_color;
 }

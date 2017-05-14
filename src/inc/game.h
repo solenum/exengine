@@ -1,9 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <conf.h>
-#include <window.h>
-#include <mesh.h>
+#include "exengine/exe_conf.h"
+#include "exengine/window.h"
+#include "exengine/mesh.h"
 
 #define GLEW_STATIC
 #include <GL/glew.h>

@@ -1,24 +1,25 @@
-#include <game.h>
-#include <camera.h>
-#include <texture.h>
-#include <pointlight.h>
-#include <scene.h>
-#include <list.h>
-#include <iqm.h>
+#include "exengine/camera.h"
+#include "exengine/texture.h"
+#include "exengine/pointlight.h"
+#include "exengine/scene.h"
+#include "exengine/exe_list.h"
+#include "exengine/iqm.h"
+#include "inc/game.h"
 
 float delta_time;
 fps_camera_t *camera = NULL;
 scene_t *scene;
+conf_t conf;
 
 void game_init()
 {
   // load config
-  conf_load("data/conf.cfg");
+  conf_load(&conf, "data/conf.cfg");
 
   // load config vars
   uint32_t width = 0, height = 0;
-  width = conf_get_int("window_width");
-  height = conf_get_int("window_height");
+  width = conf_get_int(&conf, "window_width");
+  height = conf_get_int(&conf, "window_height");
   
   // init the window and gl
   if (!window_init(width, height, "Underwater Zombie Maniac")) {
@@ -37,25 +38,18 @@ void game_init()
 void game_run()
 { 
   // test iqm model shit
-  /*mesh_t *m = iqm_load_model("data/cube.iqm");
-  mesh_set_anim(m, 1);
+  model_t *m = iqm_load_model(scene, "data/cube.iqm");
+  mesh_set_anim(m->mesh_list->data, 1);
   m->rotation[0] = -90.0f;
-  m->position[1] = -7.0f;
-  list_add(scene->mesh_list, (void*)m);*/
+  m->position[1] = -10.0f;
+  list_add(scene->model_list, m);
 
-  mesh_t *m2 = iqm_load_model("data/skelbob.iqm");
-  m2->texture = texture_load("data/san.png").id;
-  m2->scale = 0.3f;
-  m2->rotation[0] = -90.0f;
-  m2->position[1] = -6.0f;
-  m2->position[0] = 10.0f;
-  list_add(scene->mesh_list, (void*)m2);
-
-  mesh_t *m6 = iqm_load_model("data/level.iqm");
-  m6->texture = texture_load("data/o.png").id;
+  model_t *m6 = iqm_load_model(scene, "data/level.iqm");
+  mesh_t *m7 = m6->mesh_list->data;
+  mesh_t *m8 = m6->mesh_list->next->data;
   m6->rotation[0] = -90.0f;
   m6->position[1] = -10.0f;
-  list_add(scene->mesh_list, (void*)m6);
+  list_add(scene->model_list, m6);
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -66,21 +60,18 @@ void game_run()
     double current_frame_time = glfwGetTime();
     delta_time = (float)current_frame_time - (float)last_frame_time;
     last_frame_time = current_frame_time;
-
-    //l->position[0] = 15.0f * sin(glfwGetTime());
-    //l->position[1] = 3 + 5.0f * cos(glfwGetTime());
-    //l->position[2] = 15.0f * cos(glfwGetTime());
-    //memcpy(box->position, l->position, sizeof(vec3));
     
     if (keys_down[GLFW_KEY_F]) {
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f, 1.0f, 1.0f}, 100.0f);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){50.0f, 50.0f, 50.0f}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
-      list_add(scene->point_light_list, (void*)l);
-      mesh_t *box  = iqm_load_model("data/box.iqm");
-      box->texture = texture_load("data/o.png").id;
-      box->is_lit  = 0;
-      memcpy(box->position, camera->position, sizeof(vec3));
-      list_add(scene->mesh_list, (void*)box);
+      list_add(scene->point_light_list, l);
+
+      model_t *m = iqm_load_model(scene, "data/bulb.iqm");
+      m->rotation[0] = -90.0f;
+      m->is_lit = 0;
+      memcpy(m->position, camera->position, sizeof(vec3));
+      list_add(scene->model_list, m);
+
       keys_down[GLFW_KEY_F] = 0;
     }
 
@@ -125,7 +116,7 @@ void game_run()
 void game_exit()
 {
   scene_destroy(scene);
-  conf_free();
+  conf_free(&conf);
   window_destroy();
   printf("Exiting\n");
 }
