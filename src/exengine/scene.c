@@ -3,6 +3,7 @@
 #include "scene.h"
 #include "model.h"
 #include "pointlight.h"
+#include "dirlight.h"
 #include "framebuffer.h"
 
 scene_t* scene_new()
@@ -14,6 +15,7 @@ scene_t* scene_new()
   // init lists
   s->model_list       = list_new();
   s->point_light_list = list_new();
+  s->dir_light_list   = list_new();
   s->texture_list     = list_new();
 
   s->fps_camera = NULL;
@@ -21,8 +23,9 @@ scene_t* scene_new()
   // init framebuffers etc
   framebuffer_init();
 
-  // init point lights
+  // init lights
   point_light_init();
+  dir_light_init();
 
   return s;
 }
@@ -59,6 +62,30 @@ void scene_draw(scene_t *s)
       break;
   }
 
+  // render dirlight depth maps
+  glCullFace(GL_BACK);
+  n = s->dir_light_list;
+  while (n->data != NULL) {
+    dir_light_t *l = n->data;
+
+    if (l->dynamic || l->update) {
+
+      if (s->fps_camera != NULL) {
+        memcpy(l->cposition, s->fps_camera->position, sizeof(vec3));
+        l->cposition[1] = 0.0f;
+      }
+
+      dir_light_begin(l);
+
+      scene_render_models(s, l->shader);
+    }
+
+    if (n->next != NULL)
+      n = n->next;
+    else
+      break;
+  }
+
   // first rendering pass
   framebuffer_first();
 
@@ -66,31 +93,54 @@ void scene_draw(scene_t *s)
   glUseProgram(s->shader);
 
   // update camera
-  if (s->fps_camera != NULL)
+  if (s->fps_camera != NULL) {
     fps_camera_update(s->fps_camera, s->shader);
+    fps_camera_draw(s->fps_camera, s->shader);
+  }
 
-  // render ambient pass
-  glUniform1i(glGetUniformLocation(s->shader, "u_ambient_pass"), 1);
+  // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
-  scene_render_models(s, s->shader);
-
-  // render point lights
-  glEnable(GL_BLEND);
   
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  glUniform1i(glGetUniformLocation(s->shader, "u_ambient_pass"), 0);
-  n = s->point_light_list;
-  while (n->data != NULL) {
-    point_light_t *l = n->data;
-    point_light_draw(l, s->shader);
+  list_node_t *pl_list = s->point_light_list;
+  list_node_t *dl_list = s->dir_light_list;
+  while (pl_list != NULL || dl_list != NULL) {
+    // point light
+    if (pl_list != NULL && pl_list->data != NULL) {
+      point_light_t *pl = pl_list->data;
+      point_light_draw(pl, s->shader);
+      glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 1);
+    } else {
+      glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 0);
+    }
+
+    // dir light
+    if (dl_list != NULL && dl_list->data != NULL) {
+      dir_light_t *dl = dl_list->data;
+      dir_light_draw(dl, s->shader);
+      glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 1);
+    } else {
+      glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 0);
+    }
 
     // render models
     scene_render_models(s, s->shader);
+
+    // enable blending for second pass onwards
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     
-    if (n->next != NULL)
-      n = n->next;
+    if (dl_list != NULL && dl_list->next != NULL)
+      dl_list = dl_list->next;
     else
+      dl_list = NULL;
+
+    if (pl_list != NULL && pl_list->next != NULL)
+      pl_list = pl_list->next;
+    else
+      pl_list = NULL;
+
+    if (pl_list == NULL && dl_list == NULL)
       break;
   }
   glDisable(GL_BLEND);

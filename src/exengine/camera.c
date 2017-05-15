@@ -80,7 +80,10 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
   vec3 center;
   vec3_add(center, cam->position, cam->front);
   mat4x4_look_at(cam->view, cam->position, center, cam->up);
+}
 
+void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)
+{
   // send vars to shader
   GLuint projection_location = glGetUniformLocation(shader_program, "u_projection");
   glUniformMatrix4fv(projection_location, 1, GL_FALSE, cam->projection[0]);

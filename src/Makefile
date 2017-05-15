@@ -9,14 +9,14 @@ ODIR 		=obj
 CFLAGS 	=-std=c99 -g -lm -lGL -lGLEW -lglfw -I.
 # -- Files -- #
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
-texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h model.h
+texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h model.h dirlight.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 _DEPS		=game.h
 DEPS		=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ		=main.o game.o window.o mesh.o camera.o texture.o iqm.o \
-framebuffer.o pointlight.o scene.o model.o
+framebuffer.o pointlight.o scene.o model.o dirlight.o
 OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: files uzm

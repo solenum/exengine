@@ -10,9 +10,9 @@ layout (location = 6) in vec4 in_boneweights;
 
 out vec3 frag;
 smooth out vec3 normal;
-// out vec3 normal;
 out vec2 uv;
 out vec4 color;
+out vec4 frag_light_pos;
 out float fog;
 
 uniform mat4 u_model;
@@ -20,6 +20,7 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
 uniform bool u_has_skeleton;
+uniform mat4 u_light_transform;
 
 void main()
 {
@@ -51,9 +52,10 @@ void main()
   float fog_dens  = (fog_end - dist) / (fog_end - fog_start);
   fog = clamp(fog_dens, 0.0, 1.0); 
 
-  gl_Position   = vv;
-  normal        = mat3(transpose(inverse(transform))) * in_normals;
-  frag          = vec3(u_model * vec4(in_position, 1.0f));
-  uv            = in_uv;
-  color         = in_color;
+  gl_Position    = vv;
+  normal         = mat3(transpose(inverse(transform))) * in_normals;
+  frag           = vec3(u_model * vec4(in_position, 1.0f));
+  uv             = in_uv;
+  color          = in_color;
+  frag_light_pos = u_light_transform * vec4(frag, 1.0);
 }

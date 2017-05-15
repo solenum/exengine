@@ -30,7 +30,7 @@ void model_update(model_t *m, float delta_time)
     memcpy(mesh->position, m->position, sizeof(vec3));
     memcpy(mesh->rotation, m->rotation, sizeof(vec3));
     mesh->scale  = m->scale;
-    mesh->is_lit = m->is_lit; 
+    mesh->is_lit = m->is_lit;
 
     if (n->next != NULL)
       n = n->next;
@@ -44,6 +44,7 @@ void model_update(model_t *m, float delta_time)
   if (anim == NULL)
     return;
   
+  // get current frame
   uint32_t current_frame = m->current_time * anim->rate;
   uint32_t len = anim->last + anim->first;
   float position = m->current_time * anim->rate;
@@ -51,12 +52,13 @@ void model_update(model_t *m, float delta_time)
   if (current_frame > len && !anim->loop)
     return;
 
+  // increase frame time
   m->current_time += delta_time;
   m->current_frame = anim->first + current_frame;
   int next_frame = m->current_frame+1;
 
+  // check frame bounds
   if (m->current_frame >= len) {
-    //exit(1);
     if (anim->loop) {
       m->current_time -= len / anim->rate;
       m->current_time  = 0;
@@ -70,6 +72,7 @@ void model_update(model_t *m, float delta_time)
     next_frame = anim->first;
   }
 
+  // update skeleton matrices
   mix_pose(m, m->frames[m->current_frame], m->frames[next_frame], position - (float)floor(position));
 
   model_update_matrices(m);

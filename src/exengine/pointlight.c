@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SHADOW_MAP_SIZE 256
+#define SHADOW_MAP_SIZE 128
 #define POINT_FAR_PLANE 50
 mat4x4 point_shadow_projection;
 GLuint point_light_shader;
@@ -12,6 +12,9 @@ void point_light_init()
 {
   // compile the shaders
   point_light_shader = shader_compile("data/pointfbo.vs", "data/pointfbo.fs", "data/pointfbo.gs");
+
+  float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
+  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 1.0f, POINT_FAR_PLANE);
 }
 
 point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
@@ -37,7 +40,7 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
   GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
   glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, border);  
 
-  // only want the depth buffer 
+  // only want the depth buffer
   glGenFramebuffers(1, &l->depth_map_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, l->depth_map_fbo);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, l->depth_map, 0);
@@ -57,9 +60,6 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
 void point_light_begin(point_light_t *l)
 {
   l->update = 0;
-  
-  float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 1.0f, POINT_FAR_PLANE);
 
   // dont ask
   vec3 temp;

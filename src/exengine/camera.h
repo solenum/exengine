@@ -35,4 +35,6 @@ void fps_camera_resize(fps_camera_t *cam);
  */
 void fps_camera_update(fps_camera_t *cam, GLuint shader_program);
 
+void fps_camera_draw(fps_camera_t *cam, GLuint shader_program);
+
 #endif // CAMERA_H
