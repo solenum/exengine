@@ -9,7 +9,7 @@ layout (location = 5) in vec4 in_boneindex;
 layout (location = 6) in vec4 in_boneweights;
 
 out vec3 frag;
-smooth out vec3 normal;
+flat out vec3 normal;
 out vec2 uv;
 out vec4 color;
 out vec4 frag_light_pos;

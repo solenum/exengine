@@ -52,7 +52,7 @@ void game_run()
   m6->position[1] = -10.0f;
   list_add(scene->model_list, m6);
 
-  dir_light_t *l = dir_light_new((vec3){16.0f, 50.0f, 16.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  dir_light_t *l = dir_light_new((vec3){16.0f, 50.0f, 16.0f}, (vec3){0.8f, 0.8f, 0.8f}, 1);
   list_add(scene->dir_light_list, l);
 
   double last_frame_time = glfwGetTime();

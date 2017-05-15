@@ -1,7 +1,7 @@
 #version 330 core
 
 in vec3 frag;
-smooth in vec3 normal;
+flat in vec3 normal;
 in vec2 uv;
 in vec4 color;
 in vec4 frag_light_pos;
@@ -30,6 +30,7 @@ uniform bool u_point_active;
 struct dir_light {
   vec3 position;
   vec3 color;
+  float far;
 };
 uniform dir_light u_dir_light;
 uniform sampler2D u_dir_depth; 
@@ -55,7 +56,8 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float closest_depth = texture(depth, frag_to_light).r;
   closest_depth      *= u_far_plane;
   float current_depth = length(frag_to_light);
-  float bias          = tan(acos(diff));
+  float costheta = clamp(dot(norm, normalize(l.position)), 0.0, 1.0);
+  float bias          = 0.8*tan(acos(costheta));
   bias                = clamp(bias, 0.0, 0.8);
   float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
   return vec3((1.0 - shadow) * diffuse);
@@ -76,7 +78,11 @@ vec3 calc_dir_light(dir_light l, sampler2D depth)
   vec3 frag_to_light  = frag - l.position;
   float closest_depth = texture(depth, proj.xy).r;
   float current_depth = proj.z;
-  float bias          = max(0.015 * (1.0 - dot(norm, light_dir)), 0.0);
+  closest_depth *= l.far;
+  current_depth *= l.far;
+  float costheta = clamp(dot(norm, normalize(l.position)), 0.0, 1.0);
+  float bias          = 1.0*tan(acos(costheta));
+  bias                = clamp(bias, 0.0, 1.0);
   float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
 
   return vec3((1.0 - shadow) * diffuse);

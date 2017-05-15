@@ -83,6 +83,7 @@ void dir_light_draw(dir_light_t *l, GLuint shader)
   glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0 ]);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, l->position);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);
+  glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
 }
 
 void dir_light_destroy(dir_light_t *l)
