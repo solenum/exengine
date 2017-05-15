@@ -166,6 +166,43 @@ model_t *iqm_load_model(scene_t *scene, const char *path)
 
   // create the model
   model_t *model = model_new();
+  model->bones       = bones;
+  model->anims       = anims;
+  model->frames      = frames;
+  model->bones_len   = header.num_joints;
+  model->anims_len   = header.num_anims;
+  model->frames_len  = header.num_frames; 
+  model->bind_pose   = bind_pose;
+  model->pose        = pose;
+
+  // calc inverse base pose
+  model->inverse_base = NULL;
+  model->skeleton     = NULL;
+  for (int i=0; i<header.num_joints; i++) {
+    if (header.ofs_joints < 1)
+      break;
+
+    if (!i) {
+      model->inverse_base = malloc(sizeof(mat4x4)*header.num_joints);
+      model->skeleton = malloc(sizeof(mat4x4)*header.num_joints);
+    }
+
+    bone_t b = model->bones[i];
+
+    mat4x4 mat, inv;
+    calc_bone_matrix(mat, b.position, b.rotation, b.scale);
+    mat4x4_invert(inv, mat);
+
+    if (b.parent >= 0) {
+      mat4x4_mul(model->inverse_base[i], model->inverse_base[b.parent], inv);
+    } else {
+      mat4x4_dup(model->inverse_base[i], inv);
+    }
+  }
+
+  if (model->bind_pose != NULL) {
+    model->current_anim = &model->anims[0];
+  }
 
   // add the meshes to the model
   char *file_text = header.ofs_text ? (char *)&data[header.ofs_text] : "";
@@ -185,43 +222,6 @@ model_t *iqm_load_model(scene_t *scene, const char *path)
     index_offset += ++offset;
     
     mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
-    m->bones       = bones;
-    m->anims       = anims;
-    m->frames      = frames;
-    m->bones_len   = header.num_joints;
-    m->anims_len   = header.num_anims;
-    m->frames_len  = header.num_frames; 
-    m->bind_pose   = bind_pose;
-    m->pose        = pose;
-
-    // calc inverse base pose
-    m->inverse_base = NULL;
-    m->skeleton     = NULL;
-    for (int i=0; i<header.num_joints; i++) {
-      if (header.ofs_joints < 1)
-        break;
-
-      if (!i) {
-        m->inverse_base = malloc(sizeof(mat4x4)*header.num_joints);
-        m->skeleton = malloc(sizeof(mat4x4)*header.num_joints);
-      }
-
-      bone_t b = m->bones[i];
-
-      mat4x4 mat, inv;
-      calc_bone_matrix(mat, b.position, b.rotation, b.scale);
-      mat4x4_invert(inv, mat);
-
-      if (b.parent >= 0) {
-        mat4x4_mul(m->inverse_base[i], m->inverse_base[b.parent], inv);
-      } else {
-        mat4x4_dup(m->inverse_base[i], inv);
-      }
-    }
-
-    if (m->bind_pose != NULL) {
-      m->current_anim = &m->anims[0];
-    }
 
     // load textures
     char *tex_name = &file_text[meshes[i].material];
@@ -233,9 +233,6 @@ model_t *iqm_load_model(scene_t *scene, const char *path)
     // push mesh into mesh list
     list_add(model->mesh_list, m);
   }
-
-  // for (int i=0; i<header.num_meshes; i++)
-    // printf("material %s\n", &str[meshes[i].material]);
 
   printf("Finished loading IQM model %s\n", path);
 

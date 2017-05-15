@@ -39,7 +39,7 @@ void game_run()
 { 
   // test iqm model shit
   model_t *m = iqm_load_model(scene, "data/cube.iqm");
-  mesh_set_anim(m->mesh_list->data, 1);
+  model_set_anim(m, 1);
   m->rotation[0] = -90.0f;
   m->position[1] = -10.0f;
   list_add(scene->model_list, m);

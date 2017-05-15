@@ -45,7 +45,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float closest_depth = texture(depth, frag_to_light).r;
   closest_depth      *= u_far_plane;
   float current_depth = length(frag_to_light);
-  float bias          = 0.3*tan(acos(diff));
+  float bias          = 0.4*tan(acos(diff));
   bias                = clamp(bias, 0.0, 0.4);
   float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
   return vec3((1.0 - shadow) * diffuse);
