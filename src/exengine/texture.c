@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-texture_t* texture_load(const char *file)
+texture_t* texture_load(const char *file, int get_data)
 {
   // prepend file directory
   size_t len = strlen(TEXTURE_LOC);
@@ -18,6 +18,28 @@ texture_t* texture_load(const char *file)
   uint8_t *data = stbi_load(file_dir, &w, &h, &n, 4);
   if (data == NULL) {
     printf("Could not load texture %s\n", file_dir);
+    return NULL;
+  }
+
+  // create texture obj
+  texture_t *t = malloc(sizeof(texture_t));
+  t->width  = w;
+  t->height = h;
+  strncpy(t->name, file, 32);
+  
+  // do we want the data?
+  if (get_data == 1) {
+    // we force 4 attributes
+    size_t size = (w*h)*4;
+    
+    // copy image data
+    t->data = malloc(size);
+    memcpy(t->data, data, size);
+    
+    // free stbi data
+    stbi_image_free(data);
+    
+    return t;
   }
 
   // create a gl texture
@@ -34,15 +56,13 @@ texture_t* texture_load(const char *file)
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-  // unset texture and clean up data
+  // unset texture
   glBindTexture(GL_TEXTURE_2D, 0);
-  stbi_image_free(data);
+  
+  t->id = texture;
 
-  texture_t *t = malloc(sizeof(texture_t));
-  t->id      = texture;
-  t->width   = w;
-  t->height  = h;
-  strncpy(t->name, file, 32);
+  // clean up data
+  stbi_image_free(data);
 
   return t;
 }

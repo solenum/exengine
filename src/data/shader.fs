@@ -104,18 +104,15 @@ void main()
     diffuse = p + d;
 
     if (u_is_textured) {
-      out_color = vec4(diffuse * vec3(texture(u_texture, uv)), 1.0f) * fog;
+      out_color = vec4(diffuse * vec3(texture(u_texture, uv)), 1.0f);
     } else {
       out_color = vec4(diffuse * color.rgb, 1.0f);
     }
   } else {
     if (u_is_textured) {
-      out_color = texture(u_texture, uv) * fog;
+      out_color = texture(u_texture, uv);
     } else {
       out_color = vec4(color.rgb, 1.0f);
     }
   }
-  
-  // out_color = vec4(1.0f);
-  //out_color = vec4(vec3(closest_depth / u_far_plane), 1.0);
 }

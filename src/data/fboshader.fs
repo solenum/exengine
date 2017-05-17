@@ -102,5 +102,5 @@ void main()
 {
   color = texture(u_texture, uv);
   vec4 dither = dither8x8(uv * textureSize(u_texture, 0).xy, color);
-  color = mix(color, dither, 0.2f);
+  color = mix(color, dither, 0.1f);
 }

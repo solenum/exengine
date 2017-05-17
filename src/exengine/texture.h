@@ -14,6 +14,7 @@ typedef struct {
   GLuint id;
   int width, height;
   char name[32];
+  uint8_t *data;
 } texture_t;
 
 /**
@@ -21,6 +22,6 @@ typedef struct {
  * @param  file [file path string]
  * @return      [texture var]
  */
-texture_t* texture_load(const char *file);
+texture_t* texture_load(const char *file, int get_data);
 
 #endif // TEXTURE_H

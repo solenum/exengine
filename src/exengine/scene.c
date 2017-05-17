@@ -27,6 +27,10 @@ scene_t* scene_new()
   point_light_init();
   dir_light_init();
 
+  // init skybox
+  s->skybox = NULL;
+  skybox_init();
+
   return s;
 }
 
@@ -89,19 +93,34 @@ void scene_draw(scene_t *s)
   // first rendering pass
   framebuffer_first();
 
-  // render everything
+  // render skybox
+  if (s->skybox != NULL) {
+    glDisable(GL_BLEND);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(s->skybox->shader);
+
+    if (s->fps_camera != NULL)
+      fps_camera_draw(s->fps_camera, s->skybox->shader);
+    
+    skybox_draw(s->skybox);
+  }
+
+  // render scene
   glUseProgram(s->shader);
+  // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // update camera
   if (s->fps_camera != NULL) {
     fps_camera_update(s->fps_camera, s->shader);
     fps_camera_draw(s->fps_camera, s->shader);
   }
-
+  
   // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
-  
+
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;
   while (pl_list != NULL || dl_list != NULL) {
@@ -183,7 +202,7 @@ GLuint scene_add_texture(scene_t *s, const char *file)
   }
 
   // doesnt exist, create texture
-  texture_t *t = texture_load(file);
+  texture_t *t = texture_load(file, 0);
   if (t != NULL) {
     // store it in the list
     list_add(s->texture_list, (void*)t);
@@ -246,6 +265,11 @@ void scene_destroy(scene_t *s)
   // cleanup cameras
   if (s->fps_camera != NULL)
     free(s->fps_camera);
+
+  // cleanup skybox
+  if (s->skybox != NULL) {
+    skybox_destroy(s->skybox);
+  }
 
   // cleanup framebuffers
   framebuffer_destroy();

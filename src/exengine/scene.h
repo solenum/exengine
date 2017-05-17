@@ -4,6 +4,7 @@
 #include "exe_list.h"
 #include "texture.h"
 #include "shader.h"
+#include "skybox.h"
 #include "camera.h"
 
 #define GLEW_STATIC
@@ -15,6 +16,7 @@ typedef struct {
   list_t *model_list, *texture_list;
   list_t *point_light_list, *dir_light_list;
   fps_camera_t *fps_camera;
+  skybox_t *skybox;
 } scene_t;
 
 scene_t* scene_new();
