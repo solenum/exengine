@@ -145,6 +145,9 @@ void model_destroy(model_t *m)
   if (m->skeleton != NULL)
     free(m->skeleton);
 
+  if (m->vertices != NULL)
+    free(m->vertices);
+
   // free model
   free(m);
 }

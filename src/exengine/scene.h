@@ -17,6 +17,7 @@ typedef struct {
   list_t *point_light_list, *dir_light_list;
   fps_camera_t *fps_camera;
   skybox_t *skybox;
+  vec3 gravity;
 } scene_t;
 
 scene_t* scene_new();

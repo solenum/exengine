@@ -43,6 +43,10 @@ static inline float vec##n##_mul_inner(vec##n const a, vec##n const b) \
     p += b[i]*a[i]; \
   return p; \
 } \
+static inline float vec##n##_len2(vec##n const v) \
+{ \
+  return vec##n##_mul_inner(v,v); \
+} \
 static inline float vec##n##_len(vec##n const v) \
 { \
   return sqrtf(vec##n##_mul_inner(v,v)); \
@@ -89,6 +93,26 @@ static inline void vec3_lerp(vec3 v, vec3 a, vec3 b, float weight)
   vec3_sub(v, b, a);
   vec3_scale(v, v, weight);
   vec3_add(v, v, a);
+}
+
+static inline void vec3_div(vec3 v, vec3 a, vec3 b)
+{
+  int i;
+  for (i=0;i<3;i++)
+    v[i] = a[i] / b[i];
+}
+
+static inline void vec3_mul(vec3 v, vec3 a, vec3 b)
+{
+  int i;
+  for (i=0;i<3;i++)
+    v[i] = a[i] * b[i];
+}
+
+static inline void vec3_trim(vec3 v, vec3 a, float len)
+{
+  vec3_scale(v, a, MIN(vec3_len(a), len));
+  vec3_norm(v, v);
 }
 
 static inline void vec4_mul_cross(vec4 r, vec4 a, vec4 b)

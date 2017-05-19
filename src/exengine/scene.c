@@ -31,6 +31,9 @@ scene_t* scene_new()
   s->skybox = NULL;
   skybox_init();
 
+  // init physics shiz
+  memset(s->gravity, 0, sizeof(vec3));
+
   return s;
 }
 
@@ -123,7 +126,11 @@ void scene_draw(scene_t *s)
 
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;
+  int ambient_pass = 1;
   while (pl_list != NULL || dl_list != NULL) {
+    glUniform1i(glGetUniformLocation(s->shader, "u_ambient_pass"), ambient_pass);
+    ambient_pass = 0;
+    
     // point light
     if (pl_list != NULL && pl_list->data != NULL) {
       point_light_t *pl = pl_list->data;

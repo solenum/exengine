@@ -43,6 +43,9 @@ typedef struct {
   anim_t *anims;
   frame_t *frames, bind_pose, pose;
   size_t bones_len, anims_len, frames_len;
+
+  vertex_t *vertices;
+  size_t num_vertices;
 } model_t;
 
 model_t* model_new();

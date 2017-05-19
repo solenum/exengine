@@ -15,6 +15,7 @@ uniform bool u_is_textured;
 uniform bool u_is_lit;
 uniform vec3 u_view_position;
 uniform float u_far_plane;
+uniform bool u_ambient_pass;
 
 /* point light */
 struct point_light {
@@ -93,6 +94,15 @@ void main()
   if (u_is_lit) {
     vec3 diffuse = vec3(0.0f);
 
+    // ambient lighting
+    if (u_ambient_pass) {
+      diffuse         = vec3(0.05f);
+      vec3 norm       = normalize(normal);
+      vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
+      float diff      = max(dot(light_dir, norm), 0.0);
+      diffuse        += vec3(diff * 0.1f);
+    }
+
     vec3 p = vec3(0.0f);
     vec3 d = vec3(0.0f);
     
@@ -101,7 +111,7 @@ void main()
     if (u_point_active)
       p = calc_point_light(u_point_light, u_point_depth);
 
-    diffuse = p + d;
+    diffuse += p + d;
 
     if (u_is_textured) {
       out_color = vec4(diffuse * vec3(texture(u_texture, uv)), 1.0f);

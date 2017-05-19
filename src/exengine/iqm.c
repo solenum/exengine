@@ -2,7 +2,7 @@
 #include "exe_io.h"
 #include <string.h>
 
-model_t *iqm_load_model(scene_t *scene, const char *path)
+model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
 {
   printf("Loading IQM model file %s\n", path);
 
@@ -174,6 +174,14 @@ model_t *iqm_load_model(scene_t *scene, const char *path)
   model->frames_len  = header.num_frames; 
   model->bind_pose   = bind_pose;
   model->pose        = pose;
+  model->vertices    = NULL;
+
+  // store vertices
+  if (keep_vertices) {
+    model->vertices = malloc(sizeof(vertex_t)*(header.num_vertexes));
+    memcpy(model->vertices, vertices, sizeof(vertex_t)*(header.num_vertexes));
+    model->num_vertices = header.num_vertexes;
+  }
 
   // calc inverse base pose
   model->inverse_base = NULL;
@@ -219,7 +227,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path)
       if (ind[k] > offset)
         offset = ind[k];
     }
-    index_offset += ++offset;
+    index_offset  += ++offset;
     
     mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 

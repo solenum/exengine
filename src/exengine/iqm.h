@@ -93,7 +93,7 @@ typedef struct {
   uint first_triangle, num_triangles;
 } iqmmesh_t;
 
-model_t *iqm_load_model(scene_t *scene, const char *path);
+model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices);
 
 static inline uint get_uint(uint8_t *data) { 
   return (data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24));
