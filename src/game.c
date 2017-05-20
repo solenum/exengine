@@ -32,7 +32,7 @@ void game_init()
 
   // init the scene
   scene = scene_new();
-  memcpy(scene->gravity, (vec3){0.0f, 0.0f, 0.0f}, sizeof(vec3));
+  memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
   camera = fps_camera_new(0.0f, 0.0f, 0.0f, 0.03f, 90.0f);
@@ -67,7 +67,7 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
+  entity_t *e = entity_new(scene, (vec3){1.0f, 3.0f, 1.0f});
   e->position[1] = 10.0f;
 
   double last_frame_time = glfwGetTime();
@@ -103,11 +103,13 @@ void game_run()
     if (keys_down[GLFW_KEY_W]) {
       vec3_scale(speed, camera->front, 0.2f);
       // vec3_add(camera->position, camera->position, speed);
+      speed[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, speed);
     }
     if (keys_down[GLFW_KEY_S]) {
       vec3_scale(speed, camera->front, 0.2f);
       // vec3_sub(camera->position, camera->position, speed);
+      speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, speed);
     }
     if (keys_down[GLFW_KEY_A]) {
@@ -115,12 +117,14 @@ void game_run()
       vec3_norm(side, side);
       vec3_scale(side, side, 0.1f);
       // vec3_sub(camera->position, camera->position, side);
+      speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_D]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
       vec3_scale(side, side, 0.1f);
+      speed[1] = 0.0f;
       // vec3_add(camera->position, camera->position, side);
       vec3_add(e->velocity, e->velocity, side);
     }

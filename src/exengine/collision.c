@@ -48,12 +48,14 @@ int is_front_facing(plane_t *plane, const vec3 direction)
 {
   double f = vec3_mul_inner(plane->normal, direction);
   
-  return (f >= 0);
+  if (f >= 0)
+    return 0;
+
+  return 1;
 }
 
 int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3)
 {
-  /*
   vec3 e10, e20;
   vec3_sub(e10, p2, p1);
   vec3_sub(e20, p3, p1);
@@ -71,32 +73,7 @@ int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, cons
   float y = (e * a) - (d * d);
   float z = x + y - ac_bb;
 
-  return (( in(z)& ~(in(x)|in(y)) ) & 0x80000000);*/
-
-  vec3 u, v, w, vw, vu, uw, uv;
-  vec3_sub(u, p2, p1);
-  vec3_sub(v, p3, p1);
-  vec3_sub(w, point, p1);
-  
-  vec3_mul_cross(vw, v, w);
-  vec3_mul_cross(vu, v, u);
-
-  if (vec3_mul_inner(vw, vu) < 0.0f) {
-    return 0;
-  }
-
-  vec3_mul_cross(uw, u, w);
-  vec3_mul_cross(uv, u, v);
-
-  if (vec3_mul_inner(uw, uv) < 0.0f) {
-    return 0;
-  }
-
-  float d = vec3_len(uv);
-  float r = vec3_len(vw) / d;
-  float t = vec3_len(uw) / d;
-
-  return (r + t <= 1);
+  return (( signbit(z)& ~(signbit(x)|signbit(y)) ) & 0x80000000);
 }
 
 int get_lowest_root(float a, float b, float c, float max, float *root)
@@ -142,8 +119,8 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
   // only check front facing triangles
   // there be something wrong with this!
-  if (is_front_facing(&plane, packet->e_norm_velocity))
-    return;
+  // if (!is_front_facing(&plane, packet->e_norm_velocity))
+    // return;
   
   // get interval of plane intersection
   double t0, t1;
@@ -157,14 +134,14 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
   // if sphere is moving parrallel to plane
   if (fabs(normal_dot_vel) < FLT_EPSILON) {
-    if (fabs(signed_dist_to_plane) >= 1.0f) {
+    if (fabs(signed_dist_to_plane) >= 1.0) {
       // no collision possible
       return;
     } else {
       // sphere is in plane in whole range [0..1]
       embedded_in_plane = 1;
       t0 = 0.0;
-      // t1 = 1.0;
+      t1 = 1.0;
     }
   } else {
     // N dot D is not 0, calc intersect interval
@@ -190,200 +167,177 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     if (t1 < 0.0) t1 = 0.0;
     if (t0 > 1.0) t0 = 1.0;
     if (t1 > 1.0) t1 = 1.0;
+  }
 
-    // time to check for a collision
-    vec3 collision_point;
-    int found_collision = 0;
-    double t = 1.0;
+  // time to check for a collision
+  vec3 collision_point;
+  int found_collision = 0;
+  double t = 1.0;
 
-    // first check collision with the inside of the triangle
-    if (!embedded_in_plane) {
-      vec3 plane_intersect, temp;
-      vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
-      vec3_scale(temp, packet->e_velocity, t0);
-      vec3_add(plane_intersect, plane_intersect, temp);
+  // first check collision with the inside of the triangle
+  if (!embedded_in_plane) {
+    vec3 plane_intersect, temp;
+    vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
+    vec3_scale(temp, packet->e_velocity, t0);
+    vec3_add(plane_intersect, plane_intersect, temp);
 
-      if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {
+    if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {
+      found_collision = 1;
+      t = t0;
+      memcpy(collision_point, plane_intersect, sizeof(vec3));
+    }
+  }
+
+
+  // no collision yet, check against points and edges
+  if (!found_collision) {
+    vec3 velocity, base, temp;
+    memcpy(velocity, packet->e_velocity, sizeof(vec3));
+    memcpy(base, packet->e_base_point, sizeof(vec3));
+  
+    double velocity_sqrt_length = vec3_len2(velocity);
+    double a,b,c;
+    float new_t;
+  
+    // equation is a*t^2 + b*t + c = 0
+    // check against points
+    a = velocity_sqrt_length;
+
+    // p1
+    vec3_sub(temp, base, p1);
+    b = 2.0*(vec3_mul_inner(velocity, temp));
+    vec3_sub(temp, p1, base);
+    c = vec3_len2(temp) - 1.0;
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      t = new_t;
+      found_collision = 1;
+      memcpy(collision_point, p1, sizeof(vec3));
+    }
+
+    // p2
+    vec3_sub(temp, base, p2);
+    b = 2.0*(vec3_mul_inner(velocity, temp));
+    vec3_sub(temp, p2, base);
+    c = vec3_len2(temp) - 1.0;
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      t = new_t;
+      found_collision = 1;
+      memcpy(collision_point, p2, sizeof(vec3));
+    }
+
+    // p3
+    vec3_sub(temp, base, p3);
+    b = 2.0*(vec3_mul_inner(velocity, temp));
+    vec3_sub(temp, p3, base);
+    c = vec3_len2(temp) - 1.0;
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      t = new_t;
+      found_collision = 1;
+      memcpy(collision_point, p3, sizeof(vec3));
+    }
+
+
+    // check against edges
+    // p1 -> p2
+    vec3 edge, base_to_vertex;
+    vec3_sub(edge, p1, p2);
+    vec3_sub(base_to_vertex, p2, base);
+    double edge_sqrt_length        = vec3_len2(edge);
+    double edge_dot_velocity       = vec3_mul_inner(edge, velocity);
+    double edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
+
+    // calculate params for equation
+    a = edge_sqrt_length * -velocity_sqrt_length +
+        edge_dot_velocity * edge_dot_velocity;
+    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+        edge_dot_base_to_vertex * edge_dot_base_to_vertex;
+
+    // do we collide against infinite edge
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      // check if intersect is within line segment
+      double f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
+      if (f >= 0.0 && f <= 1.0) {
+        t = new_t;
         found_collision = 1;
-        t = t0;
-        memcpy(collision_point, plane_intersect, sizeof(vec3));
+        vec3_scale(temp, edge, f);
+        vec3_add(temp, p2, temp);
+        memcpy(collision_point, temp, sizeof(vec3));
       }
     }
 
 
-    // no collision yet, check against points and edges
-    if (!found_collision) {
-      vec3 velocity, base, temp;
-      memcpy(velocity, packet->e_velocity, sizeof(vec3));
-      memcpy(base, packet->e_base_point, sizeof(vec3));
-    
-      float velocity_sqrt_length = vec3_len2(velocity);
-      float a,b,c;
-      float new_t;
-    
-      // equation is a*t^2 + b*t + c = 0
-      // check against points
-      a = velocity_sqrt_length;
+    // p2 -> p3
+    vec3_sub(edge, p2, p3);
+    vec3_sub(base_to_vertex, p3, base);
+    edge_sqrt_length        = vec3_len2(edge);
+    edge_dot_velocity       = vec3_mul_inner(edge, velocity);
+    edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
 
-      // p1
-      vec3_sub(temp, base, p1);
-      b = 2.0*(vec3_mul_inner(velocity, temp));
-      vec3_sub(temp, p1, base);
-      c = vec3_len2(temp) - 1.0;
-      if (get_lowest_root(a, b, c, t, &new_t)) {
+    // calculate params for equation
+    a = edge_sqrt_length * -velocity_sqrt_length +
+        edge_dot_velocity * edge_dot_velocity;
+    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+        edge_dot_base_to_vertex * edge_dot_base_to_vertex;
+
+    // do we collide against infinite edge
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      // check if intersect is within line segment
+      double f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
+      if (f >= 0.0 && f <= 1.0) {
         t = new_t;
         found_collision = 1;
-        memcpy(collision_point, p1, sizeof(vec3));
+        vec3_scale(temp, edge, f);
+        vec3_add(temp, p3, temp);
+        memcpy(collision_point, temp, sizeof(vec3));
       }
+    }
 
-      // p2
-      vec3_sub(temp, base, p2);
-      b = 2.0*(vec3_mul_inner(velocity, temp));
-      vec3_sub(temp, p2, base);
-      c = vec3_len2(temp) - 1.0;
-      if (get_lowest_root(a, b, c, t, &new_t)) {
+
+    // p3 -> p1
+    vec3_sub(edge, p3, p1);
+    vec3_sub(base_to_vertex, p1, base);
+    edge_sqrt_length        = vec3_len2(edge);
+    edge_dot_velocity       = vec3_mul_inner(edge, velocity);
+    edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
+
+    // calculate params for equation
+    a = edge_sqrt_length * -velocity_sqrt_length +
+        edge_dot_velocity * edge_dot_velocity;
+    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+        edge_dot_base_to_vertex * edge_dot_base_to_vertex;
+
+    // do we collide against infinite edge
+    if (get_lowest_root(a, b, c, t, &new_t)) {
+      // check if intersect is within line segment
+      double f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
+      if (f >= 0.0 && f <= 1.0) {
         t = new_t;
         found_collision = 1;
-        memcpy(collision_point, p2, sizeof(vec3));
+        vec3_scale(temp, edge, f);
+        vec3_add(temp, p1, temp);
+        memcpy(collision_point, temp, sizeof(vec3));
       }
-
-      // p3
-      vec3_sub(temp, base, p3);
-      b = 2.0*(vec3_mul_inner(velocity, temp));
-      vec3_sub(temp, p3, base);
-      c = vec3_len2(temp) - 1.0;
-      if (get_lowest_root(a, b, c, t, &new_t)) {
-        t = new_t;
-        found_collision = 1;
-        memcpy(collision_point, p3, sizeof(vec3));
-      }
+    }
 
 
-      // check against edges
-      // p1 -> p2
-      vec3 edge, base_to_vertex;
-      vec3_sub(edge, p1, p2);
-      vec3_sub(base_to_vertex, p2, base);
-      float edge_sqrt_length        = vec3_len2(edge);
-      float edge_dot_velocity       = vec3_mul_inner(edge, velocity);
-      float edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
-
-      // calculate params for equation
-      a = edge_sqrt_length * -velocity_sqrt_length +
-          edge_dot_velocity * edge_dot_velocity;
-      b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-          2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-      c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
-          edge_dot_base_to_vertex * edge_dot_base_to_vertex;
-
-      // do we collide against infinite edge
-      if (get_lowest_root(a, b, c, t, &new_t)) {
-        // check if intersect is within line segment
-        float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
-        if (f >= 0.0 && f <= 1.0) {
-          t = new_t;
-          found_collision = 1;
-          vec3_scale(temp, edge, f);
-          vec3_add(temp, p2, temp);
-          memcpy(collision_point, temp, sizeof(vec3));
-        }
-      }
-
-
-      // p2 -> p3
-      vec3_sub(edge, p2, p3);
-      vec3_sub(base_to_vertex, p3, base);
-      edge_sqrt_length        = vec3_len2(edge);
-      edge_dot_velocity       = vec3_mul_inner(edge, velocity);
-      edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
-
-      // calculate params for equation
-      a = edge_sqrt_length * -velocity_sqrt_length +
-          edge_dot_velocity * edge_dot_velocity;
-      b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-          2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-      c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
-          edge_dot_base_to_vertex * edge_dot_base_to_vertex;
-
-      // do we collide against infinite edge
-      if (get_lowest_root(a, b, c, t, &new_t)) {
-        // check if intersect is within line segment
-        float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
-        if (f >= 0.0 && f <= 1.0) {
-          t = new_t;
-          found_collision = 1;
-          vec3_scale(temp, edge, f);
-          vec3_add(temp, p3, temp);
-          memcpy(collision_point, temp, sizeof(vec3));
-        }
-      }
-
-
-      // p3 -> p1
-      vec3_sub(edge, p3, p1);
-      vec3_sub(base_to_vertex, p1, base);
-      edge_sqrt_length        = vec3_len2(edge);
-      edge_dot_velocity       = vec3_mul_inner(edge, velocity);
-      edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
-
-      // calculate params for equation
-      a = edge_sqrt_length * -velocity_sqrt_length +
-          edge_dot_velocity * edge_dot_velocity;
-      b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-          2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-      c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
-          edge_dot_base_to_vertex * edge_dot_base_to_vertex;
-
-      // do we collide against infinite edge
-      if (get_lowest_root(a, b, c, t, &new_t)) {
-        // check if intersect is within line segment
-        float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
-        if (f >= 0.0 && f <= 1.0) {
-          t = new_t;
-          found_collision = 1;
-          vec3_scale(temp, edge, f);
-          vec3_add(temp, p1, temp);
-          memcpy(collision_point, temp, sizeof(vec3));
-        }
-      }
-
-
-      // set results
-      if (found_collision == 1) {
-        // distance to collision, t is time of collision
-        double dist_to_coll = t*vec3_len(packet->e_velocity);
-        
-        // are we the closest hit?
-        if (packet->found_collision == 0 || dist_to_coll < packet->nearest_distance) {
-          packet->nearest_distance = dist_to_coll;
-          memcpy(packet->intersect_point, collision_point, sizeof(vec3));
-          packet->found_collision = 1;
-        }
+    // set results
+    if (found_collision == 1) {
+      // distance to collision, t is time of collision
+      double dist_to_coll = t*vec3_len(packet->e_velocity);
+      
+      // are we the closest hit?
+      if (packet->found_collision == 0 || dist_to_coll < packet->nearest_distance) {
+        packet->nearest_distance = dist_to_coll;
+        memcpy(packet->intersect_point, collision_point, sizeof(vec3));
+        packet->found_collision = 1;
       }
     }
   }
+  
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

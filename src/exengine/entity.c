@@ -29,17 +29,17 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   entity_collide_with_world(entity, final_position, e_position, e_velocity);
 
   // convert back to r3 space
-  // vec3 temp;
-  // vec3_mul(temp, final_position, entity->packet.e_radius);
-  // memcpy(entity->packet.r3_position, temp, sizeof(vec3));
-  // memcpy(entity->packet.r3_velocity, gravity, sizeof(vec3));
+  vec3 temp;
+  vec3_mul(temp, final_position, entity->packet.e_radius);
+  memcpy(entity->packet.r3_position, temp, sizeof(vec3));
+  memcpy(entity->packet.r3_velocity, gravity, sizeof(vec3));
 
   // convert velocity to e-space
-  // vec3_div(e_velocity, gravity, entity->packet.e_radius);
+  vec3_div(e_velocity, gravity, entity->packet.e_radius);
 
   // do gravity iteration
-  // entity->packet.depth = 0;
-  // entity_collide_with_world(entity, final_position, final_position, e_velocity);
+  entity->packet.depth = 0;
+  entity_collide_with_world(entity, final_position, final_position, e_velocity);
 
   // convert back to r3 space
 
@@ -50,8 +50,8 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
-  // double unit_scale = UNITS_PER_METER / 100.0f;
-  double very_close_dist = 0.00005;// * unit_scale;
+  // float unit_scale = UNITS_PER_METER / 100.0f;
+  double very_close_dist = 0.05;// * unit_scale;
 
   if (entity->packet.depth > 5)
     return;
@@ -82,8 +82,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   // or move very close
   if (entity->packet.nearest_distance >= very_close_dist) {
     vec3 v;
-    memcpy(v, e_velocity, sizeof(vec3));
-    vec3_trim(v, v, entity->packet.nearest_distance - very_close_dist);
+    vec3_trim(v, e_velocity, entity->packet.nearest_distance - very_close_dist);
     vec3_add(new_base_point, entity->packet.e_base_point, v);
     
     vec3_norm(v, v);
