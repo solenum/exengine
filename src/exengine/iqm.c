@@ -171,16 +171,20 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   model->frames      = frames;
   model->bones_len   = header.num_joints;
   model->anims_len   = header.num_anims;
-  model->frames_len  = header.num_frames; 
+  model->frames_len  = header.num_frames;
   model->bind_pose   = bind_pose;
   model->pose        = pose;
   model->vertices    = NULL;
 
   // store vertices
   if (keep_vertices) {
-    model->vertices = malloc(sizeof(vertex_t)*(header.num_vertexes));
-    memcpy(model->vertices, vertices, sizeof(vertex_t)*(header.num_vertexes));
-    model->num_vertices = header.num_vertexes;
+    size_t size = header.num_triangles*3;
+    model->vertices = malloc(sizeof(vertex_t)*size);
+    model->num_vertices = size;
+
+    for (int i=0; i<size; i++) {
+      memcpy(&model->vertices[i].position, &vertices[indices[i]].position, sizeof(vertex_t));
+    }
   }
 
   // calc inverse base pose

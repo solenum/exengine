@@ -29,9 +29,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   entity_collide_with_world(entity, final_position, e_position, e_velocity);
 
   // convert back to r3 space
-  vec3 temp;
-  vec3_mul(temp, final_position, entity->packet.e_radius);
-  memcpy(entity->packet.r3_position, temp, sizeof(vec3));
+  vec3_mul(entity->packet.r3_position, final_position, entity->packet.e_radius);
   memcpy(entity->packet.r3_velocity, gravity, sizeof(vec3));
 
   // convert velocity to e-space
@@ -50,8 +48,8 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
-  // float unit_scale = UNITS_PER_METER / 100.0f;
-  double very_close_dist = 0.05;// * unit_scale;
+  float unit_scale = UNITS_PER_METER / 100.0f;
+  float very_close_dist = 0.1f * unit_scale;
 
   if (entity->packet.depth > 5)
     return;
@@ -91,6 +89,11 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     vec3_sub(entity->packet.intersect_point, entity->packet.intersect_point, temp);
   }
 
+  if (entity->packet.intersect_point[1] > e_position[1]) {
+    entity->packet.intersect_point[1] = e_position[1];
+    dest_point[1] = e_position[1];
+  }
+
   // determin sliding plane
   vec3 slide_plane_origin, slide_plane_normal;
   memcpy(slide_plane_origin, entity->packet.intersect_point, sizeof(vec3));
@@ -99,26 +102,25 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
 
   plane_t sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
 
-  // what
-  double d = signed_distance_to_plane(dest_point, &sliding_plane);
+  double slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
   vec3 new_dest_point;
-  vec3_scale(temp, sliding_plane.normal, d);
+  vec3_scale(temp, slide_plane_normal, slide_factor);
   vec3_sub(new_dest_point, dest_point, temp);
 
   // new velocity for next iteration
   vec3 new_velocity;
   vec3_sub(new_velocity, new_dest_point, entity->packet.intersect_point);
-  memcpy(out_position, new_base_point, sizeof(vec3));
 
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist) {
+    memcpy(out_position, new_base_point, sizeof(vec3));
     return;
   }
 
   entity->packet.depth++;
 
   // down the rabbit hole we go
-  entity_collide_with_world(entity, out_position, out_position, new_velocity);
+  entity_collide_with_world(entity, out_position, new_base_point, new_velocity);
 }
 
 void entity_check_collision(entity_t *entity)

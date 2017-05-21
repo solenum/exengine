@@ -111,8 +111,9 @@ static inline void vec3_mul(vec3 v, vec3 a, vec3 b)
 
 static inline void vec3_trim(vec3 v, vec3 a, float len)
 {
+  // vec3_scale(v, v, len);
+  // vec3_norm(v, v);
   vec3_scale(v, a, MIN(vec3_len(a), len));
-  vec3_norm(v, v);
 }
 
 static inline void vec4_mul_cross(vec4 r, vec4 a, vec4 b)
