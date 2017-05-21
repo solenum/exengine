@@ -25,17 +25,19 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
   vec3_sub(ba, b, a);
   vec3_sub(ca, c, a);
 
-  vec3_mul_cross(ba, ba, ca);
-  vec3_norm(ba, ba);
+  // only works with temp, dont know dont ask
+  vec3 temp;
+  vec3_mul_cross(temp, ba, ca);
+  vec3_norm(temp, temp);
 
   plane_t plane;
   memcpy(plane.origin, a, sizeof(vec3));
-  memcpy(plane.normal, ba, sizeof(vec3));
+  memcpy(plane.normal, temp, sizeof(vec3));
 
-  plane.equation[0] = ba[0];
-  plane.equation[1] = ba[1];
-  plane.equation[2] = ba[2];
-  plane.equation[3] = -(ba[0] * a[0] + ba[1] * a[1] + ba[2] * a[2]);
+  plane.equation[0] = temp[0];
+  plane.equation[1] = temp[1];
+  plane.equation[2] = temp[2];
+  plane.equation[3] = -(temp[0] * a[0] + temp[1] * a[1] + temp[2] * a[2]);
 
   return plane;
 }
@@ -74,7 +76,11 @@ int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, cons
   float y = (e * a) - (d * b);
   float z = x + y - ac_bb;
 
-  return (( in(z)& ~(in(x)|in(y)) ) & 0x80000000);
+
+  if (( in(z)& ~(in(x)|in(y)) ) & 0x80000000)
+    return 1;
+
+  return 0;
 }
 
 int get_lowest_root(float a, float b, float c, float max, float *root)
@@ -119,7 +125,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
   // only check front facing triangles
   // there be something wrong with this!
-  // if (is_front_facing(&plane, packet->e_norm_velocity))
+  // if (!is_front_facing(&plane, packet->e_norm_velocity))
     // return;
   
   // get interval of plane intersection
@@ -174,13 +180,13 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   double t = 1.0;
 
   // first check collision with the inside of the triangle
-  if (!embedded_in_plane) {
+  if (embedded_in_plane == 0) {
     vec3 plane_intersect, temp;
     vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
     vec3_scale(temp, packet->e_velocity, t0);
     vec3_add(plane_intersect, plane_intersect, temp);
 
-    if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {
+    if (check_point_in_triangle(plane_intersect, p1, p2, p3) == 1) {
       found_collision = 1;
       t = t0;
       memcpy(collision_point, plane_intersect, sizeof(vec3));
@@ -189,7 +195,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
 
   // no collision yet, check against points and edges
-  if (!found_collision) {
+  if (found_collision == 0) {
     vec3 velocity, base, temp;
     memcpy(velocity, packet->e_velocity, sizeof(vec3));
     memcpy(base, packet->e_base_point, sizeof(vec3));
@@ -207,7 +213,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     b = 2.0*(vec3_mul_inner(velocity, temp));
     vec3_sub(temp, p1, base);
     c = vec3_len2(temp) - 1.0;
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       t = new_t;
       found_collision = 1;
       memcpy(collision_point, p1, sizeof(vec3));
@@ -218,7 +224,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     b = 2.0*(vec3_mul_inner(velocity, temp));
     vec3_sub(temp, p2, base);
     c = vec3_len2(temp) - 1.0;
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       t = new_t;
       found_collision = 1;
       memcpy(collision_point, p2, sizeof(vec3));
@@ -229,7 +235,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     b = 2.0*(vec3_mul_inner(velocity, temp));
     vec3_sub(temp, p3, base);
     c = vec3_len2(temp) - 1.0;
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       t = new_t;
       found_collision = 1;
       memcpy(collision_point, p3, sizeof(vec3));
@@ -253,7 +259,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0 && f <= 1.0) {
@@ -281,7 +287,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0 && f <= 1.0) {
@@ -309,7 +315,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t)) {
+    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0 && f <= 1.0) {
@@ -320,19 +326,18 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         memcpy(collision_point, temp, sizeof(vec3));
       }
     }
+  }
 
-
-    // set results
-    if (found_collision == 1) {
-      // distance to collision, t is time of collision
-      float dist_to_coll = t*vec3_len(packet->e_velocity);
-      
-      // are we the closest hit?
-      if (packet->found_collision == 0 || dist_to_coll < packet->nearest_distance) {
-        packet->nearest_distance = dist_to_coll;
-        memcpy(packet->intersect_point, collision_point, sizeof(vec3));
-        packet->found_collision = 1;
-      }
+  // set results
+  if (found_collision == 1) {
+    // distance to collision, t is time of collision
+    float dist_to_coll = t*vec3_len(packet->e_velocity);
+    
+    // are we the closest hit?
+    if (packet->found_collision == 0 || dist_to_coll < packet->nearest_distance) {
+      packet->nearest_distance = dist_to_coll;
+      memcpy(packet->intersect_point, collision_point, sizeof(vec3));
+      packet->found_collision = 1;
     }
   }
 }

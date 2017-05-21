@@ -67,7 +67,7 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){1.0f, 3.0f, 1.0f});
+  entity_t *e = entity_new(scene, (vec3){1.0f, 4.0f, 1.0f});
   e->position[1] = 10.0f;
 
   double last_frame_time = glfwGetTime();

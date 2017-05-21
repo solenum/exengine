@@ -49,7 +49,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
   float unit_scale = UNITS_PER_METER / 100.0f;
-  float very_close_dist = 0.1f * unit_scale;
+  float very_close_dist = 0.005f * unit_scale;
 
   if (entity->packet.depth > 5)
     return;
