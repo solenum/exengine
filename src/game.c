@@ -56,10 +56,10 @@ void game_run()
   // m6->position[1] = -10.0f;
   list_add(scene->model_list, m6);
 
-  dir_light_t *l = dir_light_new((vec3){4.0f, 32.0f, -16.0f}, (vec3){0.6f, 0.6f, 0.8f}, 1);
+  dir_light_t *l = dir_light_new((vec3){-16.0f, 32.0f, -16.0f}, (vec3){0.2f, 0.2f, 0.2f}, 1);
   list_add(scene->dir_light_list, l);
 
-  skybox_t *s = skybox_new("sky");
+  skybox_t *s = skybox_new("space");
   scene->skybox = s;
 
   // model_t *b = iqm_load_model(scene, "data/bulb.iqm", 0);
@@ -67,7 +67,7 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){1.0f, 4.0f, 1.0f});
+  entity_t *e = entity_new(scene, (vec3){1.0f, 3.0f, 1.0f});
   e->position[1] = 10.0f;
 
   double last_frame_time = glfwGetTime();
@@ -82,7 +82,7 @@ void game_run()
 
     entity_update(e);
     memcpy(camera->position, e->position, sizeof(vec3));
-    printf("%f %f %f\n", e->position[0], e->position[1], e->position[2]);
+    camera->position[1] += 1.5f;
 
     if (keys_down[GLFW_KEY_F]) {
       point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){50.0f, 50.0f, 50.0f}, 1);
@@ -98,43 +98,46 @@ void game_run()
       keys_down[GLFW_KEY_F] = 0;
     }
 
-    /* debug cam movement */
+    /* debug entity movement */
+    float y = e->velocity[1];
+    vec3 temp;
+    vec3_scale(temp, e->velocity, 0.3f);
+    vec3_sub(e->velocity, e->velocity, temp);
+    e->velocity[1] = y;
+
+    if (e->grounded == 0) {
+      e->velocity[1] -= 1.0f * delta_time;
+    }
+
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
-      vec3_scale(speed, camera->front, 0.2f);
-      // vec3_add(camera->position, camera->position, speed);
+      vec3_scale(speed, camera->front, 5.5f * delta_time);
       speed[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, speed);
     }
     if (keys_down[GLFW_KEY_S]) {
-      vec3_scale(speed, camera->front, 0.2f);
-      // vec3_sub(camera->position, camera->position, speed);
+      vec3_scale(speed, camera->front, 5.5f * delta_time);
       speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, speed);
     }
     if (keys_down[GLFW_KEY_A]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, 0.1f);
-      // vec3_sub(camera->position, camera->position, side);
+      vec3_scale(side, side, 3.5f * delta_time);
       speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_D]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, 0.1f);
+      vec3_scale(side, side, 3.5f * delta_time);
       speed[1] = 0.0f;
-      // vec3_add(camera->position, camera->position, side);
       vec3_add(e->velocity, e->velocity, side);
     }
-    if (keys_down[GLFW_KEY_SPACE]) {
-      // camera->position[1] += 0.2f;
-      e->velocity[1] += 0.2f;
-    }
-    if (keys_down[GLFW_KEY_LEFT_CONTROL]) { 
-      // camera->position[1] -= 0.2f;
-      e->velocity[1] -= 0.2f;
+
+    if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
+      e->velocity[1] = 0.4f;
+      keys_down[GLFW_KEY_SPACE] = 0;
     }
     if (keys_down[GLFW_KEY_ESCAPE])
       break;

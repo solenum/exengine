@@ -124,9 +124,8 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   plane_t plane = triangle_to_plane(p1, p2, p3);
 
   // only check front facing triangles
-  // there be something wrong with this!
-  // if (!is_front_facing(&plane, packet->e_norm_velocity))
-    // return;
+  if (!is_front_facing(&plane, packet->e_norm_velocity))
+    return;
   
   // get interval of plane intersection
   double t0, t1;

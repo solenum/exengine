@@ -11,6 +11,7 @@ entity_t* entity_new(scene_t *scene, vec3 radius)
   memset(e->position, 0,      sizeof(vec3));
   memset(e->velocity, 0,      sizeof(vec3));
   e->scene = scene;
+  e->grounded = 0;
 }
 
 void entity_collide_and_slide(entity_t *entity, vec3 gravity)
@@ -23,6 +24,8 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 e_position, e_velocity, final_position;
   vec3_div(e_position, entity->packet.r3_position, entity->packet.e_radius);
   vec3_div(e_velocity, entity->packet.r3_velocity, entity->packet.e_radius);
+  entity->packet.e_velocity[1] = 0.0f;
+  e_velocity[1] = 0.0f;
 
   // do velocity iteration
   entity->packet.depth = 0;
@@ -43,7 +46,6 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 
   // finally set entity position
   vec3_mul(entity->position, final_position, entity->packet.e_radius);
-  memset(entity->velocity, 0, sizeof(vec3));
 }
 
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
@@ -70,6 +72,8 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     vec3_add(out_position, e_position, e_velocity);
     return;
   }
+
+  entity->grounded = 1; 
 
   // collision, panic!
   vec3 dest_point, new_base_point;
@@ -106,6 +110,11 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   vec3 new_velocity;
   vec3_sub(new_velocity, new_dest_point, entity->packet.intersect_point);
   memcpy(out_position, new_base_point, sizeof(vec3));
+
+  // prevent stepping over high polygons
+  if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) <= 0.9f) {
+    new_velocity[1] = 0.0f;
+  }
 
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist)
@@ -145,5 +154,7 @@ void entity_check_collision(entity_t *entity)
 
 void entity_update(entity_t *entity)
 {
-  entity_collide_and_slide(entity, entity->scene->gravity);
+  entity->grounded = 0;
+  vec3 gravity = {0.0f, entity->velocity[1], 0.0f};
+  entity_collide_and_slide(entity, gravity);
 }

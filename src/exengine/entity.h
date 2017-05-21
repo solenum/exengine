@@ -9,6 +9,7 @@ typedef struct {
   vec3 position, velocity, radius;
   coll_packet_t packet;
   scene_t *scene;
+  int grounded;
 } entity_t;
 
 entity_t* entity_new(scene_t *scene, vec3 radius);

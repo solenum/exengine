@@ -116,6 +116,13 @@ static inline void vec3_trim(vec3 v, vec3 a, float len)
   vec3_scale(v, a, MIN(vec3_len(a), len));
 }
 
+static inline void vec3_clamp(vec3 v, vec3 a, float low, float high)
+{
+  int i;
+  for (i=0;i<3;i++)
+    v[i] = MAX(low, MIN(a[i], high));
+}
+
 static inline void vec4_mul_cross(vec4 r, vec4 a, vec4 b)
 {
   r[0] = a[1]*b[2] - a[2]*b[1];
