@@ -40,7 +40,7 @@ void fps_camera_resize(fps_camera_t *cam)
   glfwGetFramebufferSize(display.window, &width, &height);
   
   if (cam->width != width || cam->height != height) {
-    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.1f, 100.0f);
+    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.1f, 1000.0f);
     cam->width  = width;
     cam->height = height;
   }

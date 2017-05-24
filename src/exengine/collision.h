@@ -17,7 +17,7 @@ typedef struct {
 
   // hit information
   int found_collision;
-  double nearest_distance;
+  float nearest_distance;
   vec3 intersect_point;
 
   // iteration depth
@@ -34,7 +34,7 @@ plane_t plane_new(const vec3 a, const vec3 b);
 
 plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c);
 
-double signed_distance_to_plane(const vec3 base_point, const plane_t *plane);
+float signed_distance_to_plane(const vec3 base_point, const plane_t *plane);
 
 int is_front_facing(plane_t *plane, const vec3 direction);
 

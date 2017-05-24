@@ -49,7 +49,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float distance    = length(l.position - frag);
   distance          = clamp(distance, 0.0f, u_far_plane);
   float b           = 1.0f / (u_far_plane * u_far_plane * 0.05f);
-  float attenuation = 1.0f / (1.0f * (distance * distance));
+  float attenuation = 1.0f / (1.0f + 0.35f * distance + 0.44f * (distance * distance));
   diffuse *= attenuation;
 
   // shadows
@@ -96,11 +96,11 @@ void main()
 
     // ambient lighting
     if (u_ambient_pass) {
-      diffuse         = vec3(0.05f);
+      diffuse         = vec3(0.01f);
       vec3 norm       = normalize(normal);
       vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
       float diff      = max(dot(light_dir, norm), 0.0);
-      diffuse        += vec3(diff * 0.1f);
+      diffuse        += vec3(diff * 0.02f);
     }
 
     vec3 p = vec3(0.0f);

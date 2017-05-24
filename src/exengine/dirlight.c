@@ -3,15 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SHADOW_MAP_SIZE 512
+#define SHADOW_MAP_SIZE 1024
 #define DIR_FAR_PLANE 150
+#define DIR_LIGHT_SIZE 50
 mat4x4 dir_shadow_projection;
 GLuint dir_light_shader;
 
 void dir_light_init()
 {
+  float s = DIR_LIGHT_SIZE;
   dir_light_shader = shader_compile("data/dirfbo.vs", "data/dirfbo.fs", NULL);
-  mat4x4_ortho(dir_shadow_projection, -50.0f, 50.0f, -50.0f, 50.0f, 1.0f, DIR_FAR_PLANE);
+  mat4x4_ortho(dir_shadow_projection, -s, s, -s, s, 1.0f, DIR_FAR_PLANE);
 }
 
 dir_light_t* dir_light_new(vec3 pos, vec3 color, int dynamic)
@@ -70,7 +72,7 @@ void dir_light_begin(dir_light_t *l)
   glEnable(GL_DEPTH_TEST);
   glUseProgram(l->shader);
 
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0 ]);
+  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
 }
 
 void dir_light_draw(dir_light_t *l, GLuint shader)
@@ -80,7 +82,7 @@ void dir_light_draw(dir_light_t *l, GLuint shader)
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
   glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 2);
 
-  glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0 ]);
+  glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, l->position);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);
   glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
