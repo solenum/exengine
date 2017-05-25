@@ -111,8 +111,8 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     new_velocity[1] = 0.0f;
   }
 
-  // if (entity->packet.intersect_point[1] > e_position[1])
-    // entity->grounded = 1;
+  if (entity->packet.intersect_point[1] < e_position[1])
+    entity->grounded = 1;
 
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist)
