@@ -41,8 +41,6 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   entity->packet.depth = 0;
   entity_collide_with_world(entity, final_position, final_position, e_velocity);
 
-  // convert back to r3 space
-
   // finally set entity position
   vec3_mul(entity->position, final_position, entity->packet.e_radius);
 }
@@ -71,8 +69,6 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     vec3_add(out_position, e_position, e_velocity);
     return;
   }
-
-  entity->grounded = 1;
 
   // collision, panic!
   vec3 dest_point, new_base_point;
@@ -110,12 +106,13 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   vec3_sub(new_velocity, new_dest_point, entity->packet.intersect_point);
   memcpy(out_position, new_base_point, sizeof(vec3));
 
-  printf("%f %f %f\n", sliding_plane.normal[1], new_velocity[1], new_dest_point[1]);
-
   // prevent stepping over walls etc
   if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) <= 0.05f) {
-    // new_velocity[1] = 0.0f;
+    new_velocity[1] = 0.0f;
   }
+
+  // if (entity->packet.intersect_point[1] > e_position[1])
+    // entity->grounded = 1;
 
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist)

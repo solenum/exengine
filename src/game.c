@@ -56,7 +56,7 @@ void game_run()
   // m6->position[1] = -10.0f;
   list_add(scene->model_list, m6);
 
-  dir_light_t *l = dir_light_new((vec3){-16.0f, 32.0f, -16.0f}, (vec3){0.1f, 0.1f, 0.1f}, 1);
+  dir_light_t *l = dir_light_new((vec3){16.0f, 32.0f, 16.0f}, (vec3){0.3f, 0.3f, 0.3f}, 1);
   list_add(scene->dir_light_list, l);
 
   skybox_t *s = skybox_new("space");
@@ -67,8 +67,9 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){0.4f, 1.0f, 0.4f});
-  e->position[1] = 20.0f;
+  entity_t *e = entity_new(scene, (vec3){0.3f, 1.0f, 0.3f});
+  e->position[0] = 20.0f;
+  e->position[1] = 10.0f;
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
