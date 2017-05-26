@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "scene.h"
 #include "model.h"
@@ -97,6 +98,14 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices);
 
 static inline uint get_uint(uint8_t *data) { 
   return (data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24));
+}
+
+static void iqm_get_args(const char *str, vec4 args) {
+  char *end;
+  args[0] = strtof(str, &end);
+  args[1] = strtof(&end[1], &end);
+  args[2] = strtof(&end[1], &end);
+  args[3] = strtof(&end[1], &end);
 }
 
 #endif // IQM_LOADER_H

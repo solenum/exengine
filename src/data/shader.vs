@@ -50,9 +50,9 @@ void main()
   float fog_end   = 128.0f;
   float fog_start = 100.0f;
   float fog_dens  = (fog_end - dist) / (fog_end - fog_start);
-  fog = clamp(fog_dens, 0.0, 1.0); 
+  fog = clamp(fog_dens, 0.0, 1.0);
 
-  gl_Position    = v;
+  gl_Position    = vv;
   normal         = mat3(transpose(inverse(transform))) * in_normals;
   frag           = vec3(u_model * vec4(in_position, 1.0f));
   uv             = in_uv;

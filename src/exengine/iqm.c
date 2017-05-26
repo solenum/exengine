@@ -1,5 +1,6 @@
 #include "iqm.h"
 #include "exe_io.h"
+#include "pointlight.h"
 #include <string.h>
 
 model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
@@ -222,7 +223,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   for (int i=0; i<header.num_meshes; i++) {
     vertex_t *vert = &vertices[meshes[i].first_vertex];
     GLuint *ind    = &indices[meshes[i].first_triangle*3];
-    
+
     // negative offset indices
     GLuint offset = 0;
     for (int k=0; k<meshes[i].num_triangles*3; k++) {
@@ -232,13 +233,35 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
         offset = ind[k];
     }
     index_offset  += ++offset;
+
+    // get material and texture names
+    char *tex_name = &file_text[meshes[i].material];
+    char *is_file = strpbrk(tex_name, ".");
     
+    // handle entity spawns
+    if (tex_name[0] == 'e' && tex_name[1] == '.') {
+      char *arg_start = strpbrk(&tex_name[2], "!");
+
+      if (arg_start == NULL)
+        break;
+
+      size_t name_len = strlen(&tex_name[2]) - strlen(arg_start);
+      vec4 args;
+
+      if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
+        iqm_get_args(&arg_start[1], args);
+        point_light_t *l = point_light_new(vert[i].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
+        list_add(scene->point_light_list, l);
+        printf("%f %f %f %i\n", args[0], args[1], args[2], (int)args[3]);
+      }
+
+      continue;
+    }
+
+    // create mesh
     mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
     // load textures
-    char *tex_name = &file_text[meshes[i].material];
-    char *is_file = strpbrk(tex_name, ".");
-
     if (is_file != NULL)
       m->texture = scene_add_texture(scene, tex_name);
 

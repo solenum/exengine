@@ -67,7 +67,7 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){0.3f, 1.0f, 0.3f});
+  entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[0] = 20.0f;
   e->position[1] = 10.0f;
 
@@ -107,9 +107,8 @@ void game_run()
     e->velocity[1] = y;
     e->velocity[1] -= 0.8f * delta_time;
 
-    if (e->grounded == 1) {
+    if (e->grounded == 1)
       e->velocity[1] = 0.0f;
-    }
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {

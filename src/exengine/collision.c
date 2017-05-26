@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdio.h>
 
 // use signbit(a) instead?
 #define in(a) *((uint32_t*) &a)
@@ -43,7 +44,7 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
 
 float signed_distance_to_plane(const vec3 base_point, const plane_t *plane)
 {
-  return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
+  return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
 }
 
 int is_front_facing(plane_t *plane, const vec3 direction)
@@ -261,21 +262,20 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
       }
     }
 
-
     // check against edges
     // p1 -> p2
     vec3 edge, base_to_vertex;
+    vec3_sub(edge, p2, p1);
+    vec3_sub(base_to_vertex, p1, base);
     float edge_sqrt_length        = vec3_len2(edge);
     float edge_dot_velocity       = vec3_mul_inner(edge, velocity);
     float edge_dot_base_to_vertex = vec3_mul_inner(edge, base_to_vertex);
-    vec3_sub(edge, p2, p1);
-    vec3_sub(base_to_vertex, p1, base);
 
     // calculate params for equation
     a = edge_sqrt_length * -velocity_sqrt_length + edge_dot_velocity * edge_dot_velocity;
-    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+    b = edge_sqrt_length * (2.0f * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0f * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1.0f - vec3_len2(base_to_vertex)) +
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
@@ -301,9 +301,9 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
     // calculate params for equation
     a = edge_sqrt_length * -velocity_sqrt_length + edge_dot_velocity * edge_dot_velocity;
-    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+    b = edge_sqrt_length * (2.0f * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0f * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1.0f - vec3_len2(base_to_vertex)) +
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
@@ -329,9 +329,9 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
 
     // calculate params for equation
     a = edge_sqrt_length * -velocity_sqrt_length + edge_dot_velocity * edge_dot_velocity;
-    b = edge_sqrt_length * (2 * vec3_mul_inner(velocity, base_to_vertex)) -
-        2.0 * edge_dot_velocity * edge_dot_base_to_vertex;
-    c = edge_sqrt_length * (1 - vec3_len2(base_to_vertex)) +
+    b = edge_sqrt_length * (2.0f * vec3_mul_inner(velocity, base_to_vertex)) -
+        2.0f * edge_dot_velocity * edge_dot_base_to_vertex;
+    c = edge_sqrt_length * (1.0f - vec3_len2(base_to_vertex)) +
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
