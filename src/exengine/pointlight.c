@@ -14,7 +14,7 @@ void point_light_init()
   point_light_shader = shader_compile("data/pointfbo.vs", "data/pointfbo.fs", "data/pointfbo.gs");
 
   float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 0.0f, POINT_FAR_PLANE); 
+  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 0.1f, POINT_FAR_PLANE); 
 }
 
 point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)

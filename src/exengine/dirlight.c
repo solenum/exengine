@@ -13,7 +13,7 @@ void dir_light_init()
 {
   float s = DIR_LIGHT_SIZE;
   dir_light_shader = shader_compile("data/dirfbo.vs", "data/dirfbo.fs", NULL);
-  mat4x4_ortho(dir_shadow_projection, -s, s, -s, s, 1.0f, DIR_FAR_PLANE);
+  mat4x4_ortho(dir_shadow_projection, -s, s, -s, s, 0.1f, DIR_FAR_PLANE);
 }
 
 dir_light_t* dir_light_new(vec3 pos, vec3 color, int dynamic)

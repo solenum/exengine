@@ -44,21 +44,23 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   vec3 norm       = normalize(normal);
   vec3 light_dir  = normalize(l.position - frag);
   float diff      = max(dot(light_dir, norm), 0.0);
-  vec3 diffuse    = diff * (l.color * 1.5f);
+  vec3 diffuse    = diff * l.color;
 
   float distance    = length(l.position - frag);
-  float attenuation = 1.0f / (1.0f + 0.35f * distance + 0.20f * (distance * distance));
+  float attenuation = 1.0f / (1.0f + 0.044f * (distance * distance));
   diffuse *= attenuation;
 
   // shadows
-  float costheta      = clamp(dot(norm, light_dir), 0.0, 1.0);
-  float bias          = 0.06*tan(acos(costheta));
-  bias                = clamp(bias, 0.0, 0.06);
+  float costheta = clamp(dot(norm, light_dir), 0.0, 1.0);
+  float bias     = 0.55*tan(acos(costheta));
+  bias           = clamp(bias, 0.05, 0.55);
+
   vec3 frag_to_light  = frag - l.position;
   float closest_depth = texture(depth, frag_to_light).r;
   closest_depth      *= u_far_plane;
   float current_depth = length(frag_to_light);
-  float shadow        = current_depth > closest_depth ? 1.0 : 0.0;
+  float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
+
   return vec3((1.0 - shadow) * diffuse);
 }
 
@@ -74,15 +76,16 @@ vec3 calc_dir_light(dir_light l, sampler2D depth)
   vec3 diffuse    = diff * l.color;
 
   // shadows
-  float costheta      = clamp(dot(norm, light_dir), 0.0, 1.0);
-  float bias          = 0.06*tan(acos(costheta));
-  bias                = clamp(bias, 0.0, 0.06);
+  float costheta = clamp(dot(norm, light_dir), 0.0, 1.0);
+  float bias     = 0.4*tan(acos(costheta));
+  bias        = clamp(bias, 0.05, 0.4);
+  
   vec3 frag_to_light  = frag - l.position;
-  float closest_depth = texture(depth, proj.xy).r*(1.0+bias);
+  float closest_depth = texture(depth, proj.xy).r;
   float current_depth = proj.z;
-  closest_depth *= l.far;
-  current_depth *= l.far;
-  float shadow        = current_depth > closest_depth ? 1.0 : 0.0;
+  closest_depth      *= l.far;
+  current_depth      *= l.far;
+  float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
 
   return vec3((1.0 - shadow) * diffuse);
 }
@@ -98,7 +101,7 @@ void main()
       vec3 norm       = normalize(normal);
       vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
       float diff      = max(dot(light_dir, norm), 0.0);
-      diffuse        += vec3(diff * 0.02f);
+      diffuse        += vec3(diff * 0.01f);
     }
 
     vec3 p = vec3(0.0f);

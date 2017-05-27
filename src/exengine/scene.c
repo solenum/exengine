@@ -53,7 +53,7 @@ void scene_update(scene_t *s, float delta_time)
 void scene_draw(scene_t *s)
 {
   // render pointlight depth maps
-  glCullFace(GL_FRONT);
+  glCullFace(GL_BACK);
   list_node_t *n = s->point_light_list;
   while (n->data != NULL) {
     point_light_t *l = n->data;
