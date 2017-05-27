@@ -111,7 +111,12 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    vec3_sub(e->velocity, e->velocity, temp);
+    
+    if (e->grounded == 1) 
+      vec3_sub(e->velocity, e->velocity, temp);
+    else
+      move_speed = 0.05f;
+    
     e->velocity[1] = y;
     e->velocity[1] -= 0.8f * delta_time;
 
@@ -132,14 +137,14 @@ void game_run()
     if (keys_down[GLFW_KEY_A]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed-0.3f) * delta_time);
+      vec3_scale(side, side, (move_speed*0.8f) * delta_time);
       speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_D]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed-0.3f) * delta_time);
+      vec3_scale(side, side, (move_speed*0.8f) * delta_time);
       speed[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, side);
     }
