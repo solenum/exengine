@@ -45,7 +45,8 @@ void game_run()
   // model_t *m = iqm_load_model(scene, "data/cube.iqm", 0);
   // model_set_anim(m, 1);
   // m->rotation[0] = -90.0f;
-  // m->position[1] = -10.0f;
+  // m->position[1] = 1.1f;
+  // m->scale = 0.4f;
   // list_add(scene->model_list, m);
 
   model_t *m6 = iqm_load_model(scene, "data/level.iqm", 1);
@@ -56,8 +57,8 @@ void game_run()
   // m6->position[1] = -10.0f;
   list_add(scene->model_list, m6);
 
-  dir_light_t *l = dir_light_new((vec3){16.0f, 32.0f, 16.0f}, (vec3){0.3f, 0.3f, 0.3f}, 1);
-  list_add(scene->dir_light_list, l);
+  dir_light_t *d = dir_light_new((vec3){16.0f, 32.0f, 16.0f}, (vec3){0.3f, 0.3f, 0.3f}, 1);
+  list_add(scene->dir_light_list, d);
 
   skybox_t *s = skybox_new("space");
   scene->skybox = s;
@@ -67,9 +68,8 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[0] = 20.0f;
-  e->position[1] = 10.0f;
+  entity_t *e = entity_new(scene, (vec3){0.3f, 1.0f, 0.3f});
+  e->position[1] = 3.0f;
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -86,15 +86,18 @@ void game_run()
     camera->position[1] += 1.0f;
 
     if (keys_down[GLFW_KEY_F]) {
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){5.0f, 5.0f, 5.0f}, 0);
+      float r = (float)rand()/(float)(RAND_MAX/1.0f);
+      float g = (float)rand()/(float)(RAND_MAX/1.0f);
+      float b = (float)rand()/(float)(RAND_MAX/1.0f);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
       list_add(scene->point_light_list, l);
 
-      model_t *m = iqm_load_model(scene, "data/bulb.iqm", 0);
-      m->rotation[0] = -90.0f;
-      m->is_lit = 0;
-      memcpy(m->position, camera->position, sizeof(vec3));
-      list_add(scene->model_list, m);
+      // model_t *m = iqm_load_model(scene, "data/bulb.iqm", 0);
+      // m->rotation[0] = -90.0f;
+      // m->is_lit = 0;
+      // memcpy(m->position, camera->position, sizeof(vec3));
+      // list_add(scene->model_list, m);
 
       keys_down[GLFW_KEY_F] = 0;
     }
@@ -103,11 +106,12 @@ void game_run()
     float y = e->velocity[1];
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
+    temp[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, temp);
     e->velocity[1] = y;
     e->velocity[1] -= 0.8f * delta_time;
 
-    if (e->grounded == 1)
+    if (e->grounded == 1) 
       e->velocity[1] = 0.0f;
 
     vec3 speed, side;
