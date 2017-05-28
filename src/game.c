@@ -45,7 +45,7 @@ void game_run()
   // model_t *m = iqm_load_model(scene, "data/cube.iqm", 0);
   // model_set_anim(m, 1);
   // m->rotation[0] = -90.0f;
-  // m->position[1] = 1.1f;
+  // m->position[1] = -7.0f;
   // m->scale = 0.4f;
   // list_add(scene->model_list, m);
 
@@ -57,7 +57,7 @@ void game_run()
   // m6->position[1] = -10.0f;
   list_add(scene->model_list, m6);
 
-  dir_light_t *d = dir_light_new((vec3){16.0f, 32.0f, 8.0f}, (vec3){0.2f, 0.2f, 0.2f}, 1);
+  // dir_light_t *d = dir_light_new((vec3){16.0f, 32.0f, 8.0f}, (vec3){0.2f, 0.2f, 0.2f}, 1);
   // list_add(scene->dir_light_list, d);
 
   skybox_t *s = skybox_new("space");
@@ -68,8 +68,9 @@ void game_run()
   // b->is_lit = 0;
   // list_add(scene->model_list, b);
 
-  entity_t *e = entity_new(scene, (vec3){0.3f, 1.0f, 0.3f});
-  e->position[1] = 20.0f;
+  entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
+  e->position[1] = 1.0f;
+  // e->position[0] = 5.0f;
   float move_speed = 1.5f;
 
   double last_frame_time = glfwGetTime();
@@ -87,10 +88,10 @@ void game_run()
     camera->position[1] += e->radius[1];
 
     if (keys_down[GLFW_KEY_F]) {
-      float r = (float)rand()/(float)(RAND_MAX/1.5f);
-      float g = (float)rand()/(float)(RAND_MAX/1.0f);
-      float b = (float)rand()/(float)(RAND_MAX/1.5f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+      float r = (float)rand()/(float)(RAND_MAX/0.5f);
+      float g = (float)rand()/(float)(RAND_MAX/0.3f);
+      float b = (float)rand()/(float)(RAND_MAX/0.5f);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f+r, 0.8f+g, 1.0f+b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
       list_add(scene->point_light_list, l);
 
@@ -105,7 +106,7 @@ void game_run()
 
     /* debug entity movement */
     if (keys_down[GLFW_KEY_LEFT_SHIFT])
-      move_speed = 3.0f;
+      move_speed = 3.5f;
 
     float y = e->velocity[1];
     vec3 temp;
@@ -118,10 +119,13 @@ void game_run()
       move_speed = 0.05f;
     
     e->velocity[1] = y;
-    e->velocity[1] -= 0.8f * delta_time;
-
-    if (e->grounded == 1) 
+    if (e->grounded == 0)
+      e->velocity[1] -= 0.8f * delta_time;
+    else if (e->velocity[1] < 0.0f && e->velocity[1] > -0.4f)
       e->velocity[1] = 0.0f;
+
+    // if (e->grounded == 1) 
+      // e->velocity[1] = 0.0f;
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
@@ -149,16 +153,23 @@ void game_run()
       vec3_add(e->velocity, e->velocity, side);
     }
 
-    if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1)
+    if (keys_down[GLFW_KEY_Q])
+      e->velocity[1] = 0.5f;
+    if (keys_down[GLFW_KEY_Z])
+      e->velocity[1] = -0.5f;
+
+    if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
       e->velocity[1] = 0.2f;
+      keys_down[GLFW_KEY_SPACE] = 0;
+    }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;
-      move_speed = 0.5f;
+      move_speed = 1.2f;
     } else {
       if (e->radius[1] != 1.0f) {
         e->position[1] += 0.5f;
       }
-      move_speed = 1.5f;
+      move_speed = 2.5f;
       e->radius[1] = 1.0f;
     }
     if (keys_down[GLFW_KEY_ESCAPE])

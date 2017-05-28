@@ -52,8 +52,8 @@ vec3 calc_point_light(point_light l, samplerCube depth)
 
   // shadows
   float costheta = clamp(dot(norm, light_dir), 0.0, 1.0);
-  float bias     = 0.55*tan(acos(costheta));
-  bias           = clamp(bias, 0.05, 0.55);
+  float bias     = 0.8*tan(acos(costheta));
+  bias           = clamp(bias, 0.1, 0.8);
 
   vec3 frag_to_light  = frag - l.position;
   float closest_depth = texture(depth, frag_to_light).r;

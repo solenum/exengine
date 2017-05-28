@@ -43,6 +43,12 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   entity->packet.depth = 0;
   entity_collide_with_world(entity, final_position, final_position, e_velocity);
 
+  vec3 temp = {0.0f, 0.0f, 0.0f};
+  vec3_mul(temp, final_position, entity->packet.e_radius);
+  vec3_sub(temp, temp, entity->position);
+  if (temp[1] <= 0.0f)
+    memcpy(entity->velocity, temp, sizeof(vec3));
+
   // finally set entity position
   vec3_mul(entity->position, final_position, entity->packet.e_radius);
 }
@@ -50,10 +56,10 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
   float unit_scale = UNITS_PER_METER / 100.0f;
-  float very_close_dist = 0.0000005f * unit_scale;
+  float very_close_dist = 0.005f * unit_scale;
 
   if (entity->packet.depth > 5)
-    return;
+    return; 
 
   // check for collision
   vec3 temp;
@@ -108,8 +114,13 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   vec3_sub(new_velocity, new_dest_point, entity->packet.intersect_point);
   memcpy(out_position, new_base_point, sizeof(vec3));
   
-  if (entity->packet.intersect_point[1] <= e_position[1]-entity->packet.e_radius[1]+0.1f && e_velocity[1] <= 0.0f)
-    entity->grounded = 1;
+  if (entity->packet.intersect_point[1] <= e_position[1]) {
+    entity->grounded = 1; 
+    if (new_velocity[1] < 0.0f && new_velocity[1] >= -0.4f)
+      new_velocity[1] = 0.0f;
+    if (new_velocity[1] > 0.0f && slide_factor < 0.80f)
+      new_velocity[1] = -new_velocity[1];
+  }
 
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist)
@@ -149,7 +160,8 @@ void entity_check_collision(entity_t *entity)
 
 void entity_update(entity_t *entity)
 {
-  entity->grounded = 0;
+  // entity->grounded = 0;
   vec3 gravity = {0.0f, entity->velocity[1], 0.0f};
+  entity->grounded = 0;
   entity_collide_and_slide(entity, gravity);
 }

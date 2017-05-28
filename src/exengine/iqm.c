@@ -86,6 +86,30 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     }
   }
 
+  /*for (int i=0; i<header.num_vertexes; i++) {
+    vec4 temp;
+
+    memcpy(temp, vertices[i].position, sizeof(vec3));
+    vertices[i].position[1] = temp[2];
+    vertices[i].position[2] = -temp[1];
+
+    memcpy(temp, vertices[i].normal, sizeof(vec3));
+    vertices[i].normal[1] = temp[2];
+    vertices[i].normal[2] = -temp[1];
+
+    memcpy(temp, vertices[i].tangent, sizeof(vec4));
+    vertices[i].tangent[1] = temp[2];
+    vertices[i].tangent[2] = -temp[1];
+
+    memcpy(temp, vertices[i].blend_indexes, sizeof(vec4));
+    vertices[i].blend_indexes[1] = temp[2];
+    vertices[i].blend_indexes[2] = -temp[1];
+
+    memcpy(temp, vertices[i].blend_weights, sizeof(vec4));
+    vertices[i].blend_weights[1] = temp[2];
+    vertices[i].blend_weights[2] = -temp[1];
+  }*/
+
   // bones and joints
   bone_t *bones      = NULL;
   frame_t bind_pose  = NULL;
