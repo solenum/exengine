@@ -86,30 +86,6 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     }
   }
 
-  /*for (int i=0; i<header.num_vertexes; i++) {
-    vec4 temp;
-
-    memcpy(temp, vertices[i].position, sizeof(vec3));
-    vertices[i].position[1] = temp[2];
-    vertices[i].position[2] = -temp[1];
-
-    memcpy(temp, vertices[i].normal, sizeof(vec3));
-    vertices[i].normal[1] = temp[2];
-    vertices[i].normal[2] = -temp[1];
-
-    memcpy(temp, vertices[i].tangent, sizeof(vec4));
-    vertices[i].tangent[1] = temp[2];
-    vertices[i].tangent[2] = -temp[1];
-
-    memcpy(temp, vertices[i].blend_indexes, sizeof(vec4));
-    vertices[i].blend_indexes[1] = temp[2];
-    vertices[i].blend_indexes[2] = -temp[1];
-
-    memcpy(temp, vertices[i].blend_weights, sizeof(vec4));
-    vertices[i].blend_weights[1] = temp[2];
-    vertices[i].blend_weights[2] = -temp[1];
-  }*/
-
   // bones and joints
   bone_t *bones      = NULL;
   frame_t bind_pose  = NULL;
@@ -267,30 +243,31 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       char *arg_start = strpbrk(&tex_name[2], "!");
 
       if (arg_start == NULL)
-        break;
+        continue;
 
       size_t name_len = strlen(&tex_name[2]) - strlen(arg_start);
       vec4 args;
 
       if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
         iqm_get_args(&arg_start[1], args);
-        point_light_t *l = point_light_new(vert[i].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
+        point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
         list_add(scene->point_light_list, l);
         printf("%f %f %f %i\n", args[0], args[1], args[2], (int)args[3]);
+        printf("%f %f %f\n", vert[0].position[0], vert[0].position[1], vert[0].position[2]);
       }
+    } else {
+      // create mesh
+      mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
-      continue;
+      printf("MAT %s\n", tex_name);
+
+      // load textures
+      if (is_file != NULL)
+        m->texture = scene_add_texture(scene, tex_name);
+
+      // push mesh into mesh list
+      list_add(model->mesh_list, m);
     }
-
-    // create mesh
-    mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
-
-    // load textures
-    if (is_file != NULL)
-      m->texture = scene_add_texture(scene, tex_name);
-
-    // push mesh into mesh list
-    list_add(model->mesh_list, m);
   }
 
   printf("Finished loading IQM model %s\n", path);

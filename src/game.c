@@ -159,8 +159,13 @@ void game_run()
       e->velocity[1] = -0.5f;
 
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
-      e->velocity[1] = 0.2f;
+      vec3_scale(speed, camera->front, move_speed * delta_time);
+      speed[1] = 0.0f;
+      vec3_add(e->velocity, e->velocity, speed);
+      // vec3_scale(temp, e->velocity, 0.3f);
+      // vec3_add(e->velocity, e->velocity, temp);
       keys_down[GLFW_KEY_SPACE] = 0;
+      e->velocity[1] = 0.2f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;
