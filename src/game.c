@@ -69,7 +69,8 @@ void game_run()
   // list_add(scene->model_list, b);
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 1.0f;
+  e->position[1] = 1.1f;
+  e->position[2] = 5.0f;
   // e->position[0] = 5.0f;
   float move_speed = 1.5f;
 
@@ -121,11 +122,8 @@ void game_run()
     e->velocity[1] = y;
     if (e->grounded == 0)
       e->velocity[1] -= 0.8f * delta_time;
-    else if (e->velocity[1] < 0.0f && e->velocity[1] > -0.4f)
+    else if (e->velocity[1] <= 0.0f)
       e->velocity[1] = 0.0f;
-
-    // if (e->grounded == 1) 
-      // e->velocity[1] = 0.0f;
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
@@ -162,8 +160,8 @@ void game_run()
       vec3_scale(speed, camera->front, move_speed * delta_time);
       speed[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, speed);
-      // vec3_scale(temp, e->velocity, 0.3f);
-      // vec3_add(e->velocity, e->velocity, temp);
+      vec3_scale(temp, e->velocity, 0.05f);
+      vec3_add(e->velocity, e->velocity, temp);
       keys_down[GLFW_KEY_SPACE] = 0;
       e->velocity[1] = 0.2f;
     }
