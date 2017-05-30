@@ -44,7 +44,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 temp = {0.0f, 0.0f, 0.0f};
   vec3_mul(temp, final_position, entity->packet.e_radius);
   vec3_sub(temp, temp, entity->position);
-  if (temp[1] <= 0.0f || entity->velocity[1] > 0.0f)
+  if (temp[1] <= 0.0f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
     memcpy(entity->velocity, temp, sizeof(vec3));
 
   // finally set entity position
@@ -111,7 +111,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   vec3 new_velocity;
   vec3_sub(new_velocity, new_dest_point, entity->packet.intersect_point);
   memcpy(out_position, new_base_point, sizeof(vec3));
-  
+
   if (entity->packet.intersect_point[1] <= e_position[1] && sliding_plane.normal[1] > 0.90f && e_velocity[1] <= 0.0f) {
     entity->grounded = 1;
     if (new_velocity[1] < 0.0f)

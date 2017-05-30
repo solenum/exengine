@@ -70,6 +70,7 @@ void game_run()
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
+  e->position[0] = 1.1f;
   e->position[2] = 5.0f;
   // e->position[0] = 5.0f;
   float move_speed = 1.5f;
@@ -106,8 +107,8 @@ void game_run()
     }
 
     /* debug entity movement */
-    if (keys_down[GLFW_KEY_LEFT_SHIFT])
-      move_speed = 3.5f;
+    // if (keys_down[GLFW_KEY_LEFT_SHIFT])
+      // move_speed = 3.5f;
 
     float y = e->velocity[1];
     vec3 temp;
@@ -117,13 +118,25 @@ void game_run()
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
-      move_speed = 0.05f;
+      move_speed = 0.1f;
     
     e->velocity[1] = y;
     if (e->grounded == 0)
       e->velocity[1] -= 0.8f * delta_time;
     else if (e->velocity[1] <= 0.0f)
       e->velocity[1] = 0.0f;
+
+    if (e->grounded == 0 && e->velocity[1] > 0.0f) {
+      float speed = move_speed * 4.0f;
+      vec3_norm(temp, e->velocity);
+      vec3_scale(temp, temp, speed * delta_time);
+      temp[1] = 0.0f;
+      vec3_sub(e->velocity, e->velocity, temp);
+
+      vec3_scale(temp, camera->front, speed * delta_time);
+      temp[1] = 0.0f;
+      vec3_add(e->velocity, e->velocity, temp);
+    }
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
@@ -139,14 +152,14 @@ void game_run()
     if (keys_down[GLFW_KEY_A]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed*0.8f) * delta_time);
+      vec3_scale(side, side, (move_speed*0.9f) * delta_time);
       speed[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_D]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed*0.8f) * delta_time);
+      vec3_scale(side, side, (move_speed*0.9f) * delta_time);
       speed[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, side);
     }
@@ -162,7 +175,6 @@ void game_run()
       vec3_add(e->velocity, e->velocity, speed);
       vec3_scale(temp, e->velocity, 0.05f);
       vec3_add(e->velocity, e->velocity, temp);
-      keys_down[GLFW_KEY_SPACE] = 0;
       e->velocity[1] = 0.2f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
