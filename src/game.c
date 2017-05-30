@@ -75,6 +75,10 @@ void game_run()
   // e->position[0] = 5.0f;
   float move_speed = 1.5f;
 
+  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  memcpy(pl->position, e->position, sizeof(vec3));
+  list_add(scene->point_light_list, pl);
+
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
@@ -191,6 +195,8 @@ void game_run()
       break;
     /* ------ */
 
+    memcpy(pl->position, e->position, sizeof(vec3));
+    pl->position[1] += 1.0f;
     scene_update(scene, delta_time);
     scene_draw(scene);
 

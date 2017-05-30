@@ -17,7 +17,7 @@ void framebuffer_init()
   // color buffer
   // FIX WIDTH & HEIGHT
   width   = 480;
-  height  = 270;
+  height  = 272;
   glGenTextures(1, &colorbuffer);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);

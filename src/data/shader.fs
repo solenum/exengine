@@ -101,7 +101,7 @@ void main()
       vec3 norm       = normalize(normal);
       vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
       float diff      = max(dot(light_dir, norm), 0.0);
-      diffuse        += vec3(diff * 0.05f);
+      diffuse        += vec3(diff * 0.05);
     }
 
     vec3 p = vec3(0.0f);
@@ -115,15 +115,15 @@ void main()
     diffuse += p + d;
 
     if (u_is_textured) {
-      out_color = vec4(diffuse * vec3(texture(u_texture, uv)), 1.0f);
+      out_color = vec4(diffuse * vec3(texture(u_texture, uv, -1.0)), 1.0);
     } else {
-      out_color = vec4(diffuse * color.rgb, 1.0f);
+      out_color = vec4(diffuse * color.rgb, 1.0);
     }
   } else {
     if (u_is_textured) {
-      out_color = texture(u_texture, uv);
+      out_color = texture(u_texture, uv, -1.0);
     } else {
-      out_color = vec4(color.rgb, 1.0f);
+      out_color = vec4(color.rgb, 1.0);
     }
   }
 }
