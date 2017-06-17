@@ -56,8 +56,9 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  // model_t *d = iqm_load_model(scene, "data/dude.iqm", 0);
-  // list_add(scene->model_list, d);
+  model_t *d = iqm_load_model(scene, "data/box.iqm", 0);
+  list_add(scene->model_list, d);
+  d->position[1] += 2.5f;
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -94,6 +95,8 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
+    d->rotation[1] += 0.5f;
+    d->rotation[0] += 0.5f;
     
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);

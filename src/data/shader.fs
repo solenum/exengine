@@ -17,6 +17,7 @@ uniform sampler2D u_norm;
 uniform bool u_is_textured;
 uniform bool u_is_spec;
 uniform bool u_is_norm;
+uniform bool u_dont_norm;
 
 uniform bool u_is_billboard;
 uniform bool u_is_lit;
@@ -50,7 +51,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   // point light
   vec3 norm = normalize(normal);
 
-  if (u_is_norm) {
+  if (u_is_norm && !u_dont_norm) {
     norm = texture(u_norm, uv).rgb;
     norm = normalize(norm * 2.0 - 1.0);
     norm = normalize(TBN * norm); 
@@ -79,8 +80,8 @@ vec3 calc_point_light(point_light l, samplerCube depth)
     float spec = 0.0;
     vec3 view_dir = normalize(u_view_position - frag);
     vec3 halfwayDir = normalize(light_dir + view_dir);
-    spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-    vec3 specular = spec * vec3(texture(u_spec, uv)*2);
+    spec = pow(max(dot(norm, halfwayDir), 0.0), 64.0);
+    vec3 specular = l.color * spec * vec3(texture(u_spec, uv)*2);
     diffuse += (specular * attenuation);
   }
 

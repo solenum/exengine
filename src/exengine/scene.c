@@ -5,6 +5,7 @@
 #include "pointlight.h"
 #include "dirlight.h"
 #include "framebuffer.h"
+#include "window.h"
 
 scene_t* scene_new()
 {
@@ -117,7 +118,13 @@ void scene_draw(scene_t *s)
     fps_camera_update(s->fps_camera, s->shader);
     fps_camera_draw(s->fps_camera, s->shader);
   }
-  
+
+  // debug poooo
+  if (keys_down[GLFW_KEY_E])
+    glUniform1i(glGetUniformLocation(s->shader, "u_dont_norm"), 0);
+  if (keys_down[GLFW_KEY_R])
+    glUniform1i(glGetUniformLocation(s->shader, "u_dont_norm"), 1);
+
   // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
