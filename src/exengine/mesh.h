@@ -17,7 +17,8 @@ typedef struct {
 } vertex_t;
 
 typedef struct {
-  GLuint texture, VAO, VBO, EBO, vcount, icount;
+  GLuint VAO, VBO, EBO, vcount, icount;
+  GLuint texture, texture_spec, texture_norm;
   mat4x4 transform;
   uint32_t current_frame;
 

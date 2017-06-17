@@ -16,8 +16,10 @@ void framebuffer_init()
 
   // color buffer
   // FIX WIDTH & HEIGHT
-  width   = 480;
-  height  = 272;
+  // width   = 480;
+  // height  = 272;
+  width  = 1920;
+  height = 1080;
   glGenTextures(1, &colorbuffer);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -104,9 +106,12 @@ void framebuffer_render_quad()
   // render screen quad
   glUseProgram(fbo_shader);
   glBindVertexArray(fbo_vao);
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1i(glGetUniformLocation(fbo_shader, "u_texture"), 0);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void framebuffer_destroy()

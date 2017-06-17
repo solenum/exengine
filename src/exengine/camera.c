@@ -90,5 +90,5 @@ void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)
   GLuint view_location = glGetUniformLocation(shader_program, "u_view");
   glUniformMatrix4fv(view_location, 1, GL_FALSE, cam->view[0]);
   GLuint viewp_location = glGetUniformLocation(shader_program, "u_view_position");
-  glUniform3f(viewp_location, 1, GL_FALSE, cam->position[0]);
+  glUniform3fv(viewp_location, 1, &cam->position[0]);
 }

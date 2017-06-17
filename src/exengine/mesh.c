@@ -77,19 +77,40 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m->texture);
-  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 0);
+  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 2);
+  glUniform1i(glGetUniformLocation(shader_program, "u_spec"), 3);
+  glUniform1i(glGetUniformLocation(shader_program, "u_norm"), 4);
   
   GLuint is_lit_loc = glGetUniformLocation(shader_program, "u_is_lit");
   glUniform1i(is_lit_loc, m->is_lit);
 
   GLuint is_texture_loc = glGetUniformLocation(shader_program, "u_is_textured");
+  GLuint is_spec_loc = glGetUniformLocation(shader_program, "u_is_spec");
+  GLuint is_norm_loc = glGetUniformLocation(shader_program, "u_is_norm");
   
-  if (m->texture < 1)
+  if (m->texture < 1) {
     glUniform1i(is_texture_loc, 0);
-  else
+  } else { 
     glUniform1i(is_texture_loc, 1);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, m->texture);
+  }
+
+  if (m->texture_spec < 1) {
+    glUniform1i(is_spec_loc, 0);
+  } else {
+    glUniform1i(is_spec_loc, 1);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m->texture_spec);
+  }
+
+  if (m->texture_norm < 1) {
+    glUniform1i(is_norm_loc, 0);
+  } else {
+    glUniform1i(is_norm_loc, 1);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, m->texture_norm);
+  }
 
   // pass transform matrix to shader
   GLuint transform_loc = glGetUniformLocation(shader_program, "u_model");

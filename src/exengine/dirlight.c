@@ -78,14 +78,15 @@ void dir_light_begin(dir_light_t *l)
 void dir_light_draw(dir_light_t *l, GLuint shader)
 {
 
-  glActiveTexture(GL_TEXTURE2);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
-  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 2);
+  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 0);
 
   glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, l->position);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);
   glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void dir_light_destroy(dir_light_t *l)

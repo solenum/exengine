@@ -114,6 +114,7 @@ void main()
   vec3 tex_color = textureLod(u_texture, uv, 0.0).rgb;
   tex_color = vec3(1.0) - exp(-tex_color / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
-  vec4 dither = dither8x8(uv * textureSize(u_texture, 0).xy, color);
-  color = mix(color, dither, 0.2f);
+  // vec4 dither = dither8x8(uv * textureSize(u_texture, 0).xy, color);
+  // color = dither8x8(gl_FragCoord.xy, color);
+  // color = mix(color, dither, 0.2f);
 }

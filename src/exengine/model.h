@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 
 #include "exe_list.h"
+#include "octree.h"
 #include "mesh.h"
 
 typedef struct {
@@ -46,6 +47,8 @@ typedef struct {
 
   vertex_t *vertices;
   size_t num_vertices;
+
+  octree_t *octree_data;
 } model_t;
 
 model_t* model_new();

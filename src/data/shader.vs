@@ -9,11 +9,12 @@ layout (location = 5) in vec4 in_boneindex;
 layout (location = 6) in vec4 in_boneweights;
 
 out vec3 frag;
-flat out vec3 normal;
+out vec3 normal;
 out vec2 uv;
 out vec4 color;
 out vec4 frag_light_pos;
 out float fog;
+out mat3 TBN;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
@@ -52,10 +53,16 @@ void main()
   float fog_dens  = (fog_end - dist) / (fog_end - fog_start);
   fog = clamp(fog_dens, 0.0, 1.0);
 
-  gl_Position    = vv;
-  normal         = mat3(transpose(inverse(transform))) * in_normals;
+  gl_Position    = v;
+  normal         = mat3(transpose(inverse(u_model))) * in_normals;
   frag           = vec3(u_model * vec4(in_position, 1.0f));
   uv             = in_uv;
   color          = in_color;
   frag_light_pos = u_light_transform * vec4(frag, 1.0);
+
+  // calculate tbn matrix for normal mapping
+  vec3 T = normalize(vec3(u_model * vec4(in_tangents.xyz, 0.0)));
+  vec3 B = normalize(vec3(u_model * in_tangents));
+  vec3 N = normalize(vec3(u_model * vec4(in_normals, 0.0)));
+  TBN    = mat3(T, B, N);
 }

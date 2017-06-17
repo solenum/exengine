@@ -176,14 +176,18 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   model->bind_pose   = bind_pose;
   model->pose        = pose;
   model->vertices    = NULL;
+  model->octree_data = NULL;
 
   // store vertices
   if (keep_vertices) {
     size_t size = header.num_triangles*3;
     model->vertices = malloc(sizeof(vertex_t)*size);
     model->num_vertices = size;
+    // model->octree_data = octree_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){100.0f, 100.0f, 100.0f});
 
     for (int i=0; i<size; i++) {
+      // vec3 temp;
+      // memcpy(temp, &vertices[indices[i]].position, sizeof(vertex_t));
       memcpy(&model->vertices[i].position, &vertices[indices[i]].position, sizeof(vertex_t));
     }
   }
@@ -251,19 +255,34 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
         iqm_get_args(&arg_start[1], args);
         point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
-        list_add(scene->point_light_list, l);
+        // list_add(scene->point_light_list, l);
         printf("%f %f %f %i\n", args[0], args[1], args[2], (int)args[3]);
         printf("%f %f %f\n", vert[0].position[0], vert[0].position[1], vert[0].position[2]);
       }
     } else {
       // create mesh
-      mesh_t *m      = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
+      mesh_t *m = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
       printf("MAT %s\n", tex_name);
 
       // load textures
-      if (is_file != NULL)
+      char *tex_types[] = {"spec_", "norm_"};
+      if (is_file != NULL) {
+        // diffuse
         m->texture = scene_add_texture(scene, tex_name);
+      
+        // spec
+        char spec[strlen(tex_name)+strlen(tex_types[0])];
+        strcpy(spec, tex_types[0]);
+        strcpy(&spec[strlen(tex_types[0])], tex_name);
+        m->texture_spec = scene_add_texture(scene, spec);
+
+        // norm
+        char norm[strlen(tex_name)+strlen(tex_types[1])];
+        strcpy(norm, tex_types[1]);
+        strcpy(&norm[strlen(tex_types[1])], tex_name);
+        m->texture_norm = scene_add_texture(scene, norm);
+      }
 
       // push mesh into mesh list
       list_add(model->mesh_list, m);
