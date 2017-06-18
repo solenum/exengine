@@ -50,7 +50,6 @@ void framebuffer_init()
   fbo_shader = shader_compile("data/fboshader.vs", "data/fboshader.fs", NULL);
   /* ------------------------- */
 
-
   /* -- screen quad -- */
   GLfloat vertices[] = {   
     // pos         // uv

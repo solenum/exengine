@@ -55,7 +55,7 @@ void main()
 
   gl_Position    = v;
   normal         = mat3(transpose(inverse(u_model))) * in_normals;
-  frag           = vec3(u_model * vec4(in_position, 1.0f));
+  frag           = vec3(transform * vec4(in_position, 1.0f));
   uv             = in_uv;
   color          = in_color;
   frag_light_pos = u_light_transform * vec4(frag, 1.0);
