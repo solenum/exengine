@@ -69,8 +69,8 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
 {
   // handle transformations
   mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
-  mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
   mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
+  mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
   mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
   mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
 

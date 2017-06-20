@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 
 #include "mathlib.h"
+#include "model.h"
 #include <stdbool.h>
 
 typedef struct {
@@ -12,6 +13,8 @@ typedef struct {
   float yaw, pitch, last_x, last_y, fov, sensitivity;
   mat4x4 view, projection;
   int width, height;
+  model_t *view_model;
+  vec3 view_model_offset, view_model_rotate;
 } fps_camera_t;
 
 /**

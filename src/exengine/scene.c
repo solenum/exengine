@@ -61,7 +61,7 @@ void scene_draw(scene_t *s)
 
     if (l->dynamic || l->update) {
       point_light_begin(l);
-      scene_render_models(s, l->shader);
+      scene_render_models(s, l->shader, 1);
     }
 
     if (n->next != NULL)
@@ -85,7 +85,7 @@ void scene_draw(scene_t *s)
 
       dir_light_begin(l);
 
-      scene_render_models(s, l->shader);
+      scene_render_models(s, l->shader, 1);
     }
 
     if (n->next != NULL)
@@ -111,13 +111,9 @@ void scene_draw(scene_t *s)
   }
 
   // render scene
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(s->shader);
-
-  // update camera
-  if (s->fps_camera != NULL) {
-    fps_camera_update(s->fps_camera, s->shader);
-    fps_camera_draw(s->fps_camera, s->shader);
-  }
 
   // debug poooo
   if (keys_down[GLFW_KEY_E])
@@ -155,7 +151,7 @@ void scene_draw(scene_t *s)
     }
 
     // render models
-    scene_render_models(s, s->shader);
+    scene_render_models(s, s->shader, 0);
 
     // enable blending for second pass onwards
     glEnable(GL_BLEND);
@@ -176,16 +172,24 @@ void scene_draw(scene_t *s)
   }
   glDisable(GL_BLEND);
 
+  // update camera
+  if (s->fps_camera != NULL) {
+    fps_camera_update(s->fps_camera, s->shader);
+    fps_camera_draw(s->fps_camera, s->shader);
+  }
 
   // render screen quad
   framebuffer_render_quad();
 }
 
-void scene_render_models(scene_t *s, GLuint shader)
+void scene_render_models(scene_t *s, GLuint shader, int shadows)
 {
   list_node_t *n = s->model_list;
   while (n->data != NULL) {
-    model_draw(n->data, shader);
+    model_t *m = n->data;
+
+    if ((shadows && m->is_shadow) || !shadows)
+      model_draw(m, shader);
 
     if (n->next != NULL)
       n = n->next;

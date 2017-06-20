@@ -11,6 +11,7 @@ model_t* model_new()
   memset(m->position, 0, sizeof(vec3));
   memset(m->rotation, 0, sizeof(vec3));
   m->scale  = 1.0f;
+  m->is_shadow = 1;
   m->is_lit = 1;
 
   m->current_anim  = NULL;
@@ -84,7 +85,7 @@ void model_draw(model_t *m, GLuint shader)
   GLuint has_skeleton_loc = glGetUniformLocation(shader, "u_has_skeleton");
   glUniform1i(has_skeleton_loc, 0);
   
-  if (m->bones != NULL) {
+  if (m->bones != NULL && m->current_anim != NULL) {
     glUniform1i(has_skeleton_loc, 1);
     
     GLuint bone_loc = glGetUniformLocation(shader, "u_bone_matrix");
@@ -193,8 +194,10 @@ void model_set_pose(model_t *m, frame_t frame)
 
 void model_set_anim(model_t *m, size_t index)
 {
-  if (index > m->anims_len)
+  if (index > m->anims_len) {
+    m->current_anim = NULL;
     return;
+  }
 
   m->current_anim  = &m->anims[index];
   m->current_time  = 0;

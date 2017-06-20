@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "window.h"
 #include <stdlib.h>
+#include <string.h>
 
 fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float fov)
 {
@@ -31,6 +32,10 @@ fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float
   mat4x4_identity(c->view);
   mat4x4_identity(c->projection);
 
+  c->view_model = NULL;
+  memset(c->view_model_offset, 0, sizeof(vec3));
+  memset(c->view_model_rotate, 0, sizeof(vec3));
+
   return c;
 }
 
@@ -40,7 +45,7 @@ void fps_camera_resize(fps_camera_t *cam)
   glfwGetFramebufferSize(display.window, &width, &height);
   
   if (cam->width != width || cam->height != height) {
-    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.1f, 1000.0f);
+    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.01f, 1000.0f);
     cam->width  = width;
     cam->height = height;
   }
@@ -80,6 +85,28 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
   vec3 center;
   vec3_add(center, cam->position, cam->front);
   mat4x4_look_at(cam->view, cam->position, center, cam->up);
+
+  // update view model
+  if (cam->view_model != NULL) {
+    vec3 offset, side;
+    memcpy(cam->view_model->position, cam->position, sizeof(vec3));
+    cam->view_model->rotation[1] = cam->yaw+90.0f;
+    cam->view_model->rotation[0] = cam->pitch;
+
+    // forward backwards on z
+    vec3_scale(offset, cam->front, cam->view_model_offset[2]);
+
+    // left right on x
+    vec3_mul_cross(side, cam->front, cam->up);
+    vec3_norm(side, side);
+    vec3_scale(side, side, cam->view_model_offset[0]);
+    vec3_add(offset, side, offset);
+
+    // up and down on y
+    offset[1] = cam->view_model_offset[1];
+
+    vec3_add(cam->view_model->position, cam->view_model->position, offset);
+  }
 }
 
 void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)

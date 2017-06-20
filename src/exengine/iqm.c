@@ -31,6 +31,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   memcpy(&header, data, sizeof(iqm_header_t));
 
   iqmmesh_t *meshes = (iqmmesh_t *)&data[header.ofs_meshes];
+  char *file_text = header.ofs_text ? (char *)&data[header.ofs_text] : "";
 
   // set the vertices
   vertex_t *vertices  = malloc(sizeof(vertex_t)*(header.num_vertexes));
@@ -98,6 +99,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     for (int i=0; i<header.num_joints; i++) {
       iqmjoint_t *j   = &joints[i];
       bones[i].name   = j->name;
+      // printf("\nNAME %s\n\n", &file_text[j->name]);
       bones[i].parent = j->parent;
       memcpy(bones[i].position, j->translate, sizeof(vec3));
       memcpy(bones[i].rotation, j->rotate,    sizeof(quat));
@@ -222,7 +224,6 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   }
 
   // add the meshes to the model
-  char *file_text = header.ofs_text ? (char *)&data[header.ofs_text] : "";
   GLuint index_offset = 0;
   for (int i=0; i<header.num_meshes; i++) {
     vertex_t *vert = &vertices[meshes[i].first_vertex];
@@ -255,7 +256,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
         iqm_get_args(&arg_start[1], args);
         point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
-        //list_add(scene->point_light_list, l);
+        // list_add(scene->point_light_list, l);
         printf("%f %f %f %i\n", args[0], args[1], args[2], (int)args[3]);
         printf("%f %f %f\n", vert[0].position[0], vert[0].position[1], vert[0].position[2]);
       }

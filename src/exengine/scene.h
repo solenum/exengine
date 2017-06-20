@@ -26,7 +26,7 @@ void scene_update(scene_t *s, float delta_time);
 
 void scene_draw(scene_t *s);
 
-void scene_render_models(scene_t *s, GLuint shader);
+void scene_render_models(scene_t *s, GLuint shader, int shadows);
 
 GLuint scene_add_texture(scene_t *s, const char *file);
 

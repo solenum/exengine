@@ -11,6 +11,10 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define DOT_THRESHOLD 0.9995
 
+static inline float degrees(float radians) {
+    return radians * (180.0 / M_PI);
+}
+
 static inline float rad(float degrees) {
     return degrees * M_PI / 180.0f;
 }

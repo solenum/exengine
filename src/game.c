@@ -47,8 +47,8 @@ void game_run()
   // dir_light_t *dl = dir_light_new((vec3){8.0f, 16.0f, 8.0f}, (vec3){1.0f, 1.0f, 1.1f}, 1);
   // list_add(scene->dir_light_list, dl);
 
-  skybox_t *s = skybox_new("sky");
-  scene->skybox = s;
+  // skybox_t *s = skybox_new("sky");
+  // scene->skybox = s;
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
@@ -56,9 +56,11 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  model_t *d = iqm_load_model(scene, "data/box.iqm", 0);
+  model_t *d = iqm_load_model(scene, "data/dude.iqm", 0);
   list_add(scene->model_list, d);
-  d->position[1] += 3.5f;
+  // d->position[1] = 3.0f;
+  // model_set_anim(d, 1);
+  // d->current_anim = NULL;
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -95,9 +97,7 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    d->rotation[0] += 0.1f;
-    d->rotation[1] += 0.1f;
-    d->rotation[2] += 0.1f;
+    // d->rotation[1] += 0.2f;
     
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
