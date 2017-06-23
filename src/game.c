@@ -58,7 +58,7 @@ void game_run()
 
   model_t *d = iqm_load_model(scene, "data/player.iqm", 0);
   list_add(scene->model_list, d);
-  d->position[1] = 1.5f;
+  // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
   model_set_anim(d, 1);
   // d->current_anim = NULL;
@@ -77,9 +77,10 @@ void game_run()
   camera->view_model_offset[1]  = -0.15f;
   camera->view_model_offset[2]  = -0.25f;
 
-  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // list_add(scene->point_light_list, pl);
+  list_add(scene->point_light_list, pl);
+  pl->is_shadow = 0;
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -94,10 +95,11 @@ void game_run()
     entity_update(e);
     memcpy(camera->position, e->position, sizeof(vec3));
     camera->position[1] += e->radius[1];
+    memcpy(pl->position, camera->position, sizeof(vec3));
 
     if (keys_down[GLFW_KEY_F]) {
       float r = (float)rand()/(float)(RAND_MAX/1.5f);
-      float g = (float)rand()/(float)(RAND_MAX/1.5f);
+      float g = (float)rand()/(float)(RAND_MAX/0.8f);
       float b = (float)rand()/(float)(RAND_MAX/1.5f);
       point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
@@ -119,7 +121,7 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    model_get_bone_transform(d, "foot_L", g2->transform);
+    model_get_bone_transform(d, "knee_L", g2->transform);
     
     // can shit
     if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)

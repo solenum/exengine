@@ -10,7 +10,7 @@ typedef struct {
   vec3 position, color;
   mat4x4 transform[6];
   GLuint depth_map, depth_map_fbo, shader;
-  int dynamic, update;
+  int dynamic, update, is_shadow;
 } point_light_t;
 
 void point_light_init();

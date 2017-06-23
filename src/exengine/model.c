@@ -179,7 +179,7 @@ void model_update_matrices(model_t *m)
       mat4x4_mul(result, m->inverse_base[i], mat);
     }
 
-    mat4x4_dup(m->bones[i].transform, result);
+    mat4x4_dup(m->bones[i].transform, transform[i]);
     mat4x4_dup(m->skeleton[i], result);
   }
 }
@@ -222,18 +222,20 @@ void model_get_bone_transform(model_t *m, const char *name, mat4x4 transform)
     if (strcmp(m->bones[i].name, name) == 0) {
       // apply model transforms
       if (!m->use_transform) {
-        mat4x4_translate_in_place(temp, m->position[0], m->position[1], m->position[2]);
-        mat4x4_rotate_Y(temp, temp, rad(m->rotation[1]));
-        mat4x4_rotate_X(temp, temp, rad(m->rotation[0]));
-        mat4x4_rotate_Z(temp, temp, rad(m->rotation[2]));
-        mat4x4_scale_aniso(temp, temp, m->scale, m->scale, m->scale);
+        // mat4x4_translate_in_place(temp, m->position[0], m->position[1], m->position[2]);
+        // mat4x4_rotate_Y(temp, temp, rad(m->rotation[1]));
+        // mat4x4_rotate_X(temp, temp, rad(m->rotation[0]));
+        // mat4x4_rotate_Z(temp, temp, rad(m->rotation[2]));
+        // mat4x4_scale_aniso(temp, temp, m->scale, m->scale, m->scale);
       } else {
-        mat4x4_mul(temp, m->transform, temp);
+        // mat4x4_mul(temp, m->transform, temp);
       }
 
       // apply bone transform
-      mat4x4_mul(transform, transform, temp);
-      mat4x4_mul(transform, transform, m->bones[i].transform);
+      // mat4x4_mul(transform, m->bones[i].transform, m->inverse_base[i]);
+      // mat4x4_mul(transform, transform, m->bones[i].transform);
+      // mat4x4_dup(transform, m->bones[i].transform);
+      // mat4x4_mul(transform, transform, m->inverse_base[i]);
       return;
     }
   }

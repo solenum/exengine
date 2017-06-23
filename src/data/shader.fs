@@ -14,7 +14,7 @@ uniform sampler2D u_texture;
 uniform sampler2D u_spec;
 uniform sampler2D u_norm;
 
-uniform bool u_is_textured;
+uniform bool u_is_textured; 
 uniform bool u_is_spec;
 uniform bool u_is_norm;
 uniform bool u_dont_norm;
@@ -29,6 +29,7 @@ uniform bool u_ambient_pass;
 struct point_light {
   vec3 position;
   vec3 color;
+  bool is_shadow;
 };
 uniform point_light u_point_light;
 uniform samplerCube u_point_depth; 
@@ -45,6 +46,15 @@ uniform dir_light u_dir_light;
 uniform sampler2D u_dir_depth;
 uniform bool u_dir_active;
 /* ------------ */
+
+vec3 pcf_offset[20] = vec3[]
+(
+  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
 
 vec3 calc_point_light(point_light l, samplerCube depth)
 {
@@ -70,11 +80,24 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float bias     = 0.2*tan(acos(costheta));
   bias           = clamp(bias, 0.01, 0.2);
 
-  vec3 frag_to_light  = frag - l.position;
-  float closest_depth = texture(depth, frag_to_light).r;
-  closest_depth      *= u_far_plane;
-  float current_depth = length(frag_to_light);
-  float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
+  float shadow = 0.0f;
+  if (l.is_shadow) {
+    vec3 frag_to_light  = frag - l.position;
+    float current_depth = length(frag_to_light);
+    float view_dist     = length(u_view_position - frag);
+
+    // PCF smoothing
+    float radius = (1.0 + (view_dist / u_far_plane)) / 50.0;
+    float offset = 0.1;
+    int   samples = 20;
+    for (int i=0; i<samples; ++i) {
+      float closest_depth = texture(depth, frag_to_light + pcf_offset[i] * radius).r;
+      closest_depth      *= u_far_plane;
+      if (current_depth - bias > closest_depth)
+        shadow += 1.0;
+    }
+    shadow /= float(samples);
+  }
 
   if (u_is_spec) {
     float spec = 0.0;
@@ -137,11 +160,11 @@ void main()
 
     // ambient lighting
     if (u_ambient_pass) {
-      diffuse         = vec3(0.05f);
+      diffuse         = vec3(0.1f);
       vec3 norm       = normalize(normal);
       vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
       float diff      = max(dot(light_dir, norm), 0.0);
-      diffuse        += vec3(diff * 0.05f);
+      // diffuse        += vec3(diff * 0.05f);
     }
 
     vec3 p = vec3(0.0f);

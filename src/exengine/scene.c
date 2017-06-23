@@ -59,7 +59,7 @@ void scene_draw(scene_t *s)
   while (n->data != NULL) {
     point_light_t *l = n->data;
 
-    if (l->dynamic || l->update) {
+    if ((l->dynamic || l->update) && l->is_shadow) {
       point_light_begin(l);
       scene_render_models(s, l->shader, 1);
     }

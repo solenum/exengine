@@ -50,9 +50,10 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
     printf("Error! Point light framebuffer is not complete!\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  l->shader  = point_light_shader;
-  l->dynamic = dynamic;
-  l->update  = 1;
+  l->shader    = point_light_shader;
+  l->dynamic   = dynamic;
+  l->update    = 1;
+  l->is_shadow = 1;
 
   return l;
 }
@@ -117,6 +118,7 @@ void point_light_draw(point_light_t *l, GLuint shader)
 
   glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
   glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
+  glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), l->is_shadow);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 

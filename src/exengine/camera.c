@@ -88,7 +88,6 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
 
   // update view model
   if (cam->view_model != NULL) {
-    cam->view_model->is_shadow    = 0;
     cam->view_model->use_transform= 1;
 
     mat4x4 mat;
