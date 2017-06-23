@@ -88,24 +88,16 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
 
   // update view model
   if (cam->view_model != NULL) {
-    vec3 offset, side;
-    memcpy(cam->view_model->position, cam->position, sizeof(vec3));
-    cam->view_model->rotation[1] = cam->yaw+90.0f;
-    cam->view_model->rotation[0] = cam->pitch;
+    cam->view_model->is_viewmodel = 1;
+    mat4x4_identity(cam->view_model_transform);
 
-    // forward backwards on z
-    vec3_scale(offset, cam->front, cam->view_model_offset[2]);
+    // this is borderline retarded
+    mat4x4_translate_in_place(cam->view_model_transform, cam->position[0], cam->position[1], cam->position[2]);
+    mat4x4_translate_in_place(cam->view_model_transform, cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
+    mat4x4_rotate_Y(cam->view_model_transform, cam->view_model_transform, rad(cam->yaw + 90.0f));
+    mat4x4_rotate_X(cam->view_model_transform, cam->view_model_transform, rad(cam->pitch));
 
-    // left right on x
-    vec3_mul_cross(side, cam->front, cam->up);
-    vec3_norm(side, side);
-    vec3_scale(side, side, cam->view_model_offset[0]);
-    vec3_add(offset, side, offset);
-
-    // up and down on y
-    offset[1] = cam->view_model_offset[1];
-
-    vec3_add(cam->view_model->position, cam->view_model->position, offset);
+    memcpy(cam->view_model->position, cam->view_model_offset, sizeof(vec3));
   }
 }
 
@@ -118,4 +110,6 @@ void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)
   glUniformMatrix4fv(view_location, 1, GL_FALSE, cam->view[0]);
   GLuint viewp_location = glGetUniformLocation(shader_program, "u_view_position");
   glUniform3fv(viewp_location, 1, &cam->position[0]);
+  GLuint viewm_location = glGetUniformLocation(shader_program, "u_view_model_transform");
+  glUniformMatrix4fv(viewm_location, 1, GL_FALSE, cam->view_model_transform[0]);
 }

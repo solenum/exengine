@@ -21,7 +21,9 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
 uniform bool u_has_skeleton;
+uniform bool u_is_viewmodel;
 uniform mat4 u_light_transform;
+uniform mat4 u_view_model_transform;
 
 void main()
 {
@@ -37,8 +39,13 @@ void main()
     transform = u_model * skeleton;
   }
 
-  // vertex snapping
   mat4 mvp = u_projection * u_view * transform;
+  
+  if (u_is_viewmodel) {
+    mvp = u_projection * u_model;
+    transform = u_view_model_transform;
+  }
+
   vec4 v = mvp*vec4(in_position, 1.0);
   vec4 vv = v;
   vv.xyz = v.xyz / v.w;
@@ -54,7 +61,7 @@ void main()
   fog = clamp(fog_dens, 0.0, 1.0);
 
   gl_Position    = v;
-  normal         = mat3(transpose(inverse(u_model))) * in_normals;
+  normal         = mat3(transpose(inverse(transform))) * in_normals;
   frag           = vec3(transform * vec4(in_position, 1.0f));
   uv             = in_uv;
   color          = in_color;

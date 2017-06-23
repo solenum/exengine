@@ -15,12 +15,20 @@ typedef struct {
 
 extern window_t display;
 extern uint8_t keys_down[GLFW_KEY_LAST];
+extern uint8_t buttons_down[GLFW_KEY_LAST];
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
   if (action == GLFW_PRESS)
     keys_down[key] = 1;
   if (action == GLFW_RELEASE)
     keys_down[key] = 0;
+}
+
+static void button_callback(GLFWwindow *window, int button, int action, int mods) {
+  if (action == GLFW_PRESS)
+    buttons_down[button] = 1;
+  if (action == GLFW_RELEASE)
+    buttons_down[button] = 0;
 }
 
 void mouse_callback(GLFWwindow* window, double x, double y);

@@ -10,9 +10,12 @@ model_t* model_new()
   // init attributes
   memset(m->position, 0, sizeof(vec3));
   memset(m->rotation, 0, sizeof(vec3));
-  m->scale  = 1.0f;
+  m->scale     = 1.0f;
   m->is_shadow = 1;
-  m->is_lit = 1;
+  m->is_lit    = 1;
+  m->use_transform  = 0;
+  m->is_viewmodel   = 0;
+  mat4x4_identity(m->transform);
 
   m->current_anim  = NULL;
   m->current_time  = 0.0;
@@ -32,6 +35,10 @@ void model_update(model_t *m, float delta_time)
     memcpy(mesh->rotation, m->rotation, sizeof(vec3));
     mesh->scale  = m->scale;
     mesh->is_lit = m->is_lit;
+
+    mesh->use_transform = m->use_transform;
+    if (m->use_transform)
+      mat4x4_dup(mesh->transform, m->transform);
 
     if (n->next != NULL)
       n = n->next;
@@ -84,6 +91,9 @@ void model_draw(model_t *m, GLuint shader)
   // pass bone data
   GLuint has_skeleton_loc = glGetUniformLocation(shader, "u_has_skeleton");
   glUniform1i(has_skeleton_loc, 0);
+
+  GLuint is_viewmodel_loc = glGetUniformLocation(shader, "u_is_viewmodel");
+  glUniform1i(is_viewmodel_loc, m->is_viewmodel);
   
   if (m->bones != NULL && m->current_anim != NULL) {
     glUniform1i(has_skeleton_loc, 1);
@@ -173,6 +183,7 @@ void model_update_matrices(model_t *m)
       mat4x4_mul(result, m->inverse_base[i], mat);
     }
 
+    mat4x4_dup(m->bones[i].transform, result);
     mat4x4_dup(m->skeleton[i], result);
   }
 }
@@ -204,6 +215,33 @@ void model_set_anim(model_t *m, size_t index)
   m->current_frame = m->current_anim->first;
 }
 
+void model_get_bone_transform(model_t *m, const char *name, mat4x4 transform)
+{
+  mat4x4 temp;
+  mat4x4_identity(transform);
+  mat4x4_identity(temp);
+
+  // get bone by name
+  for (int i=0; i<m->bones_len; i++) {
+    if (strcmp(m->bones[i].name, name) == 0) {
+      // apply model transforms
+      if (!m->use_transform) {
+        mat4x4_translate_in_place(temp, m->position[0], m->position[1], m->position[2]);
+        mat4x4_rotate_Y(temp, temp, rad(m->rotation[1]));
+        mat4x4_rotate_X(temp, temp, rad(m->rotation[0]));
+        mat4x4_rotate_Z(temp, temp, rad(m->rotation[2]));
+        mat4x4_scale_aniso(temp, temp, m->scale, m->scale, m->scale);
+      } else {
+        mat4x4_mul(temp, m->transform, temp);
+      }
+
+      // apply bone transform
+      mat4x4_mul(transform, transform, temp);
+      mat4x4_mul(transform, transform, m->bones[i].transform);
+      return;
+    }
+  }
+}
 
 void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 {

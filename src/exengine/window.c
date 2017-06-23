@@ -3,6 +3,7 @@
 
 window_t display;
 uint8_t keys_down[GLFW_KEY_LAST];
+uint8_t buttons_down[GLFW_KEY_LAST];
 
 bool window_init(uint32_t width, uint32_t height, const char *title)
 {
@@ -25,6 +26,7 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   glfwSetKeyCallback(display.window, key_callback);
   glfwSetCursorPosCallback(display.window, mouse_callback);
   glfwSetFramebufferSizeCallback(display.window, resize_callback);
+  glfwSetMouseButtonCallback(display.window, button_callback);
 
   // set context
   glfwMakeContextCurrent(display.window);

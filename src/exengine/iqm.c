@@ -96,10 +96,11 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     bones     = malloc(sizeof(bone_t)*header.num_joints);
     bind_pose = malloc(sizeof(pose_t)*header.num_joints);
     pose      = malloc(sizeof(pose_t)*header.num_joints);
+    printf("Bones: ");
     for (int i=0; i<header.num_joints; i++) {
       iqmjoint_t *j   = &joints[i];
-      bones[i].name   = j->name;
-      // printf("\nNAME %s\n\n", &file_text[j->name]);
+      strncpy(bones[i].name, &file_text[j->name], 64);
+      printf("%s ", bones[i].name);
       bones[i].parent = j->parent;
       memcpy(bones[i].position, j->translate, sizeof(vec3));
       memcpy(bones[i].rotation, j->rotate,    sizeof(quat));
@@ -108,6 +109,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       memcpy(bind_pose[i].rotate,     j->rotate,    sizeof(quat));
       memcpy(bind_pose[i].scale,      j->scale,     sizeof(vec3));
     }
+    printf("\n");
   }
 
   // anims
@@ -180,20 +182,6 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   model->vertices    = NULL;
   model->octree_data = NULL;
 
-  // store vertices
-  if (keep_vertices) {
-    size_t size = header.num_triangles*3;
-    model->vertices = malloc(sizeof(vertex_t)*size);
-    model->num_vertices = size;
-    // model->octree_data = octree_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){100.0f, 100.0f, 100.0f});
-
-    for (int i=0; i<size; i++) {
-      // vec3 temp;
-      // memcpy(temp, &vertices[indices[i]].position, sizeof(vertex_t));
-      memcpy(&model->vertices[i].position, &vertices[indices[i]].position, sizeof(vertex_t));
-    }
-  }
-
   // calc inverse base pose
   model->inverse_base = NULL;
   model->skeleton     = NULL;
@@ -217,12 +205,15 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     } else {
       mat4x4_dup(model->inverse_base[i], inv);
     }
+
+    if (i >= header.num_joints-1)
+      model_update_matrices(model);
   }
 
-  if (model->bind_pose != NULL) {
-    model->current_anim = &model->anims[0];
-  }
-
+  // backup vertices of visible meshes
+  vec3 *vis_vertices = malloc(sizeof(vec3)*header.num_triangles*3);
+  size_t vis_len = 0;
+  
   // add the meshes to the model
   GLuint index_offset = 0;
   for (int i=0; i<header.num_meshes; i++) {
@@ -237,7 +228,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       if (ind[k] > offset)
         offset = ind[k];
     }
-    index_offset  += ++offset;
+    index_offset += ++offset;
 
     // get material and texture names
     char *tex_name = &file_text[meshes[i].material];
@@ -257,14 +248,19 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
         iqm_get_args(&arg_start[1], args);
         point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
         // list_add(scene->point_light_list, l);
-        printf("%f %f %f %i\n", args[0], args[1], args[2], (int)args[3]);
-        printf("%f %f %f\n", vert[0].position[0], vert[0].position[1], vert[0].position[2]);
       }
     } else {
       // create mesh
       mesh_t *m = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
-      printf("MAT %s\n", tex_name);
+      // store vertices
+      if (keep_vertices) {
+        size_t size = meshes[i].num_triangles*3;
+        for (int j=0; j<size; j++)
+          memcpy(&vis_vertices[vis_len+j], vert[ind[j]].position, sizeof(vec3));
+        
+        vis_len += size;
+      }
 
       // load textures
       char *tex_types[] = {"spec_", "norm_"};
@@ -290,8 +286,14 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     }
   }
 
-  printf("Finished loading IQM model %s\n", path);
+  // store vertices
+  if (keep_vertices) {
+    model->vertices = malloc(vis_len*sizeof(vec3));
+    model->num_vertices = vis_len;
+    memcpy(model->vertices, vis_vertices, vis_len*sizeof(vec3));
+  }
 
+  printf("Finished loading IQM model %s\n", path);
   free(vertices);
   free(indices);
   free(data);

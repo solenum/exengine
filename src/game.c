@@ -56,11 +56,27 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  model_t *d = iqm_load_model(scene, "data/dude.iqm", 0);
+  model_t *d = iqm_load_model(scene, "data/player.iqm", 0);
   list_add(scene->model_list, d);
-  // d->position[1] = 3.0f;
-  // model_set_anim(d, 1);
+  d->position[1] = 1.5f;
+  // d->rotation[0] = -90.0f;
+  model_set_anim(d, 1);
   // d->current_anim = NULL;
+  // 
+  model_t *g2 = iqm_load_model(scene, "data/gun.iqm", 0);
+  g2->use_transform = 1;
+  list_add(scene->model_list, g2);
+
+  model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
+  list_add(scene->model_list, g);
+  camera->view_model = g;
+  // g->is_shadow = 0;
+  float lastyaw = 0, lastpitch = 0;
+  int aim = 0;
+  vec3 oldpos;
+  camera->view_model_offset[0]  = 0.0f;
+  camera->view_model_offset[1]  = -0.15f;
+  camera->view_model_offset[2]  = -0.2f;
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -81,24 +97,54 @@ void game_run()
     camera->position[1] += e->radius[1];
 
     if (keys_down[GLFW_KEY_F]) {
-      float r = (float)rand()/(float)(RAND_MAX/1.0f);
-      float g = (float)rand()/(float)(RAND_MAX/1.0f);
-      float b = (float)rand()/(float)(RAND_MAX/1.0f);
+      float r = (float)rand()/(float)(RAND_MAX/1.5f);
+      float g = (float)rand()/(float)(RAND_MAX/1.5f);
+      float b = (float)rand()/(float)(RAND_MAX/1.5f);
       point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
       list_add(scene->point_light_list, l);
+
+      model_t *bulb = iqm_load_model(scene, "data/bulb.iqm", 0);
+      bulb->rotation[0] = -90.0f;
+      bulb->scale = 0.5f;
+      bulb->is_lit = 0;
+      bulb->is_shadow = 0;
+      memcpy(bulb->position, e->position, sizeof(vec3));
+      list_add(scene->model_list, bulb);
 
       keys_down[GLFW_KEY_F] = 0;
     }
 
     /* debug entity movement */
-
     float y = e->velocity[1];
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    // d->rotation[1] += 0.2f;
+    model_get_bone_transform(d, "foot_L", g2->transform);
     
+    // can shit
+    if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)
+      camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
+    if (camera->view_model_offset[0] > 0.05f && lastyaw - camera->yaw < 0)
+      camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
+    if (camera->view_model_offset[1] < -0.15f && lastpitch - camera->pitch > 0)
+      camera->view_model_offset[1] += ((lastpitch - camera->pitch) * 0.15f) * delta_time;
+    if (camera->view_model_offset[1] > -0.2f && lastpitch - camera->pitch < 0)
+      camera->view_model_offset[1] += ((lastpitch - camera->pitch) * 0.15f) * delta_time;
+    lastyaw = camera->yaw;
+    lastpitch = camera->pitch;
+
+    if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
+      if (aim == 0)
+        memcpy(oldpos, camera->view_model_offset, sizeof(vec3));
+      memcpy(camera->view_model_offset, (vec3){0.0f, -0.16f, 0.1f}, sizeof(vec3));
+      aim = 1;
+      move_speed = 0.8f;
+    } else if (aim == 1) {
+      memcpy(camera->view_model_offset, oldpos, sizeof(vec3));
+      aim = 0;
+    }
+
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else

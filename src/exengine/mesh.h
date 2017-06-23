@@ -21,6 +21,7 @@ typedef struct {
   GLuint texture, texture_spec, texture_norm;
   mat4x4 transform;
   uint32_t current_frame;
+  int use_transform;
 
   vec3 position, rotation;
   float scale;

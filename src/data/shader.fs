@@ -80,8 +80,8 @@ vec3 calc_point_light(point_light l, samplerCube depth)
     float spec = 0.0;
     vec3 view_dir = normalize(u_view_position - frag);
     vec3 halfwayDir = normalize(light_dir + view_dir);
-    spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-    vec3 specular = l.color * (4*spec) * vec3(texture(u_spec, uv));
+    spec = pow(max(dot(norm, halfwayDir), 0.0), 64.0);
+    vec3 specular = l.color * (8*spec) * vec3(texture(u_spec, uv));
     diffuse += (specular * attenuation);
   }
 

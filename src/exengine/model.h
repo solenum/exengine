@@ -9,10 +9,11 @@
 #include "mesh.h"
 
 typedef struct {
-  uint32_t name;
+  char name[64];
   int parent;
   vec3 position, scale;
   quat rotation;
+  mat4x4 transform;
 } bone_t;
 
 typedef struct {
@@ -44,8 +45,9 @@ typedef struct {
   anim_t *anims;
   frame_t *frames, bind_pose, pose;
   size_t bones_len, anims_len, frames_len;
+  int use_transform, is_viewmodel;
 
-  vertex_t *vertices;
+  vec3 *vertices;
   size_t num_vertices;
 
   octree_t *octree_data;
@@ -79,6 +81,8 @@ void model_set_pose(model_t *m, frame_t frame);
  */
 void model_set_anim(model_t *m, size_t index);
 
+void model_get_bone_transform(model_t *m, const char *name, mat4x4 transform);
+
 /**
  * [calc_bone_matrix gets bone matrix based on given input]
  * @param m     [model_t pointer]
@@ -96,5 +100,6 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale);
  * @param weight [how much to transpose (0 to 1.0)]
  */
 void mix_pose(model_t *m, frame_t a, frame_t b, float weight);
+
 
 #endif // MODEL_H

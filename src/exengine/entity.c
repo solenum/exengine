@@ -136,12 +136,12 @@ void entity_check_collision(entity_t *entity)
   while (n->data != NULL) {
     model_t *m = n->data;
     if (m->vertices != NULL) {
-      vertex_t *v = m->vertices;
+      vec3 *v = m->vertices;
       for (int i=0; i<m->num_vertices; i) {
         vec3 a,b,c;
-        vec3_div(a, v[i++].position, entity->packet.e_radius);
-        vec3_div(b, v[i++].position, entity->packet.e_radius);
-        vec3_div(c, v[i++].position, entity->packet.e_radius);
+        vec3_div(a, v[i++], entity->packet.e_radius);
+        vec3_div(b, v[i++], entity->packet.e_radius);
+        vec3_div(c, v[i++], entity->packet.e_radius);
         collision_check_triangle(&entity->packet, a, b, c);
       }
     }

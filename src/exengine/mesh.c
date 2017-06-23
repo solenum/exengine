@@ -68,11 +68,14 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
 void mesh_draw(mesh_t* m, GLuint shader_program)
 {
   // handle transformations
-  mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
-  mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
-  mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
-  mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
-  mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
+  if (!m->use_transform) {
+    mat4x4_identity(m->transform);
+    mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
+    mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
+    mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
+    mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
+    mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
+  }
 
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
@@ -123,9 +126,6 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-
-  // reset transform
-  mat4x4_identity(m->transform);
 }
 
 void mesh_destroy(mesh_t* m)
