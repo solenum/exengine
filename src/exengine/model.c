@@ -14,7 +14,6 @@ model_t* model_new()
   m->is_shadow = 1;
   m->is_lit    = 1;
   m->use_transform  = 0;
-  m->is_viewmodel   = 0;
   mat4x4_identity(m->transform);
 
   m->current_anim  = NULL;
@@ -29,7 +28,7 @@ void model_update(model_t *m, float delta_time)
   // update mesh transform
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
-    // update attributes
+    // update attributes 
     mesh_t *mesh = n->data;
     memcpy(mesh->position, m->position, sizeof(vec3));
     memcpy(mesh->rotation, m->rotation, sizeof(vec3));
@@ -92,9 +91,6 @@ void model_draw(model_t *m, GLuint shader)
   GLuint has_skeleton_loc = glGetUniformLocation(shader, "u_has_skeleton");
   glUniform1i(has_skeleton_loc, 0);
 
-  GLuint is_viewmodel_loc = glGetUniformLocation(shader, "u_is_viewmodel");
-  glUniform1i(is_viewmodel_loc, m->is_viewmodel);
-  
   if (m->bones != NULL && m->current_anim != NULL) {
     glUniform1i(has_skeleton_loc, 1);
     

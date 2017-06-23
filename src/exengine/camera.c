@@ -88,16 +88,14 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
 
   // update view model
   if (cam->view_model != NULL) {
-    cam->view_model->is_viewmodel = 1;
-    mat4x4_identity(cam->view_model_transform);
+    cam->view_model->is_shadow    = 0;
+    cam->view_model->use_transform= 1;
 
-    // this is borderline retarded
-    mat4x4_translate_in_place(cam->view_model_transform, cam->position[0], cam->position[1], cam->position[2]);
-    mat4x4_translate_in_place(cam->view_model_transform, cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
-    mat4x4_rotate_Y(cam->view_model_transform, cam->view_model_transform, rad(cam->yaw + 90.0f));
-    mat4x4_rotate_X(cam->view_model_transform, cam->view_model_transform, rad(cam->pitch));
-
-    memcpy(cam->view_model->position, cam->view_model_offset, sizeof(vec3));
+    mat4x4 mat;
+    mat4x4_identity(cam->view_model->transform);
+    mat4x4_invert(mat, cam->view);
+    mat4x4_mul(cam->view_model->transform, mat, cam->view_model->transform);
+    mat4x4_translate_in_place(cam->view_model->transform, cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
   }
 }
 
@@ -110,6 +108,4 @@ void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)
   glUniformMatrix4fv(view_location, 1, GL_FALSE, cam->view[0]);
   GLuint viewp_location = glGetUniformLocation(shader_program, "u_view_position");
   glUniform3fv(viewp_location, 1, &cam->position[0]);
-  GLuint viewm_location = glGetUniformLocation(shader_program, "u_view_model_transform");
-  glUniformMatrix4fv(viewm_location, 1, GL_FALSE, cam->view_model_transform[0]);
 }

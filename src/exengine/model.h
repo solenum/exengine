@@ -45,7 +45,7 @@ typedef struct {
   anim_t *anims;
   frame_t *frames, bind_pose, pose;
   size_t bones_len, anims_len, frames_len;
-  int use_transform, is_viewmodel;
+  int use_transform;
 
   vec3 *vertices;
   size_t num_vertices;

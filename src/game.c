@@ -70,13 +70,12 @@ void game_run()
   model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
   list_add(scene->model_list, g);
   camera->view_model = g;
-  // g->is_shadow = 0;
-  float lastyaw = 0, lastpitch = 0;
+  float lastyaw = 0;
   int aim = 0;
   vec3 oldpos;
   camera->view_model_offset[0]  = 0.0f;
   camera->view_model_offset[1]  = -0.15f;
-  camera->view_model_offset[2]  = -0.2f;
+  camera->view_model_offset[2]  = -0.25f;
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -127,12 +126,7 @@ void game_run()
       camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
     if (camera->view_model_offset[0] > 0.05f && lastyaw - camera->yaw < 0)
       camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
-    if (camera->view_model_offset[1] < -0.15f && lastpitch - camera->pitch > 0)
-      camera->view_model_offset[1] += ((lastpitch - camera->pitch) * 0.15f) * delta_time;
-    if (camera->view_model_offset[1] > -0.2f && lastpitch - camera->pitch < 0)
-      camera->view_model_offset[1] += ((lastpitch - camera->pitch) * 0.15f) * delta_time;
     lastyaw = camera->yaw;
-    lastpitch = camera->pitch;
 
     if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
       if (aim == 0)
@@ -144,6 +138,9 @@ void game_run()
       memcpy(camera->view_model_offset, oldpos, sizeof(vec3));
       aim = 0;
     }
+    
+    if (aim == 0)
+      camera->view_model_offset[1] = (camera->front[1] * 0.1f) - 0.2f;;
 
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
