@@ -83,10 +83,10 @@ void skybox_draw(skybox_t *s)
 
   // render skybox
   glBindVertexArray(skybox_vao);
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_CUBE_MAP, s->texture);
   glCullFace(GL_NONE);
-  glUniform1i(glGetUniformLocation(s->shader, "u_skybox"), 0);
+  glUniform1i(glGetUniformLocation(s->shader, "u_skybox"), 3);
   glDrawArrays(GL_TRIANGLES, 0, 36);
 
   glBindVertexArray(0);

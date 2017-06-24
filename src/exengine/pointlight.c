@@ -112,14 +112,14 @@ void point_light_draw(point_light_t *l, GLuint shader)
 {
   glUniform1f(glGetUniformLocation(shader, "u_far_plane"), POINT_FAR_PLANE);
   
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
-  glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 0);
+  glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 1);
 
   glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
   glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
   glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), l->is_shadow);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void point_light_destroy(point_light_t *l)

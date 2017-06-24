@@ -56,13 +56,13 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  model_t *d = iqm_load_model(scene, "data/player.iqm", 0);
+  model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
   list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
-  model_set_anim(d, 1);
+  // model_set_anim(d, 1);
   // d->current_anim = NULL;
-  // 
+  
   model_t *g2 = iqm_load_model(scene, "data/gun.iqm", 0);
   g2->use_transform = 1;
   list_add(scene->model_list, g2);
@@ -121,7 +121,7 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    model_get_bone_transform(d, "knee_L", g2->transform);
+    // model_get_bone_transform(d, "knee_L", g2->transform);
     
     // can shit
     if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)

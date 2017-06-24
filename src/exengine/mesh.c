@@ -80,9 +80,9 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
-  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 2);
-  glUniform1i(glGetUniformLocation(shader_program, "u_spec"), 3);
-  glUniform1i(glGetUniformLocation(shader_program, "u_norm"), 4);
+  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 4);
+  glUniform1i(glGetUniformLocation(shader_program, "u_spec"), 5);
+  glUniform1i(glGetUniformLocation(shader_program, "u_norm"), 6);
   
   GLuint is_lit_loc = glGetUniformLocation(shader_program, "u_is_lit");
   glUniform1i(is_lit_loc, m->is_lit);
@@ -95,7 +95,7 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
     glUniform1i(is_texture_loc, 0);
   } else { 
     glUniform1i(is_texture_loc, 1);
-    glActiveTexture(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, m->texture);
   }
 
@@ -103,7 +103,7 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
     glUniform1i(is_spec_loc, 0);
   } else {
     glUniform1i(is_spec_loc, 1);
-    glActiveTexture(GL_TEXTURE3);
+    glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, m->texture_spec);
   }
 
@@ -111,7 +111,7 @@ void mesh_draw(mesh_t* m, GLuint shader_program)
     glUniform1i(is_norm_loc, 0);
   } else {
     glUniform1i(is_norm_loc, 1);
-    glActiveTexture(GL_TEXTURE4);
+    glActiveTexture(GL_TEXTURE6);
     glBindTexture(GL_TEXTURE_2D, m->texture_norm);
   }
 
