@@ -44,11 +44,11 @@ void game_run()
   model_t *m6 = iqm_load_model(scene, "data/level.iqm", 1);
   list_add(scene->model_list, m6);
 
-  // dir_light_t *dl = dir_light_new((vec3){8.0f, 16.0f, 8.0f}, (vec3){1.0f, 1.0f, 1.1f}, 1);
+  // dir_light_t *dl = dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
   // list_add(scene->dir_light_list, dl);
 
-  // skybox_t *s = skybox_new("sky");
-  // scene->skybox = s;
+  skybox_t *s = skybox_new("sky");
+  scene->skybox = s;
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
@@ -61,8 +61,7 @@ void game_run()
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
   // model_set_anim(d, 1);
-  // d->current_anim = NULL;
-  
+
   model_t *g2 = iqm_load_model(scene, "data/gun.iqm", 0);
   g2->use_transform = 1;
   list_add(scene->model_list, g2);
@@ -91,6 +90,7 @@ void game_run()
     double current_frame_time = glfwGetTime();
     delta_time = (float)current_frame_time - (float)last_frame_time;
     last_frame_time = current_frame_time;
+    printf("%f\n", delta_time);
 
     entity_update(e);
     memcpy(camera->position, e->position, sizeof(vec3));
@@ -121,7 +121,7 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    // model_get_bone_transform(d, "knee_L", g2->transform);
+    // model_get_bone_transform(d, "foot_R", g2->transform);
     
     // can shit
     if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)
@@ -204,7 +204,7 @@ void game_run()
       vec3_add(e->velocity, e->velocity, speed);
       vec3_scale(temp, e->velocity, 0.05f);
       vec3_add(e->velocity, e->velocity, temp);
-      e->velocity[1] = 0.2f;
+      e->velocity[1] = 100.0f * delta_time;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;

@@ -5,7 +5,7 @@
 
 #define SHADOW_MAP_SIZE 1024
 #define DIR_FAR_PLANE 150
-#define DIR_LIGHT_SIZE 50
+#define DIR_LIGHT_SIZE 15
 mat4x4 dir_shadow_projection;
 GLuint dir_light_shader;
 
@@ -61,9 +61,10 @@ void dir_light_begin(dir_light_t *l)
   // set projection
   vec3 pos, target;
   vec3_add(pos, l->position, l->cposition);
-  vec3_sub(target, l->cposition, (vec3){0.0f, 0.0f, 0.0f});
+  vec3_sub(target, l->cposition, l->position);
   mat4x4_look_at(l->transform, pos, target, (vec3){0.0f, 1.0f, 0.0f});
   mat4x4_mul(l->transform, dir_shadow_projection, l->transform);
+  memcpy(l->target, target, sizeof(vec3));
 
   glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   glBindFramebuffer(GL_FRAMEBUFFER, l->depth_map_fbo);
@@ -77,15 +78,17 @@ void dir_light_begin(dir_light_t *l)
 
 void dir_light_draw(dir_light_t *l, GLuint shader)
 {
-  glActiveTexture(GL_TEXTURE2);
+  glActiveTexture(GL_TEXTURE10);
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
-  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 2);
+  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 10);
 
+  vec3 temp;
+  vec3_add(temp, l->cposition, l->position);
   glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
-  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, l->position);
+  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, temp);
+  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.target"), 1, l->target);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);
   glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
-  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void dir_light_destroy(dir_light_t *l)

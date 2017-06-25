@@ -39,6 +39,7 @@ uniform bool u_point_active;
 /* dir light */
 struct dir_light {
   vec3 position;
+  vec3 target;
   vec3 color;
   float far;
 };
@@ -125,30 +126,39 @@ vec3 calc_dir_light(dir_light l, sampler2D depth)
     norm = normalize(TBN * norm);
   }
 
-  vec3 light_dir  = normalize(l.position - frag);
+  vec3 light_dir  = normalize(l.position - l.target);
   float diff      = max(dot(light_dir, norm), 0.0);
   vec3 diffuse    = diff * l.color;
 
   // shadows
   float costheta = clamp(dot(norm, light_dir), 0.0, 1.0);
-  float bias     = 0.2*tan(acos(costheta));
-  bias           = clamp(bias, 0.01, 0.2);
+  float bias     = 0.4*tan(acos(costheta));
+  bias           = clamp(bias, 0.3, 0.4);
   
-  vec3 frag_to_light  = frag - l.position;
-  float closest_depth = texture(depth, proj.xy).r;
-  float current_depth = proj.z;
-  closest_depth      *= l.far;
-  current_depth      *= l.far;
-  float shadow        = current_depth - bias > closest_depth ? 1.0 : 0.0;
+  vec3 frag_to_light  = l.target - l.position;
+  float current_depth = proj.z * l.far;
+  float shadow        = 0.0f;
+  vec2 tsize = 1.0 / textureSize(depth, 0);
+  for (int x=-1; x<=1; ++x) {
+    for (int y=-1; y<=1; ++y) {
+      float pcf_depth = texture(depth, proj.xy + vec2(x, y) * tsize).r;
+      pcf_depth *= l.far;
+      shadow += current_depth - bias > pcf_depth ? 1.0 : 0.0;
+    }
+  }
+  shadow /= 9.0;
 
   if (u_is_spec) {
-    float spec = 0.0;
+    float spec = 0.0; 
     vec3 view_dir = normalize(u_view_position - frag);
     vec3 halfwayDir = normalize(light_dir + view_dir);
     spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-    vec3 specular = l.color * (8*spec) * vec3(texture(u_spec, uv));
+    vec3 specular = l.color * (2*spec) * vec3(texture(u_spec, uv));
     diffuse += specular;
   }
+
+  if (proj.z > 1.0)
+    shadow = 1.0f;
 
   return vec3((1.0 - shadow) * diffuse);
 }

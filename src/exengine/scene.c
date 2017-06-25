@@ -111,8 +111,6 @@ void scene_draw(scene_t *s)
   }
 
   // render scene
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(s->shader);
 
   // debug poooo

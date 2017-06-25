@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 
 typedef struct {
-  vec3 position, color, cposition;
+  vec3 position, color, cposition, target;
   mat4x4 transform;
   GLuint depth_map, depth_map_fbo, shader;
   int dynamic, update;
