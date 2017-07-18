@@ -1,25 +1,21 @@
+#include <stdio.h>
 #include "framebuffer.h"
 #include "shader.h"
+#include "window.h"
 #include "exe_conf.h"
-#include <stdio.h>
 
 extern conf_t conf;
 
 GLuint fbo, rbo, colorbuffer, fbo_shader, fbo_vao, fbo_vbo;
-size_t width, height;
+int width, height;
 
 void framebuffer_init()
 {
-  /* -- low res framebuffer -- */
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
   // color buffer
-  // FIX WIDTH & HEIGHT
-  // width   = 480;
-  // height  = 272;
-  width  = 1920;
-  height = 1080;
+  glfwGetFramebufferSize(display.window, &width, &height);
   glGenTextures(1, &colorbuffer);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);

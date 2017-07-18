@@ -29,7 +29,7 @@ texture_t* texture_load(const char *file, int get_data)
   
   // do we want the data?
   if (get_data == 1) {
-    // we force 4 attributes
+    // we force 4 attributes 
     size_t size = (w*h)*4;
     
     // copy image data

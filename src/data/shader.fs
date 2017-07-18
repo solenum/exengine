@@ -62,7 +62,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   // point light
   vec3 norm = normalize(normal);
 
-  if (u_is_norm && !u_dont_norm) {
+  if (u_is_norm && !u_dont_norm && u_is_textured) {
     norm = texture(u_norm, uv).rgb;
     norm = normalize(norm * 2.0 - 1.0);
     norm = normalize(TBN * norm);
@@ -100,7 +100,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
     shadow /= float(samples);
   }
 
-  if (u_is_spec) {
+  if (u_is_spec && u_is_textured) {
     float spec = 0.0;
     vec3 view_dir = normalize(u_view_position - frag);
     vec3 halfwayDir = normalize(light_dir + view_dir);

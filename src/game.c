@@ -7,6 +7,7 @@
 #include "exengine/iqm.h"
 #include "exengine/skybox.h"
 #include "exengine/entity.h"
+#include "exengine/glimgui.h"
 #include "inc/game.h"
 
 float delta_time;
@@ -60,37 +61,45 @@ void game_run()
   list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
-  // model_set_anim(d, 1);
+  model_set_anim(d, 0);
 
   model_t *g2 = iqm_load_model(scene, "data/gun.iqm", 0);
-  g2->use_transform = 1;
+  // g2->use_transform = 1;
+  g2->position[0] = 2.0f;
+  g2->position[1] = 1.0f;
   list_add(scene->model_list, g2);
+  model_set_anim(g2, 0);
 
   model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
   list_add(scene->model_list, g);
-  camera->view_model = g;
+  // camera->view_model = g;
   float lastyaw = 0;
   int aim = 0;
   vec3 oldpos;
+  model_set_anim(g, 0);
   camera->view_model_offset[0]  = 0.0f;
   camera->view_model_offset[1]  = -0.15f;
-  camera->view_model_offset[2]  = -0.25f;
+  camera->view_model_offset[2]  = 0.25f;
+
+  model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
+  list_add(scene->model_list, grass);
+  grass->position[0] = -2.0f;
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
-  list_add(scene->point_light_list, pl);
+  // list_add(scene->point_light_list, pl);
   pl->is_shadow = 0;
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
     glfwPollEvents();
+    window_begin();
 
     // calculate delta time
     double current_frame_time = glfwGetTime();
     delta_time = (float)current_frame_time - (float)last_frame_time;
     last_frame_time = current_frame_time;
-    printf("%f\n", delta_time);
 
     entity_update(e);
     memcpy(camera->position, e->position, sizeof(vec3));
@@ -147,7 +156,7 @@ void game_run()
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
-      move_speed = 0.1f;
+      move_speed = 0.25f;
     
     e->velocity[1] = y;
     if (e->grounded == 0)
@@ -160,11 +169,11 @@ void game_run()
       vec3_norm(temp, e->velocity);
       vec3_scale(temp, temp, speed * delta_time);
       temp[1] = 0.0f;
-      vec3_sub(e->velocity, e->velocity, temp);
+      // vec3_sub(e->velocity, e->velocity, temp);
 
       vec3_scale(temp, camera->front, speed * delta_time);
       temp[1] = 0.0f;
-      vec3_add(e->velocity, e->velocity, temp);
+      // vec3_add(e->velocity, e->velocity, temp);
     }
 
     vec3 speed, side;
@@ -199,12 +208,12 @@ void game_run()
       e->velocity[1] = -0.5f;
 
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
-      vec3_scale(speed, camera->front, move_speed * delta_time);
-      speed[1] = 0.0f;
-      vec3_add(e->velocity, e->velocity, speed);
-      vec3_scale(temp, e->velocity, 0.05f);
-      vec3_add(e->velocity, e->velocity, temp);
-      e->velocity[1] = 100.0f * delta_time;
+      // vec3_scale(speed, camera->front, move_speed * delta_time);
+      // speed[1] = 0.0f;
+      // vec3_add(e->velocity, e->velocity, speed);
+      // vec3_scale(temp, e->velocity, 0.05f);
+      // vec3_add(e->velocity, e->velocity, temp);
+      e->velocity[1] = 0.2f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;
@@ -218,6 +227,11 @@ void game_run()
     }
     if (keys_down[GLFW_KEY_ESCAPE])
       break;
+    if (keys_down[GLFW_KEY_G] || glimgui_keys_down[GLFW_KEY_G]) {
+      keys_down[GLFW_KEY_G] = 0;
+      glimgui_keys_down[GLFW_KEY_G] = 0;
+      glimgui_focus = !glimgui_focus;
+    }
     /* ------ */
 
     memcpy(pl->position, e->position, sizeof(vec3));
@@ -225,13 +239,52 @@ void game_run()
     scene_update(scene, delta_time);
     scene_draw(scene);
 
+    bool open = 1;
+    igBegin("SUP", NULL, 0);
+    igBeginDockspace();
+
+    igSetNextDock(ImGuiDockSlot_Left);
+    open = igBeginDock("a dock", NULL, 0);
+    float f;
+    if (open) {
+      igSliderFloat("float", &f, 0.0f, 1.0f, "%f", 1.0f);
+      igText("Wee");
+    }
+    igEndDock();
+
+    igSetNextDock(ImGuiDockSlot_Right);
+    open = igBeginDock("a pock", NULL, 0);
+    if (open) {
+      igText("Poo");
+      float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+      igPlotLines("wot", arr, 7, 1, NULL, 0.0f, 0.2f, (struct ImVec2){100.0f, 50.0f}, 1);
+    }
+    igEndDock();
+
+    igSetNextDock(ImGuiDockSlot_Bottom);
+    open = igBeginDock("a spock", NULL, 0);
+    if (open) {
+      igText("Poo");
+      igTextColored((struct ImVec4){1.0f, 0.0f, 1.0f, 1.0f}, "PINK");
+      igTextColored((struct ImVec4){1.0f, 1.0f, 0.0f, 1.0f}, "YelL0w");
+      igTextColored((struct ImVec4){0.5f, 0.8f, 1.0f, 1.0f}, "NeAT");
+    }
+    igEndDock();
+
+    igDockDebugWindow();
+
+    igShowTestWindow(NULL);
+    igEndDockspace();
+    igEnd();
+
+    window_end();
     glfwSwapBuffers(display.window);
   }
-
 }
 
 void game_exit()
 {
+  glimgui_shutdown();
   scene_destroy(scene);
   conf_free(&conf);
   window_destroy();

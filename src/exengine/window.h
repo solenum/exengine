@@ -6,7 +6,8 @@
 #include <GLFW/glfw3.h>
 
 #include <inttypes.h>
-#include <stdbool.h>
+
+#include "glimgui.h"
 
 typedef struct {
 	GLFWwindow *window;
@@ -17,19 +18,13 @@ extern window_t display;
 extern uint8_t keys_down[GLFW_KEY_LAST];
 extern uint8_t buttons_down[GLFW_KEY_LAST];
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
-  if (action == GLFW_PRESS)
-    keys_down[key] = 1;
-  if (action == GLFW_RELEASE)
-    keys_down[key] = 0;
-}
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
-static void button_callback(GLFWwindow *window, int button, int action, int mods) {
-  if (action == GLFW_PRESS)
-    buttons_down[button] = 1;
-  if (action == GLFW_RELEASE)
-    buttons_down[button] = 0;
-}
+void button_callback(GLFWwindow *window, int button, int action, int mods);
+
+ void char_callback(GLFWwindow *window, unsigned int c);
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void mouse_callback(GLFWwindow* window, double x, double y);
 
@@ -43,6 +38,10 @@ void resize_callback(GLFWwindow* window, int width, int height);
  * @return        [true on success]
  */
 bool window_init(uint32_t width, uint32_t height, const char *title);
+
+void window_begin();
+
+void window_end();
 
 /**
  * [window_exit clean up any data]
