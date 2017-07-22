@@ -25,6 +25,7 @@ The code-base is almost entirely C99, with an exception for [imgui](https://gith
 * Various cameras
 * View models
 * Debug GUI with docking
+* More to come, check the [TODO](TODO.md) list
 
 ### Depends
 * A C99 and C++ compiler (gcc, clang etc)
@@ -32,7 +33,14 @@ The code-base is almost entirely C99, with an exception for [imgui](https://gith
 * GLEW
 * OpenGL 3.3+
 
+### Getting Started
+#### Documentation
+Docs will be available once an official release repository is out.  For now refer to the engine headers should you want to experiment with this.
+
+#### Using & Compiling
+Simply clone the repository and include src/exengine/ and src/lib/ into your codebase.  The only build system supplied currently is a Linux makefile, for those on Windows I recommend Cygwin and wish you good luck.
+
 ### Gallery
 ![scrot](http://i.imgur.com/4NGlapU.png)
 ![scrot](http://i.imgur.com/H1pMBXI.png)
-![scrot](http://i.imgur.com/mpe1AjU.gif)
+![scrot](http://i.imgur.com/5lwb06W.gif)
