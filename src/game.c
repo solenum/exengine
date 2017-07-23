@@ -8,6 +8,7 @@
 #include "exengine/skybox.h"
 #include "exengine/entity.h"
 #include "exengine/glimgui.h"
+#include "exengine/dbgui.h"
 #include "inc/game.h"
 
 float delta_time;
@@ -89,6 +90,10 @@ void game_run()
   memcpy(pl->position, e->position, sizeof(vec3));
   // list_add(scene->point_light_list, pl);
   pl->is_shadow = 0;
+
+  // struct ImGuiStyle *style = igGetStyle();
+  // igPushStyleColor(ImGuiCol_Text, (struct ImVec4){1.0f, 0.18f, 0.533f, 1.0f});
+  // igPushStyleColor(ImGuiCol_TitleBg, (struct ImVec4){1.0f, 1.0f, 1.0f, 1.0f});
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -238,7 +243,8 @@ void game_run()
     pl->position[1] += 1.0f;
     scene_update(scene, delta_time);
     scene_draw(scene);
-
+    
+    /* IMGUI DOCK TEST CRAP
     bool open = 1;
     igBegin("SUP", NULL, 0);
     igBeginDockspace();
@@ -273,9 +279,11 @@ void game_run()
 
     igDockDebugWindow();
 
-    igShowTestWindow(NULL);
     igEndDockspace();
-    igEnd();
+    igEnd();*/
+    
+    igShowTestWindow(NULL);
+    ex_dbgui_render_profiler();
 
     window_end();
     glfwSwapBuffers(display.window);

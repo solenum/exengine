@@ -6,6 +6,7 @@
 #include "dirlight.h"
 #include "framebuffer.h"
 #include "window.h"
+#include "dbgui.h"
 
 scene_t* scene_new()
 {
@@ -35,11 +36,16 @@ scene_t* scene_new()
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
 
+  // init debug gui
+  ex_dbgui_init();
+
   return s;
 }
 
 void scene_update(scene_t *s, float delta_time)
 {
+  ex_dbgprofiler.begin[ex_dbgprofiler_update] = (float)glfwGetTime();
+
   list_node_t *n = s->model_list;
   while (n->data != NULL) {
     model_update(n->data, delta_time);
@@ -49,12 +55,20 @@ void scene_update(scene_t *s, float delta_time)
     else
       break;
   }
+
+  ex_dbgprofiler.end[ex_dbgprofiler_update] = (float)glfwGetTime();
 }
 
 void scene_draw(scene_t *s)
 {
+  // begin profiler
+  ex_dbgprofiler.end[ex_dbgprofiler_other] = (float)glfwGetTime();
+  ex_dbgui_end_profiler();
+  ex_dbgui_begin_profiler();
+
   // render pointlight depth maps
   glCullFace(GL_BACK);
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
   list_node_t *n = s->point_light_list;
   while (n->data != NULL) {
     point_light_t *l = n->data;
@@ -69,6 +83,7 @@ void scene_draw(scene_t *s)
     else
       break;
   }
+
 
   // render dirlight depth maps
   glCullFace(GL_BACK);
@@ -93,6 +108,8 @@ void scene_draw(scene_t *s)
     else
       break;
   }
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
+
 
   // first rendering pass
   framebuffer_first();
@@ -126,6 +143,7 @@ void scene_draw(scene_t *s)
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;
   int ambient_pass = 1;
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
   while (pl_list != NULL || dl_list != NULL) {
     glUniform1i(glGetUniformLocation(s->shader, "u_ambient_pass"), ambient_pass);
     ambient_pass = 0;
@@ -169,15 +187,19 @@ void scene_draw(scene_t *s)
       break;
   }
   glDisable(GL_BLEND);
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
 
   // update camera
+  ex_dbgprofiler.begin[ex_dbgprofiler_camera] = (float)glfwGetTime();
   if (s->fps_camera != NULL) {
     fps_camera_update(s->fps_camera, s->shader);
     fps_camera_draw(s->fps_camera, s->shader);
   }
+  ex_dbgprofiler.end[ex_dbgprofiler_camera] = (float)glfwGetTime();
 
   // render screen quad
   framebuffer_render_quad();
+  ex_dbgprofiler.begin[ex_dbgprofiler_other] = (float)glfwGetTime();
 }
 
 void scene_render_models(scene_t *s, GLuint shader, int shadows)
