@@ -43,4 +43,3 @@ Simply clone the repository and include src/exengine/ and src/lib/ into your cod
 ### Gallery
 ![scrot](http://i.imgur.com/4NGlapU.png)
 ![scrot](http://i.imgur.com/H1pMBXI.png)
-![scrot](http://i.imgur.com/5lwb06W.gif)
