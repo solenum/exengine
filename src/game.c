@@ -86,10 +86,10 @@ void game_run()
   list_add(scene->model_list, grass);
   grass->position[0] = -2.0f;
 
-  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 1);
-  memcpy(pl->position, e->position, sizeof(vec3));
+  // point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 0);
+  // memcpy(pl->position, e->position, sizeof(vec3));
   // list_add(scene->point_light_list, pl);
-  pl->is_shadow = 0;
+  // pl->is_shadow = 0;
 
   // struct ImGuiStyle *style = igGetStyle();
   // igPushStyleColor(ImGuiCol_Text, (struct ImVec4){1.0f, 0.18f, 0.533f, 1.0f});
@@ -109,13 +109,13 @@ void game_run()
     entity_update(e);
     memcpy(camera->position, e->position, sizeof(vec3));
     camera->position[1] += e->radius[1];
-    memcpy(pl->position, camera->position, sizeof(vec3));
+    // memcpy(pl->position, camera->position, sizeof(vec3));
 
     if (keys_down[GLFW_KEY_F]) {
       float r = (float)rand()/(float)(RAND_MAX/1.5f);
       float g = (float)rand()/(float)(RAND_MAX/0.8f);
       float b = (float)rand()/(float)(RAND_MAX/1.5f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
       memcpy(l->position, camera->position, sizeof(vec3));
       list_add(scene->point_light_list, l);
 
@@ -239,8 +239,8 @@ void game_run()
     }
     /* ------ */
 
-    memcpy(pl->position, e->position, sizeof(vec3));
-    pl->position[1] += 1.0f;
+    // memcpy(pl->position, e->position, sizeof(vec3));
+    // pl->position[1] += 1.0f;
     scene_update(scene, delta_time);
     scene_draw(scene);
     

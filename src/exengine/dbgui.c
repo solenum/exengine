@@ -10,6 +10,7 @@ struct ImVec4 ex_profiler_colors[] = {
   {0.322f, 1.0f, 0.827f, 1.0f},
   {0.91f, 0.341f, 0.647f, 1.0f},
   {1.0f, 0.827f, 0.322f, 1.0f},
+  {0.9f, 0.627f, 0.222f, 1.0f},
   {0.6f, 0.3f, 0.4f, 1.0f},
 };
 
@@ -55,6 +56,9 @@ void ex_dbgui_end_profiler()
       for (int i=0; i<ex_dbgprofiler_count; i++) {
         ex_dbgprofiler.values[i] = ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i];
       }
+    
+      ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_update];
+      ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_collision];
     }
 
     if (ex_dbgprofiler.last_frame_time >= 128)
@@ -76,7 +80,7 @@ void ex_dbgui_render_profiler()
   float last_offset = 0.0f;
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
-    x = scale_to_range(x, 24.0f, 600.0f, 0.0f, frame_time);
+    x = scale_to_range(x, 24.0f, 1000.0f, 0.0f, frame_time);
     
     if (i == ex_dbgprofiler_count-1)
       x = ex_dbgprofiler_width;

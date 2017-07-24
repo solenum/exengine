@@ -84,7 +84,6 @@ void scene_draw(scene_t *s)
       break;
   }
 
-
   // render dirlight depth maps
   glCullFace(GL_BACK);
   n = s->dir_light_list;
@@ -139,6 +138,14 @@ void scene_draw(scene_t *s)
   // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
+  glEnable(GL_DEPTH_TEST);
+
+  // dry-render scene to depth buffer
+  glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+  glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 0);
+  glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 0);
+  scene_render_models(s, s->shader, 0);
+  glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
 
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;

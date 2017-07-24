@@ -174,7 +174,7 @@ void main()
       vec3 norm       = normalize(normal);
       vec3 light_dir  = normalize(vec3(0, 100, 0) - frag);
       float diff      = max(dot(light_dir, norm), 0.0);
-      // diffuse        += vec3(diff * 0.05f);
+      diffuse        += vec3(diff * 0.05f);
     }
 
     vec3 p = vec3(0.0f);
