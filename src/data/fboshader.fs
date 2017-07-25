@@ -9,6 +9,7 @@ uniform sampler2D u_norm;
 uniform sampler2D u_colorspec;
 
 uniform vec3 u_view_position;
+uniform bool u_ambient_pass;
 
 /* point light */
 const int MAX_PL = 64;
@@ -16,12 +17,10 @@ struct point_light {
   vec3 position;
   vec3 color;
   bool is_shadow;
+  float far;
 };
-uniform point_light u_point_lights[MAX_PL];
-
-uniform samplerCube u_point_depths0, u_point_depths1, u_point_depths2, u_point_depths3, u_point_depths4;
-uniform int         u_point_count;
-uniform float       u_point_far;
+uniform point_light u_point_light;
+uniform samplerCube u_point_depth;
 /* ------------ */
 
 vec3 pcf_offset[20] = vec3[]
@@ -33,7 +32,7 @@ vec3 pcf_offset[20] = vec3[]
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-vec3 calc_point_light(point_light l, int ind)
+vec3 calc_point_light(point_light l)
 {
   // point light
   vec3 fragpos = texture(u_position, uv).rgb;
@@ -63,36 +62,26 @@ vec3 calc_point_light(point_light l, int ind)
   float bias     = 0.2*tan(acos(costheta));
   bias           = clamp(bias, 0.01, 0.2);
   float shadow = 0.0f;
-  if (l.is_shadow && 0 == 1) {
+  if (l.is_shadow) {
     vec3 frag_to_light  = fragpos - l.position;
     float current_depth = length(frag_to_light);
     float view_dist     = length(u_view_position - fragpos);
 
     // PCF smoothing
-    float radius = (1.0 + (view_dist / u_point_far)) / 50.0;
+    float radius = (1.0 + (view_dist / l.far)) / 50.0;
     float offset = 0.1;
     int   samples = 20;
     float closest_depth = 0.0f;
     for (int i=0; i<samples; ++i) {
-      if (ind == 0)
-        closest_depth = texture(u_point_depths0, frag_to_light + pcf_offset[i] * radius).r;
-      else if (ind == 1)
-        closest_depth = texture(u_point_depths1, frag_to_light + pcf_offset[i] * radius).r;
-      else if (ind == 2)
-        closest_depth = texture(u_point_depths2, frag_to_light + pcf_offset[i] * radius).r;
-      else if (ind == 3)
-        closest_depth = texture(u_point_depths3, frag_to_light + pcf_offset[i] * radius).r;
-      else if (ind == 4)
-        closest_depth = texture(u_point_depths4, frag_to_light + pcf_offset[i] * radius).r;
-      
-      closest_depth      *= u_point_far;
+      closest_depth = texture(u_point_depth, frag_to_light + pcf_offset[i] * radius).r;
+      closest_depth      *= l.far;
       if (current_depth - bias > closest_depth)
         shadow += 1.0;
     }
     shadow /= float(samples);
   }
 
-  return vec3((1.0 - shadow) * (diffuse + specular));
+  return vec3((1.0 - shadow) * (diffuse));
 }
 
 vec3 aces_tonemap(vec3 x) {
@@ -108,11 +97,14 @@ const vec3 u_white_point = vec3(0.75, 0.75, 0.75);
 
 void main()
 {
-  vec3 diffuse = texture(u_colorspec, uv).rgb*0.1f;
+  vec3 diffuse = vec3(0.0f);
 
-  for (int i=0; i<u_point_count; i++)
-    diffuse += calc_point_light(u_point_lights[i], i);
-  
+  if (u_ambient_pass == true) {
+    diffuse = texture(u_colorspec, uv).rgb*0.1f;
+  } else {
+    diffuse += calc_point_light(u_point_light);
+  }
+
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
 }

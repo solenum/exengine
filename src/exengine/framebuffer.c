@@ -92,21 +92,19 @@ void framebuffer_first()
 void framebuffer_render_quad()
 {
   // second render pass
-  glViewport(0, 0, conf_get_int(&conf, "window_width"), conf_get_int(&conf, "window_height"));
+  // glViewport(0, 0, conf_get_int(&conf, "window_width"), conf_get_int(&conf, "window_height"));
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
 
   // render screen quad
-  glUseProgram(fbo_shader);
+  // glUseProgram(fbo_shader);
   glBindVertexArray(fbo_vao);
   // glActiveTexture(GL_TEXTURE0);
   // glUniform1i(glGetUniformLocation(fbo_shader, "u_texture"), 0);
   // glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  // glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void framebuffer_destroy()

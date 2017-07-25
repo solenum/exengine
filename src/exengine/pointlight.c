@@ -108,30 +108,23 @@ void point_light_begin(point_light_t *l)
   glUniform3fv(glGetUniformLocation(l->shader, "u_light_pos"), 1, l->position);
 }
 
-void point_light_draw(point_light_t *l, GLuint shader, int index)
+void point_light_draw(point_light_t *l, GLuint shader)
 {
-  char buff[32];
-  if (index < MAX_POINTSHADOW_CASTERS && l->is_shadow) {
-    sprintf(buff, "u_point_lights[%d].is_shadow", index);
-    glUniform1i(glGetUniformLocation(shader, buff), 1);
+  if (l->is_shadow) {
+    glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 1);
     
-    sprintf(buff, "u_point_depths%d", index);
-    glUniform1i(glGetUniformLocation(shader, buff), 4+index);
+    glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 8);
     
-    glActiveTexture(GL_TEXTURE4+index);
+    glActiveTexture(GL_TEXTURE8);
     glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
   } else {
-    sprintf(buff, "u_point_lights[%d].is_shadow", index);
-    glUniform1i(glGetUniformLocation(shader, buff), 0);
+    glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 0);
   }
 
-  glUniform1f(glGetUniformLocation(shader, "u_point_far"), POINT_FAR_PLANE);
-
-  sprintf(buff, "u_point_lights[%d].position", index);
-  glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
-  
-  sprintf(buff, "u_point_lights[%d].color", index);
-  glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
+  glUniform1i(glGetUniformLocation(shader, "u_point_active"), 1);
+  glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), POINT_FAR_PLANE);
+  glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
+  glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
 }
 
 void point_light_destroy(point_light_t *l)

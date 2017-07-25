@@ -21,7 +21,7 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic);
 
 void point_light_begin(point_light_t *l);
 
-void point_light_draw(point_light_t *l, GLuint shader, int index);
+void point_light_draw(point_light_t *l, GLuint shader);
 
 void point_light_destroy(point_light_t *l);
 

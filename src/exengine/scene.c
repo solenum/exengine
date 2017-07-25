@@ -128,29 +128,32 @@ void scene_draw(scene_t *s)
 
   // render stuffs
   framebuffer_first();
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glUseProgram(fbo_shader);
+  gbuffer_render(fbo_shader);
+  fps_camera_draw(s->fps_camera, fbo_shader);
 
   int index = 0;
   list_node_t *pl_list = s->point_light_list;
+  glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 1);
+  framebuffer_render_quad();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 0);
+  
   while (pl_list != NULL) {
     if (pl_list != NULL && pl_list->data != NULL) {
       point_light_t *pl = pl_list->data;
-      point_light_draw(pl, fbo_shader, index);
+      point_light_draw(pl, fbo_shader);
+      framebuffer_render_quad();
     }
-
+  
     if (pl_list != NULL && pl_list->next != NULL)
       pl_list = pl_list->next;
     else
       pl_list = NULL;
-    
-    glUniform1i(glGetUniformLocation(fbo_shader, "u_point_count"), index);
-
-    index++;
   }
-
-  gbuffer_render(fbo_shader);
-  fps_camera_draw(s->fps_camera, fbo_shader);
-  framebuffer_render_quad();
+  // glDisable(GL_BLEND);
 
   /*
   // render skybox
