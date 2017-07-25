@@ -143,7 +143,7 @@ void scene_draw(scene_t *s)
     else
       pl_list = NULL;
     
-    glUniform1i(glGetUniformLocation(fbo_shader, "u_pl_count"), index);
+    glUniform1i(glGetUniformLocation(fbo_shader, "u_point_count"), index);
 
     index++;
   }

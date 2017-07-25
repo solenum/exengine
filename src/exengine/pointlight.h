@@ -1,6 +1,8 @@
 #ifndef POINTLIGHT_H
 #define POINTLIGHT_H
 
+#define MAX_POINTSHADOW_CASTERS 5
+
 #include "mathlib.h"
 
 #define GLEW_STATIC
