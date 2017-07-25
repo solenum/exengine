@@ -5,6 +5,7 @@
 #include "pointlight.h"
 #include "dirlight.h"
 #include "framebuffer.h"
+#include "gbuffer.h"
 #include "window.h"
 #include "dbgui.h"
 
@@ -24,6 +25,7 @@ scene_t* scene_new()
 
   // init framebuffers etc
   framebuffer_init();
+  gbuffer_init();
 
   // init lights
   point_light_init();
@@ -109,10 +111,48 @@ void scene_draw(scene_t *s)
   }
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
 
+  fps_camera_update(s->fps_camera, gshader);
 
-  // first rendering pass
+  // first geometry render pass
+  gbuffer_first();
+  glUseProgram(gshader);
+  
+  // debug poooo
+  if (keys_down[GLFW_KEY_E])
+    glUniform1i(glGetUniformLocation(gshader, "u_dont_norm"), 0);
+  if (keys_down[GLFW_KEY_R])
+    glUniform1i(glGetUniformLocation(gshader, "u_dont_norm"), 1);
+
+  fps_camera_draw(s->fps_camera, gshader);
+  scene_render_models(s, gshader, 0);
+
+  // render stuffs
   framebuffer_first();
+  glUseProgram(fbo_shader);
 
+  int index = 0;
+  list_node_t *pl_list = s->point_light_list;
+  while (pl_list != NULL) {
+    if (pl_list != NULL && pl_list->data != NULL) {
+      point_light_t *pl = pl_list->data;
+      point_light_draw(pl, fbo_shader, index);
+    }
+
+    if (pl_list != NULL && pl_list->next != NULL)
+      pl_list = pl_list->next;
+    else
+      pl_list = NULL;
+    
+    glUniform1i(glGetUniformLocation(fbo_shader, "u_pl_count"), index);
+
+    index++;
+  }
+
+  gbuffer_render(fbo_shader);
+  fps_camera_draw(s->fps_camera, fbo_shader);
+  framebuffer_render_quad();
+
+  /*
   // render skybox
   if (s->skybox != NULL) {
     glDisable(GL_BLEND);
@@ -138,14 +178,6 @@ void scene_draw(scene_t *s)
   // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
-  glEnable(GL_DEPTH_TEST);
-
-  // dry-render scene to depth buffer
-  glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
-  glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 0);
-  glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 0);
-  scene_render_models(s, s->shader, 0);
-  glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
 
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;
@@ -203,9 +235,10 @@ void scene_draw(scene_t *s)
     fps_camera_draw(s->fps_camera, s->shader);
   }
   ex_dbgprofiler.end[ex_dbgprofiler_camera] = (float)glfwGetTime();
-
+  */
+ 
   // render screen quad
-  framebuffer_render_quad();
+  // framebuffer_render_quad();
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = (float)glfwGetTime();
 }
 

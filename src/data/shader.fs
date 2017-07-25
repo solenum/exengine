@@ -10,9 +10,9 @@ in mat3 TBN;
 
 out vec4 out_color;
 
-uniform sampler2D u_texture;
-uniform sampler2D u_spec;
+uniform sampler2D u_position;;
 uniform sampler2D u_norm;
+uniform sampler2D u_colorspec;
 
 uniform bool u_is_textured; 
 uniform bool u_is_spec;
@@ -26,12 +26,13 @@ uniform float u_far_plane;
 uniform bool u_ambient_pass;
 
 /* point light */
+const int NR_PL = 32;
 struct point_light {
   vec3 position;
   vec3 color;
   bool is_shadow;
 };
-uniform point_light u_point_light;
+uniform point_light u_point_lights[NR_PL];
 uniform samplerCube u_point_depth; 
 uniform bool u_point_active;
 /* ------------ */
@@ -60,7 +61,30 @@ vec3 pcf_offset[20] = vec3[]
 vec3 calc_point_light(point_light l, samplerCube depth)
 {
   // point light
-  vec3 norm = normalize(normal);
+  vec3 fragpos = texture(u_position, uv).rgb;
+  vec3 normals = texture(u_norm, uv).rgb;
+  vec3 diffuse = texture(u_colorspec, uv).rgb;
+  float spec   = texture(u_colorspec, uv).a;
+
+  vec3 view_dir  = normalize(u_view_position - fragpos);
+  float distance = length(l.position - fragpos);
+  vec3 light_dir = normalize(l.position - fragpos);
+  
+  // diffuse
+  vec3 diff      = max(dot(normals, light_dir), 0.0) * diffuse * l.color;
+
+  // specular
+  vec3 halfwayd  = normalize(light_dir + view_dir);
+  float specs    = pow(max(dot(normals, halfwayd), 0.0), 16.0);
+  vec3 specular = l.color * specs * spec;
+
+  // attenuation
+  float attenuation = 1.0f / (1.0f + 0.064f * (distance * distance));
+  diffuse *= attenuation;
+  spec    *= attenuation;
+  return vec3(diffuse + spec);
+
+  /*vec3 norm = normalize(normal);
 
   if (u_is_norm && !u_dont_norm && u_is_textured) {
     norm = texture(u_norm, uv).rgb;
@@ -81,7 +105,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float bias     = 0.2*tan(acos(costheta));
   bias           = clamp(bias, 0.01, 0.2);
 
-  float shadow = 0.0f;
+  /*float shadow = 0.0f;
   if (l.is_shadow) {
     vec3 frag_to_light  = frag - l.position;
     float current_depth = length(frag_to_light);
@@ -109,10 +133,12 @@ vec3 calc_point_light(point_light l, samplerCube depth)
     diffuse += (specular * attenuation);
   }
 
-  return vec3((1.0 - shadow) * diffuse);
+  return vec3((1.0 - shadow) * diffuse);*/
+
+  return vec3(diffuse);
 }
 
-vec3 calc_dir_light(dir_light l, sampler2D depth)
+/*vec3 calc_dir_light(dir_light l, sampler2D depth)
 {
   vec3 proj = frag_light_pos.xyz / frag_light_pos.w;
   proj = proj * 0.5 + 0.5;
@@ -161,11 +187,18 @@ vec3 calc_dir_light(dir_light l, sampler2D depth)
     shadow = 1.0f;
 
   return vec3((1.0 - shadow) * diffuse);
-}
+}*/
 
 void main()
 {
-  if (u_is_lit) {
+  vec3 diffuse = vec3(0.0f);
+  
+  for (int i=0; i<NR_PL; i++)
+    diffuse += calc_point_light(u_point_lights[i], u_point_depth);
+
+  out_color = vec4(diffuse, 1.0);
+
+  /*if (u_is_lit) {
     vec3 diffuse = vec3(0.0f);
 
     // ambient lighting
@@ -180,10 +213,10 @@ void main()
     vec3 p = vec3(0.0f);
     vec3 d = vec3(0.0f);
     
-    if (u_dir_active)
-      d = calc_dir_light(u_dir_light, u_dir_depth);
-    if (u_point_active)
-      p = calc_point_light(u_point_light, u_point_depth);
+    // if (u_dir_active)
+      // d = calc_dir_light(u_dir_light, u_dir_depth);
+    for (int i=0; i<NR_PL; i++)
+      p += calc_point_light(u_point_lights[i], u_point_depth);
 
     diffuse += p + d;
 
@@ -198,5 +231,5 @@ void main()
     } else {
       out_color = vec4(color.rgb, 1.0);
     }
-  }
+  }*/
 }

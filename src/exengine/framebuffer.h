@@ -5,6 +5,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+extern GLuint fbo_shader;
+
 /**
  * [framebuffer_init setup framebuffers and screen quad]
  */

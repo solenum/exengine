@@ -101,9 +101,9 @@ void framebuffer_render_quad()
   // render screen quad
   glUseProgram(fbo_shader);
   glBindVertexArray(fbo_vao);
-  glActiveTexture(GL_TEXTURE0);
-  glUniform1i(glGetUniformLocation(fbo_shader, "u_texture"), 0);
-  glBindTexture(GL_TEXTURE_2D, colorbuffer);
+  // glActiveTexture(GL_TEXTURE0);
+  // glUniform1i(glGetUniformLocation(fbo_shader, "u_texture"), 0);
+  // glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
