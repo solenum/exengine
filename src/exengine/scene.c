@@ -133,19 +133,24 @@ void scene_draw(scene_t *s)
   gbuffer_render(fbo_shader);
   fps_camera_draw(s->fps_camera, fbo_shader);
 
-  int index = 0;
   list_node_t *pl_list = s->point_light_list;
+  glDisable(GL_BLEND);
   glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 1);
+  glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 0);
   framebuffer_render_quad();
+  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 0);
-  
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
   while (pl_list != NULL) {
     if (pl_list != NULL && pl_list->data != NULL) {
       point_light_t *pl = pl_list->data;
+      glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 1);
       point_light_draw(pl, fbo_shader);
       framebuffer_render_quad();
+    } else {
+      glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 0);
     }
   
     if (pl_list != NULL && pl_list->next != NULL)
@@ -153,7 +158,8 @@ void scene_draw(scene_t *s)
     else
       pl_list = NULL;
   }
-  // glDisable(GL_BLEND);
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
+  glDisable(GL_BLEND);
 
   /*
   // render skybox

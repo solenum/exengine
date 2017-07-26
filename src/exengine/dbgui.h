@@ -6,7 +6,6 @@
 typedef enum {
   ex_dbgprofiler_lighting_depth,
   ex_dbgprofiler_lighting_render,
-  ex_dbgprofiler_camera,
   ex_dbgprofiler_update,
   ex_dbgprofiler_collision,
   ex_dbgprofiler_other,
@@ -16,7 +15,6 @@ typedef enum {
 const static char *ex_dbgprofiler_strings[] = {
   "depth",
   "light",
-  "camer",
   "updat",
   "colli",
   "other"
@@ -25,7 +23,6 @@ const static char *ex_dbgprofiler_strings[] = {
 const static char *ex_dbgprofiler_strings_full[] = {
   "light depth",
   "light render",
-  "camera",
   "scene update",
   "entity collision",
   "other non-render"

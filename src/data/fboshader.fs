@@ -10,6 +10,7 @@ uniform sampler2D u_colorspec;
 
 uniform vec3 u_view_position;
 uniform bool u_ambient_pass;
+uniform bool u_point_active;
 
 /* point light */
 const int MAX_PL = 64;
@@ -73,8 +74,8 @@ vec3 calc_point_light(point_light l)
     int   samples = 20;
     float closest_depth = 0.0f;
     for (int i=0; i<samples; ++i) {
-      closest_depth = texture(u_point_depth, frag_to_light + pcf_offset[i] * radius).r;
-      closest_depth      *= l.far;
+      closest_depth  = texture(u_point_depth, frag_to_light + pcf_offset[i] * radius).r;
+      closest_depth *=  l.far;
       if (current_depth - bias > closest_depth)
         shadow += 1.0;
     }
@@ -100,9 +101,10 @@ void main()
   vec3 diffuse = vec3(0.0f);
 
   if (u_ambient_pass == true) {
-    diffuse = texture(u_colorspec, uv).rgb*0.1f;
+    diffuse += texture(u_colorspec, uv).rgb*0.1f;
   } else {
-    diffuse += calc_point_light(u_point_light);
+    if (u_point_active)
+      diffuse += calc_point_light(u_point_light);
   }
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
