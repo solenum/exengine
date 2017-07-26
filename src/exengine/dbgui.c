@@ -80,7 +80,7 @@ void ex_dbgui_render_profiler()
   float last_offset = 0.0f;
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
-    x = scale_to_range(x, 24.0f, 1000.0f, 0.0f, frame_time);
+    x = scale_to_range(x, 24.0f, ex_dbgprofiler_width, 0.0f, frame_time);
     
     if (i == ex_dbgprofiler_count-1)
       x = ex_dbgprofiler_width;

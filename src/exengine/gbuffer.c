@@ -3,7 +3,8 @@
 #include "shader.h"
 
 GLuint gbuffer, gpositon, gnormal, gcolorspec, grenderbuffer;
-GLuint gshader;
+GLuint gvao, gvbo;
+GLuint gshader, gmainshader;
 int width, height;
 
 void gbuffer_init()
@@ -53,7 +54,38 @@ void gbuffer_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // compile shaders
-  gshader = shader_compile("data/gbuffer.vs", "data/gbuffer.fs", NULL);
+  gshader     = shader_compile("data/gbuffer.vs", "data/gbuffer.fs", NULL);
+  gmainshader = shader_compile("data/gmain.vs", "data/gmain.fs", NULL);
+
+  /* -- screen quad -- */
+  GLfloat vertices[] = {   
+    // pos         // uv
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+  };
+
+  // vao for framebuffer
+  glGenVertexArrays(1, &gvao);
+  glGenBuffers(1, &gvbo);
+  glBindVertexArray(gvao);
+
+  // vertices
+  glBindBuffer(GL_ARRAY_BUFFER, gvbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+  // position
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)0);
+  glEnableVertexAttribArray(0);
+
+  // tex coords
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)(2 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(1);
+  glBindVertexArray(0);
+  /* ----------------- */
 }
 
 void gbuffer_first()
@@ -71,6 +103,7 @@ void gbuffer_first()
 
 void gbuffer_render(GLuint shader)
 {
+  // bind textures
   glUniform1i(glGetUniformLocation(shader, "u_position"), 0);
   glUniform1i(glGetUniformLocation(shader, "u_norm"), 1);
   glUniform1i(glGetUniformLocation(shader, "u_colorspec"), 2);
@@ -81,6 +114,12 @@ void gbuffer_render(GLuint shader)
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, gcolorspec);
 
+  glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 4);
+
+  // draw quad
+  glBindVertexArray(gvao);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glBindVertexArray(0);
 }
 
 void gbuffer_destroy()

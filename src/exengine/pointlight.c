@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SHADOW_MAP_SIZE 1024
+#define SHADOW_MAP_SIZE 512
 #define POINT_FAR_PLANE 50
 mat4x4 point_shadow_projection;
 GLuint point_light_shader;
@@ -113,9 +113,9 @@ void point_light_draw(point_light_t *l, GLuint shader)
   if (l->is_shadow) {
     glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 1);
     
-    glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 8);
+    glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 4);
     
-    glActiveTexture(GL_TEXTURE8);
+    glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
   } else {
     glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 0);

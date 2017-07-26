@@ -11,9 +11,7 @@
 
 scene_t* scene_new()
 {
-  // load shaders
   scene_t *s = malloc(sizeof(scene_t));
-  s->shader = shader_compile("data/shader.vs", "data/shader.fs", NULL);
 
   // init lists
   s->model_list       = list_new();
@@ -123,47 +121,14 @@ void scene_draw(scene_t *s)
   if (keys_down[GLFW_KEY_R])
     glUniform1i(glGetUniformLocation(gshader, "u_dont_norm"), 1);
 
+  // render scene to gbuffer
   fps_camera_draw(s->fps_camera, gshader);
   scene_render_models(s, gshader, 0);
 
-  // render stuffs
   framebuffer_first();
-  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  glUseProgram(fbo_shader);
-  gbuffer_render(fbo_shader);
-  fps_camera_draw(s->fps_camera, fbo_shader);
 
-  list_node_t *pl_list = s->point_light_list;
-  glDisable(GL_BLEND);
-  glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 1);
-  glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 0);
-  framebuffer_render_quad();
-  
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  glUniform1i(glGetUniformLocation(fbo_shader, "u_ambient_pass"), 0);
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
-  while (pl_list != NULL) {
-    if (pl_list != NULL && pl_list->data != NULL) {
-      point_light_t *pl = pl_list->data;
-      glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 1);
-      point_light_draw(pl, fbo_shader);
-      framebuffer_render_quad();
-    } else {
-      glUniform1i(glGetUniformLocation(fbo_shader, "u_point_active"), 0);
-    }
-  
-    if (pl_list != NULL && pl_list->next != NULL)
-      pl_list = pl_list->next;
-    else
-      pl_list = NULL;
-  }
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
-  glDisable(GL_BLEND);
-
-  /*
-  // render skybox
-  if (s->skybox != NULL) {
+  // render skybox (FIX THIS!)
+  /*if (s->skybox != NULL) {
     glDisable(GL_BLEND);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -173,53 +138,56 @@ void scene_draw(scene_t *s)
       fps_camera_draw(s->fps_camera, s->skybox->shader);
     
     skybox_draw(s->skybox);
-  }
+  }*/
 
   // render scene
-  glUseProgram(s->shader);
+  glUseProgram(gmainshader);
 
-  // debug poooo
-  if (keys_down[GLFW_KEY_E])
-    glUniform1i(glGetUniformLocation(s->shader, "u_dont_norm"), 0);
-  if (keys_down[GLFW_KEY_R])
-    glUniform1i(glGetUniformLocation(s->shader, "u_dont_norm"), 1);
+  // update camera
+  if (s->fps_camera != NULL) {
+    fps_camera_update(s->fps_camera, gmainshader);
+    fps_camera_draw(s->fps_camera, gmainshader);
+  }
 
   // render lit scene
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
+
+  // first ambient pass (maybe do non-shadow casting lights here also?)
+  glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 1);
+  gbuffer_render(gmainshader);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 0);
+
+  // enable blending for second pass onwards
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   list_node_t *pl_list = s->point_light_list;
   list_node_t *dl_list = s->dir_light_list;
   int ambient_pass = 1;
   ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
   while (pl_list != NULL || dl_list != NULL) {
-    glUniform1i(glGetUniformLocation(s->shader, "u_ambient_pass"), ambient_pass);
-    ambient_pass = 0;
     
     // point light
     if (pl_list != NULL && pl_list->data != NULL) {
       point_light_t *pl = pl_list->data;
-      point_light_draw(pl, s->shader);
-      glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 1);
+      point_light_draw(pl, gmainshader);
+      glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 1);
     } else {
-      glUniform1i(glGetUniformLocation(s->shader, "u_point_active"), 0);
+      glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
     }
 
     // dir light
     if (dl_list != NULL && dl_list->data != NULL) {
       dir_light_t *dl = dl_list->data;
-      dir_light_draw(dl, s->shader);
-      glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 1);
+      dir_light_draw(dl, gmainshader);
+      glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 1);
     } else {
-      glUniform1i(glGetUniformLocation(s->shader, "u_dir_active"), 0);
+      glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
     }
 
     // render models
-    scene_render_models(s, s->shader, 0);
-
-    // enable blending for second pass onwards
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    gbuffer_render(gmainshader);
     
     if (dl_list != NULL && dl_list->next != NULL)
       dl_list = dl_list->next;
@@ -236,18 +204,9 @@ void scene_draw(scene_t *s)
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
-
-  // update camera
-  ex_dbgprofiler.begin[ex_dbgprofiler_camera] = (float)glfwGetTime();
-  if (s->fps_camera != NULL) {
-    fps_camera_update(s->fps_camera, s->shader);
-    fps_camera_draw(s->fps_camera, s->shader);
-  }
-  ex_dbgprofiler.end[ex_dbgprofiler_camera] = (float)glfwGetTime();
-  */
  
   // render screen quad
-  // framebuffer_render_quad();
+  framebuffer_render_quad();
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = (float)glfwGetTime();
 }
 

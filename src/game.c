@@ -88,12 +88,8 @@ void game_run()
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 1);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // list_add(scene->point_light_list, pl);
+  list_add(scene->point_light_list, pl);
   pl->is_shadow = 0;
-
-  // struct ImGuiStyle *style = igGetStyle();
-  // igPushStyleColor(ImGuiCol_Text, (struct ImVec4){1.0f, 0.18f, 0.533f, 1.0f});
-  // igPushStyleColor(ImGuiCol_TitleBg, (struct ImVec4){1.0f, 1.0f, 1.0f, 1.0f});
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -115,18 +111,9 @@ void game_run()
       float r = (float)rand()/(float)(RAND_MAX/1.5f);
       float g = (float)rand()/(float)(RAND_MAX/0.8f);
       float b = (float)rand()/(float)(RAND_MAX/1.5f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
       list_add(scene->point_light_list, l);
-
-      model_t *bulb = iqm_load_model(scene, "data/bulb.iqm", 0);
-      bulb->rotation[0] = -90.0f;
-      bulb->scale = 0.5f;
-      bulb->is_lit = 0;
-      bulb->is_shadow = 0;
-      memcpy(bulb->position, e->position, sizeof(vec3));
-      list_add(scene->model_list, bulb);
-
       keys_down[GLFW_KEY_F] = 0;
     }
 
@@ -135,7 +122,6 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 0.3f);
     temp[1] = 0.0f;
-    // model_get_bone_transform(d, "foot_R", g2->transform);
     
     // can shit
     if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)
@@ -161,25 +147,13 @@ void game_run()
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
-      move_speed = 0.25f;
+      move_speed = 0.05f;
     
     e->velocity[1] = y;
     if (e->grounded == 0)
-      e->velocity[1] -= 0.8f * delta_time;
+      e->velocity[1] -= (0.1f * delta_time);
     else if (e->velocity[1] <= 0.0f)
       e->velocity[1] = 0.0f;
-
-    if (e->grounded == 0 && e->velocity[1] > 0.0f) {
-      float speed = move_speed * 4.0f;
-      vec3_norm(temp, e->velocity);
-      vec3_scale(temp, temp, speed * delta_time);
-      temp[1] = 0.0f;
-      // vec3_sub(e->velocity, e->velocity, temp);
-
-      vec3_scale(temp, camera->front, speed * delta_time);
-      temp[1] = 0.0f;
-      // vec3_add(e->velocity, e->velocity, temp);
-    }
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
@@ -196,29 +170,22 @@ void game_run()
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
       vec3_scale(side, side, (move_speed*0.9f) * delta_time);
-      speed[1] = 0.0f;
+      side[1] = 0.0f;
       vec3_sub(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_D]) {
       vec3_mul_cross(side, camera->front, camera->up);
       vec3_norm(side, side);
       vec3_scale(side, side, (move_speed*0.9f) * delta_time);
-      speed[1] = 0.0f;
+      side[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, side);
     }
-
     if (keys_down[GLFW_KEY_Q])
       e->velocity[1] = 0.5f;
     if (keys_down[GLFW_KEY_Z])
       e->velocity[1] = -0.5f;
-
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
-      // vec3_scale(speed, camera->front, move_speed * delta_time);
-      // speed[1] = 0.0f;
-      // vec3_add(e->velocity, e->velocity, speed);
-      // vec3_scale(temp, e->velocity, 0.05f);
-      // vec3_add(e->velocity, e->velocity, temp);
-      e->velocity[1] = 0.2f;
+      e->velocity[1] = 0.03f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;

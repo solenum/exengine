@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-extern GLuint gshader;
+extern GLuint gshader, gmainshader;
 
 void gbuffer_init();
 
