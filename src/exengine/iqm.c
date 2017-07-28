@@ -247,7 +247,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
         iqm_get_args(&arg_start[1], args);
         point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
-        list_add(scene->point_light_list, l);
+        scene_add_pointlight(scene, l);
       }
     } else {
       // create mesh

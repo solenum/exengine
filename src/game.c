@@ -68,12 +68,12 @@ void game_run()
   // g2->use_transform = 1;
   g2->position[0] = 2.0f;
   g2->position[1] = 1.0f;
-  list_add(scene->model_list, g2);
+  // list_add(scene->model_list, g2);
   model_set_anim(g2, 0);
 
   model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
-  list_add(scene->model_list, g);
-  // camera->view_model = g;
+  // list_add(scene->model_list, g);
+  camera->view_model = g;
   float lastyaw = 0;
   int aim = 0;
   vec3 oldpos;
@@ -86,9 +86,9 @@ void game_run()
   list_add(scene->model_list, grass);
   grass->position[0] = -2.0f;
 
-  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 1);
+  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  list_add(scene->point_light_list, pl);
+  // scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   double last_frame_time = glfwGetTime();
@@ -113,7 +113,8 @@ void game_run()
       float b = (float)rand()/(float)(RAND_MAX/1.5f);
       point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
       memcpy(l->position, camera->position, sizeof(vec3));
-      list_add(scene->point_light_list, l);
+      scene_add_pointlight(scene, l);
+      l->is_shadow = 1;
       keys_down[GLFW_KEY_F] = 0;
     }
 
@@ -210,6 +211,7 @@ void game_run()
     pl->position[1] += 1.0f;
     scene_update(scene, delta_time);
     scene_draw(scene);
+    scene_dbgui(scene);
     
     /* IMGUI DOCK TEST CRAP
     bool open = 1;

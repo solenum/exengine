@@ -7,7 +7,6 @@
 #include "framebuffer.h"
 #include "gbuffer.h"
 #include "window.h"
-#include "dbgui.h"
 
 scene_t* scene_new()
 {
@@ -15,8 +14,6 @@ scene_t* scene_new()
 
   // init lists
   s->model_list       = list_new();
-  s->point_light_list = list_new();
-  s->dir_light_list   = list_new();
   s->texture_list     = list_new();
 
   s->fps_camera = NULL;
@@ -28,6 +25,9 @@ scene_t* scene_new()
   // init lights
   point_light_init();
   dir_light_init();
+  s->dir_light = NULL;
+  for (int i=0; i<MAX_POINT_LIGHTS; i++)
+    s->point_lights[i] = NULL;
 
   // init skybox
   s->skybox = NULL;
@@ -39,13 +39,37 @@ scene_t* scene_new()
   // init debug gui
   ex_dbgui_init();
 
+  // init debug vars
+  s->plightc    = 0;
+  s->dynplightc = 0;
+  s->dlightc    = 0;
+  s->modelc     = 0;
+
   return s;
+}
+
+void scene_add_pointlight(scene_t *s, point_light_t *pl)
+{
+  if (pl->dynamic && pl->is_shadow)
+    s->dynplightc++;
+  else
+    s->plightc++;
+
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    if (s->point_lights[i] == NULL) {
+      s->point_lights[i] = pl;
+      return;
+    }
+  }
+
+  printf("Maximum point lights exceeded!\n");
 }
 
 void scene_update(scene_t *s, float delta_time)
 {
   ex_dbgprofiler.begin[ex_dbgprofiler_update] = (float)glfwGetTime();
 
+  // update models animations etc
   list_node_t *n = s->model_list;
   while (n->data != NULL) {
     model_update(n->data, delta_time);
@@ -55,6 +79,9 @@ void scene_update(scene_t *s, float delta_time)
     else
       break;
   }
+
+  // handle light stuffs
+  scene_manage_lights(s);
 
   ex_dbgprofiler.end[ex_dbgprofiler_update] = (float)glfwGetTime();
 }
@@ -69,43 +96,24 @@ void scene_draw(scene_t *s)
   // render pointlight depth maps
   glCullFace(GL_BACK);
   ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
-  list_node_t *n = s->point_light_list;
-  while (n->data != NULL) {
-    point_light_t *l = n->data;
-
-    if ((l->dynamic || l->update) && l->is_shadow) {
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    point_light_t *l = s->point_lights[i];
+    if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
       point_light_begin(l);
       scene_render_models(s, l->shader, 1);
     }
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
   }
 
   // render dirlight depth maps
   glCullFace(GL_BACK);
-  n = s->dir_light_list;
-  while (n->data != NULL) {
-    dir_light_t *l = n->data;
-
-    if (l->dynamic || l->update) {
-
-      if (s->fps_camera != NULL) {
-        memcpy(l->cposition, s->fps_camera->position, sizeof(vec3));
-        l->cposition[1] = 0.0f;
-      }
-
-      dir_light_begin(l);
-
-      scene_render_models(s, l->shader, 1);
+  if (s->dir_light != NULL) {
+    dir_light_t *l = s->dir_light;
+    if (s->fps_camera != NULL) {
+      memcpy(l->cposition, s->fps_camera->position, sizeof(vec3));
+      l->cposition[1] = 0.0f;
     }
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+    dir_light_begin(l);
+    scene_render_models(s, l->shader, 1);
   }
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
 
@@ -130,6 +138,7 @@ void scene_draw(scene_t *s)
   // render skybox (FIX THIS!)
   /*if (s->skybox != NULL) {
     glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(s->skybox->shader);
@@ -149,58 +158,57 @@ void scene_draw(scene_t *s)
     fps_camera_draw(s->fps_camera, gmainshader);
   }
 
-  // render lit scene
+  // first pass is ambient
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
 
-  // first ambient pass (maybe do non-shadow casting lights here also?)
+  // do all non shadow casting lights in a single pass
+  // including the one directional light
+  int count = 0;
+  char buff[64];
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    point_light_t *pl = s->point_lights[i];
+    if (pl == NULL || !pl->is_visible)
+      continue;
+
+    if (!pl->is_shadow) {
+      sprintf(buff, "u_point_lights[%d]", count);
+      point_light_draw(pl, gmainshader, buff);
+      count++;
+    }
+  }
+
+  if (s->dir_light != NULL) {
+    dir_light_draw(s->dir_light, gmainshader);
+    glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 1);
+  }
+
+  glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), count);
   glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 1);
   gbuffer_render(gmainshader);
   glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 0);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), 0);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
 
   // enable blending for second pass onwards
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-  list_node_t *pl_list = s->point_light_list;
-  list_node_t *dl_list = s->dir_light_list;
-  int ambient_pass = 1;
+  // render all shadow casting point lights
   ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
-  while (pl_list != NULL || dl_list != NULL) {
-    
-    // point light
-    if (pl_list != NULL && pl_list->data != NULL) {
-      point_light_t *pl = pl_list->data;
-      point_light_draw(pl, gmainshader);
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    point_light_t *pl = s->point_lights[i];
+    if (pl == NULL || !pl->is_visible)
+      continue;
+
+    if (pl->is_shadow) {
       glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 1);
+      point_light_draw(pl, gmainshader, NULL);
     } else {
       glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
     }
 
-    // dir light
-    if (dl_list != NULL && dl_list->data != NULL) {
-      dir_light_t *dl = dl_list->data;
-      dir_light_draw(dl, gmainshader);
-      glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 1);
-    } else {
-      glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
-    }
-
-    // render models
     gbuffer_render(gmainshader);
-    
-    if (dl_list != NULL && dl_list->next != NULL)
-      dl_list = dl_list->next;
-    else
-      dl_list = NULL;
-
-    if (pl_list != NULL && pl_list->next != NULL)
-      pl_list = pl_list->next;
-    else
-      pl_list = NULL;
-
-    if (pl_list == NULL && dl_list == NULL)
-      break;
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
@@ -210,11 +218,93 @@ void scene_draw(scene_t *s)
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = (float)glfwGetTime();
 }
 
+void scene_manage_lights(scene_t *s)
+{
+  // set our position and front vector
+  vec3 thispos, thisfront;
+  if (s->fps_camera != NULL) {
+    memcpy(thisfront, s->fps_camera->front, sizeof(vec3));
+    memcpy(thispos, s->fps_camera->position, sizeof(vec3));
+  }
+
+  // point lights
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    point_light_t *pl = s->point_lights[i];
+    if (pl == NULL)
+      continue;
+
+    // direction to light
+    vec3 thatpos;
+    float distance;
+    vec3_sub(thatpos, pl->position, thispos);
+    distance = vec3_len(thatpos);
+    vec3_norm(thatpos, thatpos);
+    vec3_norm(thisfront, thisfront);
+
+    // dot to light
+    float f = vec3_mul_inner(thisfront, thatpos);
+
+    // check if its behind us and far away
+    if (f <= 0.1f && distance > POINT_FAR_PLANE)
+      pl->is_visible = 0;
+    else
+      pl->is_visible = 1;
+  }
+}
+
+void scene_dbgui(scene_t *s)
+{
+  if (s->dir_light != NULL)
+    s->dlightc = 1;
+
+  int rendered_lights = 0;
+  int culled_lights = 0;
+  for (int i=0; i<MAX_POINT_LIGHTS; i++)
+    if (s->point_lights[i] != NULL && s->point_lights[i]->is_visible)
+      rendered_lights++;
+    else if (s->point_lights[i] != NULL)
+      culled_lights++;
+
+  // draw gui
+  if (igBegin("Scene Debugger", NULL, ImGuiWindowFlags_NoTitleBar)) {
+    igColumns(3, "", 0);
+    igText("Item Type");
+    igNextColumn();
+    igText("Count");
+    igNextColumn();
+    igText("Specifics");
+    igSeparator();
+    igColumns(3, "", 0);
+    igText("Point Lights");
+    igText("Point Lights");
+    igText("Directional Lights");
+    igText("Rendered Lights");
+    igText("Culled Lights");
+    igText("Scene Models");
+    igNextColumn();
+    igText("%i", s->dynplightc);
+    igText("%i", s->plightc);
+    igText("%i", s->dlightc);
+    igText("%i", rendered_lights);
+    igText("%i", culled_lights);
+    igText("%i", s->modelc);
+    igNextColumn();
+    igText("Dynamic");
+    igText("Static");
+    igText("Dynamic");
+    igText("");
+  }
+
+  igEnd();
+}
+
 void scene_render_models(scene_t *s, GLuint shader, int shadows)
 {
+  s->modelc = 0;
   list_node_t *n = s->model_list;
   while (n->data != NULL) {
     model_t *m = n->data;
+    s->modelc++;
 
     if ((shadows && m->is_shadow) || !shadows)
       model_draw(m, shader);
@@ -275,18 +365,15 @@ void scene_destroy(scene_t *s)
   list_destroy(s->model_list);
 
   // cleanup point lights
-  n = s->point_light_list;
-  while (n->data != NULL) {
-    point_light_destroy(n->data);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
+    if (s->point_lights[i] != NULL) {
+      point_light_destroy(s->point_lights[i]);
+    }
   }
 
-  // free point light list
-  list_destroy(s->point_light_list);
+  // clean up dir lights
+  if (s->dir_light != NULL)
+    dir_light_destroy(s->dir_light);
 
   // cleanup textures
   n = s->texture_list;

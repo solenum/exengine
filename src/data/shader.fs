@@ -84,7 +84,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   spec    *= attenuation;
   return vec3(diffuse + spec);
 
-  /*vec3 norm = normalize(normal);
+  vec3 norm = normalize(normal);
 
   if (u_is_norm && !u_dont_norm && u_is_textured) {
     norm = texture(u_norm, uv).rgb;
@@ -105,7 +105,7 @@ vec3 calc_point_light(point_light l, samplerCube depth)
   float bias     = 0.2*tan(acos(costheta));
   bias           = clamp(bias, 0.01, 0.2);
 
-  /*float shadow = 0.0f;
+  float shadow = 0.0f;
   if (l.is_shadow) {
     vec3 frag_to_light  = frag - l.position;
     float current_depth = length(frag_to_light);

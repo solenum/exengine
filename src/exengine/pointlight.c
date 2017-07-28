@@ -4,7 +4,6 @@
 #include <string.h>
 
 #define SHADOW_MAP_SIZE 512
-#define POINT_FAR_PLANE 50
 mat4x4 point_shadow_projection;
 GLuint point_light_shader;
 
@@ -29,7 +28,7 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
   glGenTextures(1, &l->depth_map);
   glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
   for (int i=0; i<6; i++)
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT16,
       SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -50,10 +49,11 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
     printf("Error! Point light framebuffer is not complete!\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  l->shader    = point_light_shader;
-  l->dynamic   = dynamic;
-  l->update    = 1;
-  l->is_shadow = 1;
+  l->shader     = point_light_shader;
+  l->dynamic    = dynamic;
+  l->update     = 1;
+  l->is_shadow  = 1;
+  l->is_visible = 1;
 
   return l;
 }
@@ -108,7 +108,7 @@ void point_light_begin(point_light_t *l)
   glUniform3fv(glGetUniformLocation(l->shader, "u_light_pos"), 1, l->position);
 }
 
-void point_light_draw(point_light_t *l, GLuint shader)
+void point_light_draw(point_light_t *l, GLuint shader, const char *prefix)
 {
   if (l->is_shadow) {
     glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 1);
@@ -117,14 +117,26 @@ void point_light_draw(point_light_t *l, GLuint shader)
     
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
-  } else {
-    glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 0);
+  } else if (prefix != NULL) {
+    char buff[64];
+    sprintf(buff, "%s.is_shadow", prefix);
+    glUniform1i(glGetUniformLocation(shader, buff), 0);
   }
 
-  glUniform1i(glGetUniformLocation(shader, "u_point_active"), 1);
-  glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), POINT_FAR_PLANE);
-  glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
-  glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
+  if (prefix != NULL) {
+    char buff[64];
+    sprintf(buff, "%s.far", prefix);
+    glUniform1f(glGetUniformLocation(shader,  buff), POINT_FAR_PLANE);
+    sprintf(buff, "%s.position", prefix);
+    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
+    sprintf(buff, "%s.color", prefix);
+    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
+  } else {
+    glUniform1i(glGetUniformLocation(shader,  "u_point_active"), 1);
+    glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), POINT_FAR_PLANE);
+    glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
+    glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
+  }
 }
 
 void point_light_destroy(point_light_t *l)
