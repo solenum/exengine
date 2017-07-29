@@ -54,7 +54,7 @@ void ex_dbgui_end_profiler()
       ex_dbgprofiler.delta_time = (ex_dbgprofiler.delta_end - ex_dbgprofiler.delta_begin);
       ex_dbgprofiler.frame_times[ex_dbgprofiler.last_frame_time++] = (int)(1.0f/ex_dbgprofiler.delta_time);
       for (int i=0; i<ex_dbgprofiler_count; i++) {
-        ex_dbgprofiler.values[i] = ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i];
+        ex_dbgprofiler.values[i] = (ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i])/1000.0f;
       }
     
       ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_update];

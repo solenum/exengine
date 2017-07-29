@@ -98,7 +98,7 @@ int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, cons
   float r = vec3_len(vw) / d;
   float t = vec3_len(uw) / d;
 
-  return ((r + t) <= 1);
+  return ((r + t) <= 1.0f);
 }
 
 int get_lowest_root(float a, float b, float c, float max, float *root)
@@ -111,9 +111,9 @@ int get_lowest_root(float a, float b, float c, float max, float *root)
     return 0;
 
   // calculate two roots
-  float sqrtD = sqrt(determinant);
-  float r1 = (-b - sqrtD) / (2*a);
-  float r2 = (-b + sqrtD) / (2*a);
+  float sqrtD = sqrtf(determinant);
+  float r1 = (-b - sqrtD) / (2.0f*a);
+  float r2 = (-b + sqrtD) / (2.0f*a);
 
   // set x1 <= x2
   if (r1 > r2) {

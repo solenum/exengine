@@ -55,7 +55,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
   float unit_scale = UNITS_PER_METER / 100.0f;
-  float very_close_dist = 0.005f * unit_scale;
+  float very_close_dist = 0.000005f * unit_scale;
 
   if (entity->packet.depth > 5)
     return; 
@@ -157,9 +157,11 @@ void entity_check_collision(entity_t *entity)
   // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
 }
 
-void entity_update(entity_t *entity)
+void entity_update(entity_t *entity, double dt)
 {
   entity->grounded = 0;
-  vec3 gravity = {0.0f, entity->velocity[1], 0.0f};
+  vec3 gravity = {0.0f, entity->velocity[1] * dt, 0.0f};
+  vec3_scale(entity->velocity, entity->velocity, dt);
   entity_collide_and_slide(entity, gravity);
+  vec3_scale(entity->velocity, entity->velocity, 1.0f / dt);
 }

@@ -11,7 +11,7 @@
 #include "exengine/dbgui.h"
 #include "inc/game.h"
 
-float delta_time;
+double delta_time;
 fps_camera_t *camera = NULL;
 scene_t *scene;
 conf_t conf;
@@ -54,7 +54,7 @@ void game_run()
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
-  e->position[0] = 1.1f;
+  e->position[0] = 1.1f; 
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
@@ -88,7 +88,7 @@ void game_run()
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // scene_add_pointlight(scene, pl);
+  scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   double last_frame_time = glfwGetTime();
@@ -98,11 +98,11 @@ void game_run()
     window_begin();
 
     // calculate delta time
-    double current_frame_time = glfwGetTime();
-    delta_time = (float)current_frame_time - (float)last_frame_time;
+    double current_frame_time = (double)glfwGetTime();
+    delta_time = current_frame_time - last_frame_time;
     last_frame_time = current_frame_time;
 
-    entity_update(e);
+    entity_update(e, delta_time);
     memcpy(camera->position, e->position, sizeof(vec3));
     camera->position[1] += e->radius[1];
     memcpy(pl->position, camera->position, sizeof(vec3));
@@ -111,7 +111,7 @@ void game_run()
       float r = (float)rand()/(float)(RAND_MAX/1.5f);
       float g = (float)rand()/(float)(RAND_MAX/0.8f);
       float b = (float)rand()/(float)(RAND_MAX/1.5f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
       memcpy(l->position, camera->position, sizeof(vec3));
       scene_add_pointlight(scene, l);
       l->is_shadow = 1;
@@ -119,9 +119,8 @@ void game_run()
     }
 
     /* debug entity movement */
-    float y = e->velocity[1];
     vec3 temp;
-    vec3_scale(temp, e->velocity, 0.3f);
+    vec3_scale(temp, e->velocity, 25.0f * delta_time);
     temp[1] = 0.0f;
     
     // can shit
@@ -131,30 +130,20 @@ void game_run()
       camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
     lastyaw = camera->yaw;
 
-    if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
-      if (aim == 0)
-        memcpy(oldpos, camera->view_model_offset, sizeof(vec3));
-      memcpy(camera->view_model_offset, (vec3){0.0f, -0.16f, 0.1f}, sizeof(vec3));
-      aim = 1;
-      move_speed = 0.8f;
-    } else if (aim == 1) {
-      memcpy(camera->view_model_offset, oldpos, sizeof(vec3));
-      aim = 0;
-    }
-    
-    if (aim == 0)
-      camera->view_model_offset[1] = (camera->front[1] * 0.1f) - 0.2f;;
-
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
-      move_speed = 0.05f;
+      move_speed = 20.0f;
     
-    e->velocity[1] = y;
     if (e->grounded == 0)
-      e->velocity[1] -= (0.1f * delta_time);
+      e->velocity[1] -= (100.0f * delta_time);
     else if (e->velocity[1] <= 0.0f)
       e->velocity[1] = 0.0f;
+
+    if (keys_down[GLFW_KEY_C])
+      glfwSwapInterval(1);
+    if (keys_down[GLFW_KEY_V])
+      glfwSwapInterval(0);
 
     vec3 speed, side;
     if (keys_down[GLFW_KEY_W]) {
@@ -182,20 +171,20 @@ void game_run()
       vec3_add(e->velocity, e->velocity, side);
     }
     if (keys_down[GLFW_KEY_Q])
-      e->velocity[1] = 0.5f;
+      e->velocity[1] = 50.0f;
     if (keys_down[GLFW_KEY_Z])
-      e->velocity[1] = -0.5f;
+      e->velocity[1] = -50.0f;
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
-      e->velocity[1] = 0.03f;
+      e->velocity[1] = 20.0f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
       e->radius[1] = 0.5f;
-      move_speed = 1.2f;
+      move_speed = 100.0f;
     } else {
       if (e->radius[1] != 1.0f) {
         e->position[1] += 0.5f;
       }
-      move_speed = 2.5f;
+      move_speed = 200.0f;
       e->radius[1] = 1.0f;
     }
     if (keys_down[GLFW_KEY_ESCAPE])

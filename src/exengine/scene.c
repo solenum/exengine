@@ -162,8 +162,18 @@ void scene_draw(scene_t *s)
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
 
+  glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 1);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
+  gbuffer_render(gmainshader);
+
+  // enable blending for second pass onwards
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
   // do all non shadow casting lights in a single pass
   // including the one directional light
+  // and lights outside of the shadow render range
   int count = 0;
   char buff[64];
   for (int i=0; i<MAX_POINT_LIGHTS; i++) {
@@ -171,7 +181,7 @@ void scene_draw(scene_t *s)
     if (pl == NULL || !pl->is_visible)
       continue;
 
-    if (!pl->is_shadow) {
+    if (!pl->is_shadow || pl->distance_to_cam > POINT_SHADOW_DIST) {
       sprintf(buff, "u_point_lights[%d]", count);
       point_light_draw(pl, gmainshader, buff);
       count++;
@@ -184,9 +194,8 @@ void scene_draw(scene_t *s)
   }
 
   glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), count);
-  glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 1);
-  gbuffer_render(gmainshader);
   glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 0);
+  gbuffer_render(gmainshader);
   glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), 0);
   glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
 
@@ -201,7 +210,7 @@ void scene_draw(scene_t *s)
     if (pl == NULL || !pl->is_visible)
       continue;
 
-    if (pl->is_shadow) {
+    if (pl->is_shadow && pl->distance_to_cam <= POINT_SHADOW_DIST) {
       glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 1);
       point_light_draw(pl, gmainshader, NULL);
     } else {
@@ -235,9 +244,8 @@ void scene_manage_lights(scene_t *s)
 
     // direction to light
     vec3 thatpos;
-    float distance;
     vec3_sub(thatpos, pl->position, thispos);
-    distance = vec3_len(thatpos);
+    pl->distance_to_cam = vec3_len(thatpos);
     vec3_norm(thatpos, thatpos);
     vec3_norm(thisfront, thisfront);
 
@@ -245,7 +253,7 @@ void scene_manage_lights(scene_t *s)
     float f = vec3_mul_inner(thisfront, thatpos);
 
     // check if its behind us and far away
-    if (f <= 0.1f && distance > POINT_FAR_PLANE)
+    if (f <= 0.1f && pl->distance_to_cam > POINT_FAR_PLANE)
       pl->is_visible = 0;
     else
       pl->is_visible = 1;

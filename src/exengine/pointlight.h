@@ -7,12 +7,14 @@
 #include <GL/glew.h>
 
 #define POINT_FAR_PLANE 20
+#define POINT_SHADOW_DIST 50
 
 typedef struct {
   vec3 position, color;
   mat4x4 transform[6];
   GLuint depth_map, depth_map_fbo, shader;
   int dynamic, update, is_shadow, is_visible;
+  float distance_to_cam;
 } point_light_t;
 
 void point_light_init();

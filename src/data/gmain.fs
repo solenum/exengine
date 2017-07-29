@@ -54,7 +54,7 @@ vec3 calc_point_light(point_light l)
 
   // specular
   vec3 halfwayd  = normalize(light_dir + view_dir);
-  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0);
+  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0f);
   vec3 specular = l.color * specs * spec;
 
   // attenuation
@@ -104,7 +104,7 @@ void main()
 {
   vec3 diffuse = vec3(0.0f);
 
-  if (u_ambient_pass == true) {
+  if (u_ambient_pass) {
     diffuse += texture(u_colorspec, uv).rgb*0.1f;
   } else {
     // shadow casters
@@ -119,4 +119,5 @@ void main()
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
+  color = vec4(diffuse, 1.0f);
 }

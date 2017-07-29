@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-extern float delta_time;
+extern double delta_time;
 
 /**
  * [game_init init everything]
