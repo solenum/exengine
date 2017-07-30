@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SHADOW_MAP_SIZE 512
+#define SHADOW_MAP_SIZE 1024
 mat4x4 point_shadow_projection;
 GLuint point_light_shader;
 

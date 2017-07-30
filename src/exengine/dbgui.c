@@ -40,13 +40,13 @@ void ex_dbgui_init()
 void ex_dbgui_begin_profiler()
 {
   if (!ex_dbgprofiler.paused)
-    ex_dbgprofiler.delta_begin = (float)glfwGetTime();
+    ex_dbgprofiler.delta_begin = glfwGetTime();
 }
 
 void ex_dbgui_end_profiler()
 {
   if (!ex_dbgprofiler.paused) {
-    ex_dbgprofiler.delta_end = (float)glfwGetTime();
+    ex_dbgprofiler.delta_end = glfwGetTime();
     ex_dbgprofiler.timer += (ex_dbgprofiler.delta_end - ex_dbgprofiler.delta_begin);
     
     if (ex_dbgprofiler.timer > 0.1f) {
@@ -54,11 +54,10 @@ void ex_dbgui_end_profiler()
       ex_dbgprofiler.delta_time = (ex_dbgprofiler.delta_end - ex_dbgprofiler.delta_begin);
       ex_dbgprofiler.frame_times[ex_dbgprofiler.last_frame_time++] = (int)(1.0f/ex_dbgprofiler.delta_time);
       for (int i=0; i<ex_dbgprofiler_count; i++) {
-        ex_dbgprofiler.values[i] = (ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i])/1000.0f;
+        ex_dbgprofiler.values[i] = (ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i]);
       }
     
       ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_update];
-      ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_collision];
     }
 
     if (ex_dbgprofiler.last_frame_time >= 128)
@@ -69,17 +68,19 @@ void ex_dbgui_end_profiler()
 void ex_dbgui_render_profiler()
 {
   float frame_time = ex_dbgprofiler.delta_time;
+  double val;
  
   igSetNextWindowSize((struct ImVec2){ex_dbgprofiler_width, ex_dbgprofiler_height}, 0);
   igBegin("Render Profiler", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 
   igCheckbox("Pause ", (bool*)&ex_dbgprofiler.paused);
-  igText("Render Time %i FPS (%fms)", (int)(1.0f/frame_time), ex_dbgprofiler.delta_time);
+  igText("Render Time %i FPS (%.2fms)", (int)(1.0/frame_time), 1000.0/(1.0/frame_time));
   igNewLine();
 
   float last_offset = 0.0f;
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
+    val = 1000.0/(1.0/x);
     x = scale_to_range(x, 24.0f, ex_dbgprofiler_width, 0.0f, frame_time);
     
     if (i == ex_dbgprofiler_count-1)
@@ -89,7 +90,7 @@ void ex_dbgui_render_profiler()
     igPushStyleColor(ImGuiCol_Button, ex_profiler_colors[i]);
     igButton("", (struct ImVec2){x, 8.0f});
     if (igIsItemHovered())
-      igSetTooltip("%s (%fms)", ex_dbgprofiler_strings_full[i], ex_dbgprofiler.values[i]);
+      igSetTooltip("%s (%2.fms)", ex_dbgprofiler_strings_full[i], val);
     igPopStyleColor(1);
 
     last_offset += x;
@@ -98,14 +99,15 @@ void ex_dbgui_render_profiler()
   last_offset = 0.0f;
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
+    val = 1000.0/(1.0/x);
     x = scale_to_range(x, 8.0f, ex_dbgprofiler_width*0.5f, 0.0f, frame_time);
 
     igPushStyleColor(ImGuiCol_Button, ex_profiler_colors[i]);
     igButton("", (struct ImVec2){x, 16.0f});
     if (igIsItemHovered())
-      igSetTooltip("%s (%fms)", ex_dbgprofiler_strings_full[i], ex_dbgprofiler.values[i]);
+      igSetTooltip("%s (%.4fms)", ex_dbgprofiler_strings_full[i], val);
     igSameLine(0.0f, 0.0f);
-    igTextColored(ex_profiler_colors[i], "  %s (%fms)", ex_dbgprofiler_strings_full[i], ex_dbgprofiler.values[i]);
+    igTextColored(ex_profiler_colors[i], "  %s (%.4fms)", ex_dbgprofiler_strings_full[i], val);
     igPopStyleColor(1);
 
     last_offset += x;

@@ -67,7 +67,7 @@ void scene_add_pointlight(scene_t *s, point_light_t *pl)
 
 void scene_update(scene_t *s, float delta_time)
 {
-  ex_dbgprofiler.begin[ex_dbgprofiler_update] = (float)glfwGetTime();
+  ex_dbgprofiler.begin[ex_dbgprofiler_update] = glfwGetTime();
 
   // update models animations etc
   list_node_t *n = s->model_list;
@@ -83,19 +83,19 @@ void scene_update(scene_t *s, float delta_time)
   // handle light stuffs
   scene_manage_lights(s);
 
-  ex_dbgprofiler.end[ex_dbgprofiler_update] = (float)glfwGetTime();
+  ex_dbgprofiler.end[ex_dbgprofiler_update] = glfwGetTime();
 }
 
 void scene_draw(scene_t *s)
 {
   // begin profiler
-  ex_dbgprofiler.end[ex_dbgprofiler_other] = (float)glfwGetTime();
+  ex_dbgprofiler.end[ex_dbgprofiler_other] = glfwGetTime();
   ex_dbgui_end_profiler();
   ex_dbgui_begin_profiler();
 
   // render pointlight depth maps
   glCullFace(GL_BACK);
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = glfwGetTime();
   for (int i=0; i<MAX_POINT_LIGHTS; i++) {
     point_light_t *l = s->point_lights[i];
     if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
@@ -115,7 +115,7 @@ void scene_draw(scene_t *s)
     dir_light_begin(l);
     scene_render_models(s, l->shader, 1);
   }
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = (float)glfwGetTime();
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
 
   fps_camera_update(s->fps_camera, gshader);
 
@@ -204,7 +204,7 @@ void scene_draw(scene_t *s)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   // render all shadow casting point lights
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
   for (int i=0; i<MAX_POINT_LIGHTS; i++) {
     point_light_t *pl = s->point_lights[i];
     if (pl == NULL || !pl->is_visible)
@@ -220,11 +220,11 @@ void scene_draw(scene_t *s)
     gbuffer_render(gmainshader);
   }
   glDisable(GL_BLEND);
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = (float)glfwGetTime();
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
  
   // render screen quad
   framebuffer_render_quad();
-  ex_dbgprofiler.begin[ex_dbgprofiler_other] = (float)glfwGetTime();
+  ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
 
 void scene_manage_lights(scene_t *s)

@@ -1,7 +1,6 @@
 #include "entity.h"
 #include "exe_list.h"
 #include "model.h"
-#include "dbgui.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -133,7 +132,6 @@ void entity_check_collision(entity_t *entity)
 {
   // check collision against triangles
   // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
-  ex_dbgprofiler.begin[ex_dbgprofiler_collision] = (float)glfwGetTime();
   list_node_t *n = entity->scene->model_list;
   while (n->data != NULL) {
     model_t *m = n->data;
@@ -153,7 +151,6 @@ void entity_check_collision(entity_t *entity)
     else
       break;
   }
-  ex_dbgprofiler.end[ex_dbgprofiler_collision] = (float)glfwGetTime();
   // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
 }
 
