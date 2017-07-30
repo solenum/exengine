@@ -13,6 +13,7 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
   
   // create glfw window
   display.window = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -49,6 +50,7 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   glCullFace(GL_BACK);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDepthFunc(GL_LEQUAL);
+  glEnable(GL_FRAMEBUFFER_SRGB);
 
   glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSwapInterval(0);

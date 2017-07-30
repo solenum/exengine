@@ -58,37 +58,32 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
-  list_add(scene->model_list, d);
+  // model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
+  // list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
-  model_set_anim(d, 0);
+  // model_set_anim(d, 0);
 
-  model_t *g2 = iqm_load_model(scene, "data/gun.iqm", 0);
-  // g2->use_transform = 1;
-  g2->position[0] = 2.0f;
-  g2->position[1] = 1.0f;
-  // list_add(scene->model_list, g2);
-  model_set_anim(g2, 0);
-
-  model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
+  // model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
   // list_add(scene->model_list, g);
-  camera->view_model = g;
-  float lastyaw = 0;
-  int aim = 0;
-  vec3 oldpos;
-  model_set_anim(g, 0);
-  camera->view_model_offset[0]  = 0.0f;
-  camera->view_model_offset[1]  = -0.15f;
-  camera->view_model_offset[2]  = 0.25f;
+  // camera->view_model = g;
+  // float lastyaw = 0;
+  // int aim = 0;
+  // vec3 oldpos;
+  // model_set_anim(g, 0);
+  // camera->view_model_offset[0]  = 0.0f;
+  // camera->view_model_offset[1]  = -0.15f;
+  // camera->view_model_offset[2]  = 0.25f;
 
-  model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
-  list_add(scene->model_list, grass);
-  grass->position[0] = -2.0f;
+  // model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
+  // list_add(scene->model_list, grass);
+  // grass->position[0] = -2.0f;
+  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 0);
+  scene_add_pointlight(scene, l);
 
-  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.2f, 0.2f, 0.25f}, 0);
+  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  scene_add_pointlight(scene, pl);
+  // scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   double last_frame_time = glfwGetTime();
@@ -108,9 +103,9 @@ void game_run()
     memcpy(pl->position, camera->position, sizeof(vec3));
 
     if (keys_down[GLFW_KEY_F]) {
-      float r = (float)rand()/(float)(RAND_MAX/1.5f);
-      float g = (float)rand()/(float)(RAND_MAX/0.8f);
-      float b = (float)rand()/(float)(RAND_MAX/1.5f);
+      float r = (float)rand()/(float)(RAND_MAX/1.0f);
+      float g = (float)rand()/(float)(RAND_MAX/1.0f);
+      float b = (float)rand()/(float)(RAND_MAX/1.0f);
       point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
       memcpy(l->position, camera->position, sizeof(vec3));
       scene_add_pointlight(scene, l);
@@ -122,13 +117,6 @@ void game_run()
     vec3 temp;
     vec3_scale(temp, e->velocity, 25.0f * delta_time);
     temp[1] = 0.0f;
-    
-    // can shit
-    if (camera->view_model_offset[0] < 0.15f && lastyaw - camera->yaw > 0)
-      camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
-    if (camera->view_model_offset[0] > 0.05f && lastyaw - camera->yaw < 0)
-      camera->view_model_offset[0] += ((lastyaw - camera->yaw) * 0.15f) * delta_time;
-    lastyaw = camera->yaw;
 
     if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);

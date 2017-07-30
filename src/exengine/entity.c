@@ -45,7 +45,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 temp = {0.0f, 0.0f, 0.0f};
   vec3_mul(temp, final_position, entity->packet.e_radius);
   vec3_sub(temp, temp, entity->position);
-  if (temp[1] <= 0.0f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
+  if (temp[1] <= 0.5f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
     memcpy(entity->velocity, temp, sizeof(vec3));
 
   // finally set entity position
@@ -57,7 +57,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   float unit_scale = UNITS_PER_METER / 100.0f;
   float very_close_dist = 0.000005f * unit_scale;
 
-  if (entity->packet.depth > 5)
+  if (entity->packet.depth > 15)
     return; 
 
   // check for collision

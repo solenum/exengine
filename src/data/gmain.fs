@@ -58,9 +58,10 @@ vec3 calc_point_light(point_light l)
   vec3 specular = l.color * specs * spec;
 
   // attenuation
-  float attenuation = 1.0f / (1.0f + 0.1f * (distance * distance));
-  diffuse  *= attenuation;
-  specular *= (attenuation*1.5);
+  // float attenuation = 1.0f / (1.0f + 0.1f * (distance * distance));
+  float attenuation = 1.0f / distance;
+  diffuse  *= (attenuation);
+  specular *= (attenuation*1.5f);
 
   // shadows
   float costheta = clamp(dot(normals, light_dir), 0.0, 1.0);
@@ -105,7 +106,17 @@ void main()
   vec3 diffuse = vec3(0.0f);
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb*0.1f;
+    diffuse += texture(u_colorspec, uv).rgb*0.01f;
+
+    /* volumetric fog shiz
+    vec3 frag   = texture(u_position, uv).rgb;
+    vec3 viewpos = u_view_position;
+    viewpos.y = -0.2f;
+    float vdist = length(u_view_position - frag);
+    float vmount = exp(-viewpos.y*diffuse.b) * (1.0 - exp(-vdist*-normalize(viewpos - frag).y)) / -normalize(viewpos - frag).y;
+    vec3 fog    = vec3(0.0, 0.0, 0.0);
+    if (frag.y <= viewpos.y)
+      diffuse = mix(diffuse, fog, vmount*0.02f);*/
   } else {
     // shadow casters
     if (u_point_active && u_point_count <= 0)

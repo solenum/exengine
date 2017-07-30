@@ -97,6 +97,7 @@ void framebuffer_render_quad()
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
+  glEnable(GL_FRAMEBUFFER_SRGB);
 
   // render screen quad
   glUseProgram(fbo_shader);
