@@ -4,8 +4,8 @@
 #include <string.h>
 
 #define SHADOW_MAP_SIZE 1024
-#define DIR_FAR_PLANE 150
-#define DIR_LIGHT_SIZE 15
+#define DIR_FAR_PLANE   50
+#define DIR_LIGHT_SIZE  15
 mat4x4 dir_shadow_projection;
 GLuint dir_light_shader;
 
@@ -78,13 +78,13 @@ void dir_light_begin(dir_light_t *l)
 
 void dir_light_draw(dir_light_t *l, GLuint shader)
 {
-  glActiveTexture(GL_TEXTURE10);
+  glActiveTexture(GL_TEXTURE4);
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
-  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 10);
+  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 4);
 
   vec3 temp;
   vec3_add(temp, l->cposition, l->position);
-  glUniformMatrix4fv(glGetUniformLocation(shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
+  glUniformMatrix4fv(glGetUniformLocation(shader, "u_dir_transform"), 1, GL_FALSE, &l->transform[0][0]);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, temp);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.target"), 1, l->target);
   glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);

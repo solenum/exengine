@@ -1,6 +1,7 @@
 #include "exengine/camera.h"
 #include "exengine/texture.h"
 #include "exengine/pointlight.h"
+#include "exengine/spotlight.h"
 #include "exengine/dirlight.h"
 #include "exengine/scene.h"
 #include "exengine/exe_list.h"
@@ -47,7 +48,7 @@ void game_run()
   list_add(scene->model_list, m6);
 
   // dir_light_t *dl = dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
-  // list_add(scene->dir_light_list, dl);
+  // scene->dir_light = dl;
 
   skybox_t *s = skybox_new("sky");
   scene->skybox = s;
@@ -86,6 +87,11 @@ void game_run()
   // scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
+  // spot_light_t *sl = spot_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f, 1.0f, 1.0f}, 1);
+  // scene_add_spotlight(scene, sl);
+  // sl->inner = cos(rad(30.0f));
+  // sl->outer = cos(rad(35.0f));
+
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
@@ -103,10 +109,10 @@ void game_run()
     memcpy(pl->position, camera->position, sizeof(vec3));
 
     if (keys_down[GLFW_KEY_F]) {
-      float r = (float)rand()/(float)(RAND_MAX/1.0f);
+      float r = 0.5f+(float)rand()/(float)(RAND_MAX/0.5f);
       float g = (float)rand()/(float)(RAND_MAX/1.0f);
       float b = (float)rand()/(float)(RAND_MAX/1.0f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, r, r}, 0);
       memcpy(l->position, camera->position, sizeof(vec3));
       scene_add_pointlight(scene, l);
       l->is_shadow = 1;

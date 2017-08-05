@@ -6,6 +6,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+extern GLuint dir_light_shader;
+
 typedef struct {
   vec3 position, color, cposition, target;
   mat4x4 transform;

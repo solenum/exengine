@@ -291,6 +291,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     model->vertices = malloc(vis_len*sizeof(vec3));
     model->num_vertices = vis_len;
     memcpy(model->vertices, vis_vertices, vis_len*sizeof(vec3));
+    scene_add_collision(scene, model);
   }
 
   printf("Finished loading IQM model %s\n", path);

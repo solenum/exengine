@@ -1,5 +1,4 @@
 #include "octree.h"
-#include <string.h>
 #include <stdio.h>
 
 octree_t* octree_new()
@@ -8,118 +7,109 @@ octree_t* octree_new()
 
   for (int i=0; i<8; i++) {
     o->children[i] = NULL;
-    memset(o->region[i], 0, sizeof(vec3));
   }
+  memset(o->region.min, 0, sizeof(vec3));
+  memset(o->region.max, 0, sizeof(vec3));
 
-  o->data_len = 0;
-  o->ready    = 0;
-  o->built    = 0;
-  o->max_life = 8;
-  o->cur_life =-1;
-  o->active   = 0;
-  o->data     = NULL;
-  o->parent   = NULL;
+  o->ready     = 0;
+  o->built     = 0;
+  o->max_life  = 8;
+  o->cur_life  =-1;
+  o->active    = 0;
+  o->obj_list  = NULL;
+  o->parent    = NULL;
+  o->obj_list  = list_new();
 
   return o;
 }
 
-
-/*int octree_get_containing_point(octree_t *o, vec3 point)
+void octree_init(octree_t *o, rect_t region, list_t *objects)
 {
-  int oct = 0;
-  if (point[0] >= o->origin[0]) oct |= 4;
-  if (point[1] >= o->origin[1]) oct |= 2;
-  if (point[2] >= o->origin[2]) oct |= 1;
-  return oct;
+  memcpy(&o->region, &region, sizeof(region));
+  o->obj_list = objects;
+  o->active   = 0;
+  o->max_life = 8;
+  o->cur_life = -1;
+  o->ready    = 0;
+  o->built    = 0;
 }
 
-void octree_insert(octree_t *o, vec3 point)
+void octree_build(octree_t *o)
 {
-  // insert data into octree
-  if (o->children[0] == NULL) {
-    // insert here if we have no data
-    if (o->has_data == 0) {
-      memcpy(o->point, point, sizeof(vec3));
-      o->has_data = 1;
-      return;
-    } else {
-      // remove data
-      vec3 prev_point;
-      memcpy(prev_point, o->point, sizeof(vec3));
-      o->has_data = 0;
+  if (o->obj_list->data == NULL)
+    return;
 
-      // set the children
-      for (int i=0; i<8; i++) {
-        // remove origin
-        vec3 origin;
-        memcpy(origin, o->origin, sizeof(vec3));
+  // our size
+  vec3 region;
+  vec3_sub(region, o->region.max, o->region.min);
 
-        // get bounds for new child
-        origin[0] += o->half_size[0] * (i&4 ? 0.5f : -0.5f);
-        origin[1] += o->half_size[1] * (i&2 ? 0.5f : -0.5f);
-        origin[2] += o->half_size[2] * (i&1 ? 0.5f : -0.5f);
-        
-        // set new bounds
-        o->children[i] = octree_new(origin, o->half_size);
-        vec3_scale(o->children[i]->half_size, o->children[i]->half_size, 0.5f);
+  if (region[0] <= OCT_MIN_SIZE && region[1] <= OCT_MIN_SIZE && region[2] <= OCT_MIN_SIZE)
+    return;
+
+  vec3 half, center;
+  vec3_scale(half, region, 0.5f);
+  vec3_add(center, o->region.min, half);
+
+  // octant regions
+  rect_t octants[8];
+  octants[0] = rect_new(o->region.min, center);
+  octants[1] = rect_new((vec3){center[0], o->region.min[1], o->region.min[2]}, (vec3){o->region.max[0], center[1], center[2]});
+  octants[2] = rect_new((vec3){center[0], o->region.min[1], center[2]}, (vec3){o->region.max[0], center[1], o->region.max[2]});
+  octants[3] = rect_new((vec3){o->region.min[0], o->region.min[1], center[2]}, (vec3){center[0], center[1], o->region.max[2]});
+  octants[4] = rect_new((vec3){o->region.min[0], center[1], o->region.min[2]}, (vec3){center[0], o->region.max[1], center[2]});
+  octants[5] = rect_new((vec3){center[0], center[1], o->region.min[2]}, (vec3){o->region.max[0], o->region.max[1], center[2]});
+  octants[6] = rect_new(center, o->region.max);
+  octants[7] = rect_new((vec3){o->region.min[0], center[1], center[2]}, (vec3){center[0], o->region.max[1], o->region.max[2]});
+
+  // object lists
+  list_t *obj_lists[8];
+  for (int i=0; i<8; i++)
+    obj_lists[i] = list_new();
+
+  // add objects to appropriate octant
+  int i = 0;
+  list_node_t *n = o->obj_list;
+  while (n->data != NULL) {
+    int found = 0;
+
+    for (int j=0; j<8; j++) {
+      octree_obj_t *obj = n->data;
+      if (aabb_aabb(octants[j], obj->box)) {
+        list_add(obj_lists[j], (void*)n->data);
+        found = 1;
+        break;
       }
-      
-      int a = octree_get_containing_point(o, prev_point);
-      int b = octree_get_containing_point(o, point);
-        
-      printf("!%i! !%i!\n", a, b);
-      // insert old and new point
-      octree_insert(o->children[a], prev_point);
-      octree_insert(o->children[b], point);
     }
-  } else {
-    // recurse insert to child node
-    int octant = octree_get_containing_point(o, point);
-    octree_insert(o->children[octant], point);
+
+    // remove obj from this list
+    i++;
+    if (found) {
+      list_t *next = n->next;
+      list_remove(n, n->data);
+      if (next != NULL) {
+        n = next;
+        continue;
+      } else {
+        break;
+      }
+    }
+
+    if (n->next != NULL)
+      n = n->next;
+    else
+      break;
   }
+
+  // create children
+  for (int i=0; i<8; i++) {
+    if (obj_lists[i]->data != NULL) {
+      o->children[i] = malloc(sizeof(octree_t));
+      octree_init(o->children[i], octants[i], obj_lists[i]);
+      o->active |= (1<<i);
+      octree_build(o->children[i]);
+    }
+  }
+
+  o->built = 1;
+  o->ready = 1;
 }
-
-void octree_get_points(octree_t *o, vec3 min, vec3 max, octree_points_t *points, vec3 *data)
-{
-  // first iteration, set up data array
-  if (data == NULL) {
-    // get octree length
-    size_t len = 0;
-    octree_get_len(o, &len);
-    points = malloc(sizeof(octree_points_t));
-    points->data = malloc(sizeof(vec3) * len);
-    points->last = 0;
-  }
-
-  // push back points into data array
-  if (o->children[0] == NULL) {
-    if (o->has_data) {
-      vec3 p;
-      memcpy(p, o->point, sizeof(vec3));
-
-      // check bounds
-      if (p[0] > max[0] || p[1] > max[1] || p[2] > max[2])
-        return;
-      if (p[0] < min[0] || p[1] < min[1] || p[2] < min[2])
-        return;
-
-      // store it
-      memcpy(points->data[points->last++], p, sizeof(vec3));
-    }
-  } else {
-    for (int i=0; i<8; i++) {
-      // get corners of octant
-      vec3 cmin, cmax;
-      vec3_add(cmax, o->children[i]->origin, o->children[i]->half_size);
-      vec3_sub(cmin, o->children[i]->origin, o->children[i]->half_size);
-
-      // check if outside of bounding box
-      if (cmax[0] < min[0] || cmax[1] < min[1] || cmax[2] < min[2])
-        continue;
-      if (cmin[0] > max[0] || cmin[1] > max[1] || cmin[2] > max[2])
-        continue;
-
-      octree_get_points(o->children[i], min, max, points, points->data);
-    }
-  }
-} */

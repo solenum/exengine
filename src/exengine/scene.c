@@ -25,9 +25,12 @@ scene_t* scene_new()
   // init lights
   point_light_init();
   dir_light_init();
+  spot_light_init();
   s->dir_light = NULL;
   for (int i=0; i<MAX_POINT_LIGHTS; i++)
     s->point_lights[i] = NULL;
+  for (int i=0; i<MAX_SPOT_LIGHTS; i++)
+    s->spot_lights[i] = NULL;
 
   // init skybox
   s->skybox = NULL;
@@ -35,6 +38,7 @@ scene_t* scene_new()
 
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
+  s->coll_tree = octree_new();
 
   // init debug gui
   ex_dbgui_init();
@@ -43,9 +47,41 @@ scene_t* scene_new()
   s->plightc    = 0;
   s->dynplightc = 0;
   s->dlightc    = 0;
+  s->slightc    = 0;
   s->modelc     = 0;
 
   return s;
+}
+
+void scene_add_collision(scene_t *s, model_t *m)
+{
+  rect_t region;
+  memset(region.min, 0, sizeof(vec3));
+  memset(region.max, 0, sizeof(vec3));
+
+  for (int i=0; i<m->num_vertices/3; i++) {
+    vec3 tri[3];
+    memcpy(tri[0], m->vertices[(i*3)+0], sizeof(vec3));
+    memcpy(tri[0], m->vertices[(i*3)+1], sizeof(vec3));
+    memcpy(tri[0], m->vertices[(i*3)+2], sizeof(vec3));
+
+    vec3_min(region.min, region.min, tri[0]);
+    vec3_min(region.min, region.min, tri[1]);
+    vec3_min(region.min, region.min, tri[2]);
+    vec3_max(region.max, region.max, tri[0]);
+    vec3_max(region.max, region.max, tri[1]);
+    vec3_max(region.max, region.max, tri[2]);
+
+    octree_obj_t *obj = malloc(sizeof(octree_obj_t));
+    obj->box = rect_from_triangle(tri);
+    memcpy(obj->a, tri[0], sizeof(vec3));
+    memcpy(obj->b, tri[1], sizeof(vec3));
+    memcpy(obj->c, tri[2], sizeof(vec3));
+    list_add(s->coll_tree->obj_list, (void*)obj);
+  }
+
+  memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
+  octree_build(s->coll_tree);
 }
 
 void scene_add_pointlight(scene_t *s, point_light_t *pl)
@@ -63,6 +99,21 @@ void scene_add_pointlight(scene_t *s, point_light_t *pl)
   }
 
   printf("Maximum point lights exceeded!\n");
+}
+
+void scene_add_spotlight(scene_t *s, spot_light_t *sl)
+{
+  if (sl->dynamic && sl->is_shadow)
+    s->dynplightc++;
+  else
+    s->slightc++;
+
+  for (int i=0; i<MAX_SPOT_LIGHTS; i++) {
+    if (s->spot_lights[i] == NULL) {
+      s->spot_lights[i] = sl;
+      return;
+    }
+  }
 }
 
 void scene_update(scene_t *s, float delta_time)
@@ -100,6 +151,15 @@ void scene_draw(scene_t *s)
     point_light_t *l = s->point_lights[i];
     if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
       point_light_begin(l);
+      scene_render_models(s, l->shader, 1);
+    }
+  }
+
+  // render spotlight depth maps
+  for (int i=0; i<MAX_SPOT_LIGHTS; i++) {
+    spot_light_t *l = s->spot_lights[i];
+    if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
+      spot_light_begin(l);
       scene_render_models(s, l->shader, 1);
     }
   }
@@ -165,6 +225,7 @@ void scene_draw(scene_t *s)
   glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 1);
   glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
   glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_spot_active"), 0);
   gbuffer_render(gmainshader);
 
   // enable blending for second pass onwards
@@ -174,7 +235,7 @@ void scene_draw(scene_t *s)
   // do all non shadow casting lights in a single pass
   // including the one directional light
   // and lights outside of the shadow render range
-  int count = 0;
+  int pcount = 0;
   char buff[64];
   for (int i=0; i<MAX_POINT_LIGHTS; i++) {
     point_light_t *pl = s->point_lights[i];
@@ -182,9 +243,23 @@ void scene_draw(scene_t *s)
       continue;
 
     if (!pl->is_shadow || pl->distance_to_cam > POINT_SHADOW_DIST) {
-      sprintf(buff, "u_point_lights[%d]", count);
+      sprintf(buff, "u_point_lights[%d]", pcount);
       point_light_draw(pl, gmainshader, buff);
-      count++;
+      pcount++;
+    }
+  }
+
+  // render non shadow casting spot lights
+  int scount = 0;
+  for (int i=0; i<MAX_SPOT_LIGHTS; i++) {
+    spot_light_t *sl = s->spot_lights[i];
+    if (sl == NULL || !sl->is_visible)
+      continue;
+
+    if (!sl->is_shadow || sl->distance_to_cam > SPOT_SHADOW_DIST) {
+      sprintf(buff, "u_spot_lights[%d]", scount);
+      spot_light_draw(sl, gmainshader, buff);
+      scount++;
     }
   }
 
@@ -193,10 +268,12 @@ void scene_draw(scene_t *s)
     glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 1);
   }
 
-  glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), count);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), pcount);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_spot_count"), scount);
   glUniform1i(glGetUniformLocation(gmainshader, "u_ambient_pass"), 0);
   gbuffer_render(gmainshader);
   glUniform1i(glGetUniformLocation(gmainshader, "u_point_count"), 0);
+  glUniform1i(glGetUniformLocation(gmainshader, "u_spot_count"), 0);
   glUniform1i(glGetUniformLocation(gmainshader, "u_dir_active"), 0);
 
   // enable blending for second pass onwards
@@ -205,18 +282,34 @@ void scene_draw(scene_t *s)
 
   // render all shadow casting point lights
   ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
-  for (int i=0; i<MAX_POINT_LIGHTS; i++) {
-    point_light_t *pl = s->point_lights[i];
-    if (pl == NULL || !pl->is_visible)
+  for (int i=0; i<SCENE_BIGGEST_LIGHT; i++) {
+    point_light_t *pl = i > MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
+    spot_light_t  *sl = i > MAX_SPOT_LIGHTS ? NULL : s->spot_lights[i];
+    
+    if (pl == NULL && sl == NULL)
       continue;
 
-    if (pl->is_shadow && pl->distance_to_cam <= POINT_SHADOW_DIST) {
-      glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 1);
-      point_light_draw(pl, gmainshader, NULL);
-    } else {
-      glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
+    // point light
+    if (pl != NULL && pl->is_visible) {
+      if (pl->is_shadow && pl->distance_to_cam <= POINT_SHADOW_DIST) {
+        glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 1);
+        point_light_draw(pl, gmainshader, NULL);
+      } else {
+        glUniform1i(glGetUniformLocation(gmainshader, "u_point_active"), 0);
+      } 
     }
 
+    // spot light
+    if (sl != NULL && sl->is_visible) {
+      if (sl->is_shadow && sl->distance_to_cam <= SPOT_SHADOW_DIST) {
+        glUniform1i(glGetUniformLocation(gmainshader, "u_spot_active"), 1);
+        spot_light_draw(sl, gmainshader, NULL);
+      } else {
+        glUniform1i(glGetUniformLocation(gmainshader, "u_spot_active"), 0);
+      } 
+    }
+
+    // render gbuffer to screen quad
     gbuffer_render(gmainshader);
   }
   glDisable(GL_BLEND);
@@ -257,6 +350,29 @@ void scene_manage_lights(scene_t *s)
       pl->is_visible = 0;
     else
       pl->is_visible = 1;
+  }
+
+  // spot lights
+  for (int i=0; i<MAX_SPOT_LIGHTS; i++) {
+    spot_light_t *sl = s->spot_lights[i];
+    if (sl == NULL)
+      continue;
+
+    // direction to light
+    vec3 thatpos;
+    vec3_sub(thatpos, sl->position, thispos);
+    sl->distance_to_cam = vec3_len(thatpos);
+    vec3_norm(thatpos, thatpos);
+    vec3_norm(thisfront, thisfront);
+
+    // dot to light
+    float f = vec3_mul_inner(thisfront, thatpos);
+
+    // check if its behind us and far away
+    if (f <= 0.1f && sl->distance_to_cam > SPOT_FAR_PLANE)
+      sl->is_visible = 0;
+    else
+      sl->is_visible = 1;
   }
 }
 
