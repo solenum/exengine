@@ -23,8 +23,8 @@
 #define SCENE_BIGGEST_LIGHT 256
 
 typedef struct {
-  GLuint shader;
-  list_t *model_list, *texture_list;
+  GLuint shader, primshader;
+  list_t *model_list, *texture_list, *coll_list;
   fps_camera_t *fps_camera;
   skybox_t *skybox;
   vec3 gravity;

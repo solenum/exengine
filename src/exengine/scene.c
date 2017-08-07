@@ -39,6 +39,7 @@ scene_t* scene_new()
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
   s->coll_tree = octree_new();
+  s->coll_list = list_new();
 
   // init debug gui
   ex_dbgui_init();
@@ -50,37 +51,56 @@ scene_t* scene_new()
   s->slightc    = 0;
   s->modelc     = 0;
 
+  // primitive debug shader
+  s->primshader = shader_compile("data/primshader.vs", "data/primshader.fs", NULL);
+
   return s;
 }
 
-void scene_add_collision(scene_t *s, model_t *m)
+void scene_add_collision(scene_t *s, model_t *model)
 {
-  rect_t region;
-  memset(region.min, 0, sizeof(vec3));
-  memset(region.max, 0, sizeof(vec3));
+  list_add(s->coll_list, (void*)model);
 
-  for (int i=0; i<m->num_vertices/3; i++) {
-    vec3 tri[3];
-    memcpy(tri[0], m->vertices[(i*3)+0], sizeof(vec3));
-    memcpy(tri[0], m->vertices[(i*3)+1], sizeof(vec3));
-    memcpy(tri[0], m->vertices[(i*3)+2], sizeof(vec3));
+  // destroy and reconstruct tree
+  if (s->coll_tree->built)
+    octree_reset(s->coll_tree);
 
-    vec3_min(region.min, region.min, tri[0]);
-    vec3_min(region.min, region.min, tri[1]);
-    vec3_min(region.min, region.min, tri[2]);
-    vec3_max(region.max, region.max, tri[0]);
-    vec3_max(region.max, region.max, tri[1]);
-    vec3_max(region.max, region.max, tri[2]);
+  list_node_t *model_list = s->coll_list;
+  while (model_list->data != NULL) {
+    model_t *m = model_list->data;
 
-    octree_obj_t *obj = malloc(sizeof(octree_obj_t));
-    obj->box = rect_from_triangle(tri);
-    memcpy(obj->a, tri[0], sizeof(vec3));
-    memcpy(obj->b, tri[1], sizeof(vec3));
-    memcpy(obj->c, tri[2], sizeof(vec3));
-    list_add(s->coll_tree->obj_list, (void*)obj);
+    rect_t region;
+    memcpy(&region, &s->coll_tree->region, sizeof(vec3));
+
+    for (int i=0; i<m->num_vertices; i++) {
+      vec3 tri[3];
+      memcpy(tri[0], m->vertices[i++], sizeof(vec3));
+      memcpy(tri[1], m->vertices[i++], sizeof(vec3));
+      memcpy(tri[2], m->vertices[i++], sizeof(vec3));
+
+      vec3_min(region.min, region.min, tri[0]);
+      vec3_min(region.min, region.min, tri[1]);
+      vec3_min(region.min, region.min, tri[2]);
+      vec3_max(region.max, region.max, tri[0]);
+      vec3_max(region.max, region.max, tri[1]);
+      vec3_max(region.max, region.max, tri[2]);
+
+      octree_obj_t *obj = malloc(sizeof(octree_obj_t));
+      obj->index = i;
+      obj->box   = rect_from_triangle(tri);
+      memcpy(obj->a, tri[0], sizeof(vec3));
+      memcpy(obj->b, tri[1], sizeof(vec3));
+      memcpy(obj->c, tri[2], sizeof(vec3));
+      list_add(s->coll_tree->obj_list, (void*)obj);
+    }
+    
+    memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
+
+    if (model_list->next != NULL)
+      model_list = model_list->next;
+    else
+      break;
   }
-
-  memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
   octree_build(s->coll_tree);
 }
 
@@ -314,9 +334,20 @@ void scene_draw(scene_t *s)
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
- 
+
+  // render debug primitives
+  glUseProgram(s->primshader);
+
+  // update camera
+  if (s->fps_camera != NULL)
+    fps_camera_draw(s->fps_camera, s->primshader);
+
+  if (ex_dbgprofiler.render_octree)
+    octree_render(s->coll_tree);
+
   // render screen quad
   framebuffer_render_quad();
+
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
 

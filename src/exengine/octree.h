@@ -1,13 +1,16 @@
 #ifndef OCTREE_H
 #define OCTREE_H
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include "exe_list.h"
 #include "mathlib.h" 
 
-#define OCT_MIN_SIZE 1
+#define OCT_MIN_SIZE 1.0f
 
 typedef struct {
   vec3 min, max;
@@ -15,6 +18,7 @@ typedef struct {
 
 typedef struct {
   vec3 a,b,c;
+  int index;
   rect_t box;
 } octree_obj_t;
 
@@ -22,13 +26,13 @@ typedef struct octree_t octree_t;
 struct octree_t {
   rect_t region;
   octree_t *children[8];
-  octree_t *parent;
   int max_life, cur_life;
   list_t *obj_list;
   // flags etc
-  uint8_t ready  : 1;
-  uint8_t built  : 1;
-  uint8_t active;
+  uint8_t rendered : 1;
+  uint8_t built    : 1;
+  // debug render stuffs
+  GLuint vbo, vao, ebo;
 };
 
 octree_t* octree_new();
@@ -36,6 +40,12 @@ octree_t* octree_new();
 void octree_init(octree_t *o, rect_t region, list_t *objects);
 
 void octree_build(octree_t *o);
+
+void octree_reset(octree_t *o);
+
+octree_t* octree_coll_objects(octree_t *o, rect_t *bounds);
+
+void octree_render(octree_t *o);
 
 static inline rect_t rect_new(vec3 min, vec3 max) {
   rect_t r;
@@ -57,7 +67,8 @@ static inline int rect_intersect_sphere(rect_t r, vec3 pos, float radius) {
 };
 
 static inline int aabb_aabb(rect_t a, rect_t b) {
-    return a.min[0] <= b.max[0] &&
+    return
+    a.min[0] <= b.max[0] &&
     a.max[0] >= b.min[0] &&
     a.min[1] <= b.max[1] &&
     a.max[1] >= b.min[1] &&

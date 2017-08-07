@@ -3,6 +3,7 @@
 
 #include "mathlib.h"
 #include "collision.h"
+#include "octree.h"
 #include "scene.h"
 
 typedef struct {

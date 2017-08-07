@@ -17,7 +17,8 @@ CFLAGS +=-std=c99
 # engine deps
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
-model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h gbuffer.h spotlight.h
+model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
+gbuffer.h spotlight.h vertices.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 # user deps

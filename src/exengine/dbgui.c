@@ -31,6 +31,7 @@ void ex_dbgui_init()
 
   ex_dbgprofiler.timer = 0.0f;
   ex_dbgprofiler.last_frame_time = 0;
+  ex_dbgprofiler.render_octree   = 1;
 
   // set gui style
   igPushStyleVarVec(ImGuiStyleVar_FramePadding, (struct ImVec2){0.0f, 0.0f});
@@ -74,6 +75,8 @@ void ex_dbgui_render_profiler()
   igBegin("Render Profiler", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 
   igCheckbox("Pause ", (bool*)&ex_dbgprofiler.paused);
+  igSameLine(0.0f, 0.0f);
+  igCheckbox("Octree ", (bool*)&ex_dbgprofiler.render_octree);
   igText("Render Time %i FPS (%.2fms)", (int)(1.0/frame_time), 1000.0/(1.0/frame_time));
   igNewLine();
 

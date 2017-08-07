@@ -130,6 +130,29 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
 
 void entity_check_collision(entity_t *entity)
 {
+  /*rect_t r;
+  vec3_sub(r.min, entity->position, entity->radius);
+  vec3_add(r.max, entity->position, entity->radius);
+  octree_t *o = octree_coll_objects(entity->scene->coll_tree, &r);
+
+  if (o == NULL)
+    return;
+
+  list_t *node = o->obj_list;
+  while (node->data != NULL) {
+    octree_obj_t *obj = node->data;
+    vec3 a,b,c;
+    vec3_div(a, obj->a, entity->packet.e_radius);
+    vec3_div(b, obj->b, entity->packet.e_radius);
+    vec3_div(c, obj->c, entity->packet.e_radius);
+    collision_check_triangle(&entity->packet, a, b, c);
+
+    if (node->next != NULL)
+      node = node->next;
+    else
+      break;
+  }*/
+
   // check collision against triangles
   // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
   list_node_t *n = entity->scene->model_list;

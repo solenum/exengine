@@ -31,7 +31,7 @@ typedef struct {
   double values[ex_dbgprofiler_count];
   double delta_begin, delta_end, delta_time, timer;
   float  frame_times[128];
-  int   paused, last_frame_time;
+  int    paused, last_frame_time, render_octree;
 } ex_dbgprofiler_t;
 
 extern ex_dbgprofiler_t ex_dbgprofiler;

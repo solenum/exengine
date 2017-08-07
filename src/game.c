@@ -121,17 +121,18 @@ void game_run()
 
     /* debug entity movement */
     vec3 temp;
-    vec3_scale(temp, e->velocity, 25.0f * delta_time);
+    vec3_scale(temp, e->velocity, 5.0f * delta_time);
     temp[1] = 0.0f;
 
-    if (e->grounded == 1) 
+    if (e->grounded == 1 || 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
       move_speed = 20.0f;
     
-    if (e->grounded == 0)
-      e->velocity[1] -= (100.0f * delta_time);
-    else if (e->velocity[1] <= 0.0f)
+    // if (e->grounded == 0)
+      // e->velocity[1] -= (100.0f * delta_time);
+    // else if (e->velocity[1] <= 0.0f)
+      // e->velocity[1] = 0.0f;
       e->velocity[1] = 0.0f;
 
     if (keys_down[GLFW_KEY_C])
@@ -140,6 +141,7 @@ void game_run()
       glfwSwapInterval(0);
 
     vec3 speed, side;
+    move_speed = 100.0f;
     if (keys_down[GLFW_KEY_W]) {
       vec3_scale(speed, camera->front, move_speed * delta_time);
       speed[1] = 0.0f;
@@ -164,16 +166,20 @@ void game_run()
       side[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, side);
     }
+    if (keys_down[GLFW_KEY_SPACE])
+      e->velocity[1] = 25.0f;
+    if (keys_down[GLFW_KEY_LEFT_CONTROL])
+      e->velocity[1] = -25.0f;
     if (keys_down[GLFW_KEY_Q])
-      e->velocity[1] = 50.0f;
+      e->position[1] += 10.0f * delta_time;
     if (keys_down[GLFW_KEY_Z])
-      e->velocity[1] = -50.0f;
+      e->position[1] -= 10.0f * delta_time;
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
       e->velocity[1] = 20.0f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
-      e->radius[1] = 0.5f;
-      move_speed = 100.0f;
+      // e->radius[1] = 0.5f;
+      // move_speed = 100.0f;
     } else {
       if (e->radius[1] != 1.0f) {
         e->position[1] += 0.5f;
@@ -236,6 +242,10 @@ void game_run()
     
     igShowTestWindow(NULL);
     ex_dbgui_render_profiler();
+    if (keys_down[GLFW_KEY_X]) {
+      ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
+      keys_down[GLFW_KEY_X] = 0;
+    }
 
     window_end();
     glfwSwapBuffers(display.window);
