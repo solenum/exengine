@@ -1,4 +1,6 @@
 #include "window.h"
+#include "octree.h"
+#include "scene.h"
 #include "dbgui.h"
 
 const int ex_dbgprofiler_width  = 640;
@@ -29,9 +31,11 @@ void ex_dbgui_init()
   for (int i=0; i<64; i++)
     ex_dbgprofiler.frame_times[i] = 0.0f;
 
-  ex_dbgprofiler.timer = 0.0f;
+  ex_dbgprofiler.timer           = 0.0f;
+  ex_dbgprofiler.wireframe       = 0;
   ex_dbgprofiler.last_frame_time = 0;
   ex_dbgprofiler.render_octree   = 1;
+  ex_dbgprofiler.octree_obj_only = 0;
 
   // set gui style
   igPushStyleVarVec(ImGuiStyleVar_FramePadding, (struct ImVec2){0.0f, 0.0f});
@@ -76,7 +80,17 @@ void ex_dbgui_render_profiler()
 
   igCheckbox("Pause ", (bool*)&ex_dbgprofiler.paused);
   igSameLine(0.0f, 0.0f);
+  igCheckbox("Wireframe ", (bool*)&ex_dbgprofiler.wireframe);
   igCheckbox("Octree ", (bool*)&ex_dbgprofiler.render_octree);
+  igSameLine(0.0f, 0.0f);
+  igCheckbox("Octree OBJ only ", (bool*)&ex_dbgprofiler.octree_obj_only);
+  igSameLine(0.0f, 0.0f);
+  igPushItemWidth(150.0f);
+  igSliderInt("", &octree_min_size, 1, 100, NULL);
+  igSameLine(0.0f, 8.0f);
+  int build = igButton("Rebuild Tree", (struct ImVec2){128.0f, 13.0f});
+  if (build)
+    scene->collision_built = 0;
   igText("Render Time %i FPS (%.2fms)", (int)(1.0/frame_time), 1000.0/(1.0/frame_time));
   igNewLine();
 

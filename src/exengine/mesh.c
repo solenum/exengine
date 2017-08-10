@@ -8,6 +8,8 @@ mesh_t* mesh_new(vertex_t* vertices, size_t vcount, GLuint *indices, size_t icou
   mesh_t* m = malloc(sizeof(mesh_t));
 
   m->texture = texture;
+  m->texture_spec = 0;
+  m->texture_norm = 0;
   m->vcount  = vcount;
   m->icount  = icount;
   m->is_lit  = 1;

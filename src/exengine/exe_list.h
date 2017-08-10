@@ -74,10 +74,12 @@ static list_t* list_remove(list_node_t *n, void *data)
 
   // remove node and adjust root
   if (n->prev != NULL) {
-    if (n->next != NULL)
+    if (n->next != NULL) {
       n->prev->next = n->next;
-    else
+      n->next->prev = n->prev;
+    } else {
       n->prev->next = NULL;
+    }
   } else if (n->next != NULL) {
     // reset root node
     root = n->next;
@@ -85,6 +87,7 @@ static list_t* list_remove(list_node_t *n, void *data)
   }
 
   // free node
+  n->data = NULL;
   free(n);
 
   return root;
@@ -96,6 +99,9 @@ static list_t* list_remove(list_node_t *n, void *data)
  */
 static void list_destroy(list_node_t *n)
 {
+  if (n == NULL)
+    return;
+
   // remove first node
   list_node_t *next = n->next;
   free(n);

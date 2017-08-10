@@ -229,7 +229,7 @@ void main()
   vec3 diffuse = vec3(0.0f);
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb*0.05f;
+    diffuse += texture(u_colorspec, uv).rgb*0.01f;
 
     /* volumetric fog shiz
     vec3 frag   = texture(u_position, uv).rgb;

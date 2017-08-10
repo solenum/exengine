@@ -130,51 +130,52 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
 
 void entity_check_collision(entity_t *entity)
 {
-  /*rect_t r;
+  rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
-  octree_t *o = octree_coll_objects(entity->scene->coll_tree, &r);
+  
+  list_t *data = list_new();
+  octree_get_colliding(entity->scene->coll_tree, &r, data);
+
+  vec3 *vertices = entity->scene->coll_vertices;
+  while (data->data != NULL) {
+    octree_data_t *oct_data = data->data;
+    uint32_t *indices = oct_data->data;
+    for (int i=0; i<oct_data->len; i++) {
+      vec3 a,b,c;
+      vec3_div(a, vertices[indices[i]+0], entity->packet.e_radius);
+      vec3_div(b, vertices[indices[i]+1], entity->packet.e_radius);
+      vec3_div(c, vertices[indices[i]+2], entity->packet.e_radius);
+      collision_check_triangle(&entity->packet, a, b, c);
+    }
+
+    if (data->next != NULL)
+      data = data->next;
+    else
+      break;
+  }
+
+  octree_clean_colliding(data);
+  /*octree_t *o = octree_get_colliding(entity->scene->coll_tree, &r);
 
   if (o == NULL)
     return;
 
-  list_t *node = o->obj_list;
-  while (node->data != NULL) {
-    octree_obj_t *obj = node->data;
+  uint32_t *data = o->data_uint;
+  if (data == NULL)
+    return;
+
+  if (entity->scene->coll_vertices == NULL || entity->scene->coll_vertices_last == 0)
+    return;
+
+  vec3 *vertices = entity->scene->coll_vertices;
+  for (int i=0; i<o->data_len; i++) {
     vec3 a,b,c;
-    vec3_div(a, obj->a, entity->packet.e_radius);
-    vec3_div(b, obj->b, entity->packet.e_radius);
-    vec3_div(c, obj->c, entity->packet.e_radius);
+    vec3_div(a, vertices[data[i]+0], entity->packet.e_radius);
+    vec3_div(b, vertices[data[i]+1], entity->packet.e_radius);
+    vec3_div(c, vertices[data[i]+2], entity->packet.e_radius);
     collision_check_triangle(&entity->packet, a, b, c);
-
-    if (node->next != NULL)
-      node = node->next;
-    else
-      break;
   }*/
-
-  // check collision against triangles
-  // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
-  list_node_t *n = entity->scene->model_list;
-  while (n->data != NULL) {
-    model_t *m = n->data;
-    if (m->vertices != NULL) {
-      vec3 *v = m->vertices;
-      for (int i=0; i<m->num_vertices; i) {
-        vec3 a,b,c;
-        vec3_div(a, v[i++], entity->packet.e_radius);
-        vec3_div(b, v[i++], entity->packet.e_radius);
-        vec3_div(c, v[i++], entity->packet.e_radius);
-        collision_check_triangle(&entity->packet, a, b, c);
-      }
-    }
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
-  // **!CHEAP TESTING METHOD PLS REPLACE WITH OCTREE!** //
 }
 
 void entity_update(entity_t *entity, double dt)

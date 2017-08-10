@@ -38,8 +38,11 @@ scene_t* scene_new()
 
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
-  s->coll_tree = octree_new();
+  s->coll_tree = octree_new(OBJ_TYPE_UINT);
   s->coll_list = list_new();
+  s->coll_vertices   = NULL;
+  s->collision_built = 0;
+  s->coll_vertices_last = 0;
 
   // init debug gui
   ex_dbgui_init();
@@ -54,54 +57,72 @@ scene_t* scene_new()
   // primitive debug shader
   s->primshader = shader_compile("data/primshader.vs", "data/primshader.fs", NULL);
 
+  scene = s;
+
   return s;
 }
 
 void scene_add_collision(scene_t *s, model_t *model)
 {
-  list_add(s->coll_list, (void*)model);
+  if (model != NULL) {
+    if (model->vertices != NULL || model->num_vertices == 0) {
+      list_add(s->coll_list, (void*)model);
+      s->collision_built = 0;
 
+      if (s->coll_vertices != NULL) {
+        size_t len = model->num_vertices + s->coll_vertices_last;
+        s->coll_vertices = realloc(s->coll_vertices, sizeof(vec3)*len);
+        memcpy(&s->coll_vertices[s->coll_vertices_last], &model->vertices[0], sizeof(vec3)*model->num_vertices);
+        free(model->vertices);
+        s->coll_vertices_last = len;
+      } else {
+        s->coll_vertices = malloc(sizeof(vec3)*model->num_vertices);
+        memcpy(&s->coll_vertices[0], &model->vertices[0], sizeof(vec3)*model->num_vertices);
+        s->coll_vertices_last = model->num_vertices;
+      }
+
+      model->vertices     = NULL;
+      model->num_vertices = 0;
+      s->collision_built  = 0;
+    }
+  }
+}
+
+void scene_build_collision(scene_t *s)
+{
   // destroy and reconstruct tree
   if (s->coll_tree->built)
-    octree_reset(s->coll_tree);
+    s->coll_tree = octree_reset(s->coll_tree);
 
-  list_node_t *model_list = s->coll_list;
-  while (model_list->data != NULL) {
-    model_t *m = model_list->data;
+  if (s->coll_tree == NULL || s->coll_vertices == NULL || s->coll_vertices_last == 0)
+    return;
 
-    rect_t region;
-    memcpy(&region, &s->coll_tree->region, sizeof(vec3));
+  rect_t region;
+  memcpy(&region.min, &s->coll_tree->region.min, sizeof(vec3));
+  memcpy(&region.max, &s->coll_tree->region.max, sizeof(vec3));
+  for (int i=0; i<s->coll_vertices_last; i+=3) {
+    vec3 tri[3];
+    memcpy(tri[0], s->coll_vertices[i+0], sizeof(vec3));
+    memcpy(tri[1], s->coll_vertices[i+1], sizeof(vec3));
+    memcpy(tri[2], s->coll_vertices[i+2], sizeof(vec3));
 
-    for (int i=0; i<m->num_vertices; i++) {
-      vec3 tri[3];
-      memcpy(tri[0], m->vertices[i++], sizeof(vec3));
-      memcpy(tri[1], m->vertices[i++], sizeof(vec3));
-      memcpy(tri[2], m->vertices[i++], sizeof(vec3));
+    vec3_min(region.min, region.min, tri[0]);
+    vec3_min(region.min, region.min, tri[1]);
+    vec3_min(region.min, region.min, tri[2]);
+    vec3_max(region.max, region.max, tri[0]);
+    vec3_max(region.max, region.max, tri[1]);
+    vec3_max(region.max, region.max, tri[2]);
 
-      vec3_min(region.min, region.min, tri[0]);
-      vec3_min(region.min, region.min, tri[1]);
-      vec3_min(region.min, region.min, tri[2]);
-      vec3_max(region.max, region.max, tri[0]);
-      vec3_max(region.max, region.max, tri[1]);
-      vec3_max(region.max, region.max, tri[2]);
-
-      octree_obj_t *obj = malloc(sizeof(octree_obj_t));
-      obj->index = i;
-      obj->box   = rect_from_triangle(tri);
-      memcpy(obj->a, tri[0], sizeof(vec3));
-      memcpy(obj->b, tri[1], sizeof(vec3));
-      memcpy(obj->c, tri[2], sizeof(vec3));
-      list_add(s->coll_tree->obj_list, (void*)obj);
-    }
-    
-    memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
-
-    if (model_list->next != NULL)
-      model_list = model_list->next;
-    else
-      break;
+    octree_obj_t *obj = malloc(sizeof(octree_obj_t));
+    obj->data_uint    = i;
+    obj->box          = rect_from_triangle(tri);
+    list_add(s->coll_tree->obj_list, (void*)obj);
   }
+
+  memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
   octree_build(s->coll_tree);
+
+  s->collision_built = 1;
 }
 
 void scene_add_pointlight(scene_t *s, point_light_t *pl)
@@ -139,6 +160,9 @@ void scene_add_spotlight(scene_t *s, spot_light_t *sl)
 void scene_update(scene_t *s, float delta_time)
 {
   ex_dbgprofiler.begin[ex_dbgprofiler_update] = glfwGetTime();
+
+  if (!s->collision_built)
+    scene_build_collision(s);
 
   // update models animations etc
   list_node_t *n = s->model_list;
@@ -455,10 +479,13 @@ void scene_dbgui(scene_t *s)
 
 void scene_render_models(scene_t *s, GLuint shader, int shadows)
 {
+  if (ex_dbgprofiler.wireframe)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
   s->modelc = 0;
   list_node_t *n = s->model_list;
   while (n->data != NULL) {
-    model_t *m = n->data;
+    model_t *m = (model_t*)n->data;
     s->modelc++;
 
     if ((shadows && m->is_shadow) || !shadows)
@@ -469,6 +496,7 @@ void scene_render_models(scene_t *s, GLuint shader, int shadows)
     else
       break;
   }
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 GLuint scene_add_texture(scene_t *s, const char *file)

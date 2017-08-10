@@ -11,6 +11,8 @@
 #include "exengine/glimgui.h"
 #include "exengine/dbgui.h"
 #include "inc/game.h"
+#include <time.h>
+#include <stdlib.h>
 
 double delta_time;
 fps_camera_t *camera = NULL;
@@ -59,8 +61,8 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  // model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
-  // list_add(scene->model_list, d);
+  model_t *d = iqm_load_model(scene, "data/human.iqm", 1);
+  list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
   // model_set_anim(d, 0);
@@ -92,6 +94,7 @@ void game_run()
   // sl->inner = cos(rad(30.0f));
   // sl->outer = cos(rad(35.0f));
 
+  srand(time(NULL));
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
@@ -109,11 +112,10 @@ void game_run()
     memcpy(pl->position, camera->position, sizeof(vec3));
 
     if (keys_down[GLFW_KEY_F]) {
-      float r = 0.5f+(float)rand()/(float)(RAND_MAX/0.5f);
-      float g = (float)rand()/(float)(RAND_MAX/1.0f);
+      float r = (float)rand()/(float)(RAND_MAX/1.0f);
+      float g = (float)rand()/(float)(RAND_MAX/0.75f);
       float b = (float)rand()/(float)(RAND_MAX/1.0f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, r, r}, 0);
-      memcpy(l->position, camera->position, sizeof(vec3));
+      point_light_t *l = point_light_new(camera->position, (vec3){r, g, b}, 0);;
       scene_add_pointlight(scene, l);
       l->is_shadow = 1;
       keys_down[GLFW_KEY_F] = 0;

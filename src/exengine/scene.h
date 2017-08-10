@@ -32,14 +32,20 @@ typedef struct {
   spot_light_t *spot_lights[MAX_SPOT_LIGHTS];
   dir_light_t *dir_light;
   octree_t *coll_tree;
-  
+  int collision_built;
+  vec3 *coll_vertices;
+  size_t coll_vertices_last;;
+
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
 } scene_t;
+extern scene_t *scene;
 
 scene_t* scene_new();
 
 void scene_add_collision(scene_t *s, model_t *m);
+
+void scene_build_collision(scene_t *s);
 
 void scene_add_pointlight(scene_t *s, point_light_t *pl);
 
