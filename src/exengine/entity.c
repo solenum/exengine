@@ -56,7 +56,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   float unit_scale = UNITS_PER_METER / 100.0f;
   float very_close_dist = 0.000005f * unit_scale;
 
-  if (entity->packet.depth > 15)
+  if (entity->packet.depth > 5)
     return; 
 
   // check for collision
@@ -156,26 +156,6 @@ void entity_check_collision(entity_t *entity)
   }
 
   octree_clean_colliding(data);
-  /*octree_t *o = octree_get_colliding(entity->scene->coll_tree, &r);
-
-  if (o == NULL)
-    return;
-
-  uint32_t *data = o->data_uint;
-  if (data == NULL)
-    return;
-
-  if (entity->scene->coll_vertices == NULL || entity->scene->coll_vertices_last == 0)
-    return;
-
-  vec3 *vertices = entity->scene->coll_vertices;
-  for (int i=0; i<o->data_len; i++) {
-    vec3 a,b,c;
-    vec3_div(a, vertices[data[i]+0], entity->packet.e_radius);
-    vec3_div(b, vertices[data[i]+1], entity->packet.e_radius);
-    vec3_div(c, vertices[data[i]+2], entity->packet.e_radius);
-    collision_check_triangle(&entity->packet, a, b, c);
-  }*/
 }
 
 void entity_update(entity_t *entity, double dt)

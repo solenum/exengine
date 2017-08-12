@@ -1,7 +1,6 @@
 #include "exengine/camera.h"
 #include "exengine/texture.h"
 #include "exengine/pointlight.h"
-#include "exengine/spotlight.h"
 #include "exengine/dirlight.h"
 #include "exengine/scene.h"
 #include "exengine/exe_list.h"
@@ -11,8 +10,6 @@
 #include "exengine/glimgui.h"
 #include "exengine/dbgui.h"
 #include "inc/game.h"
-#include <time.h>
-#include <stdlib.h>
 
 double delta_time;
 fps_camera_t *camera = NULL;
@@ -40,7 +37,7 @@ void game_init()
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
-  camera = fps_camera_new(0.0f, 0.0f, 0.0f, 0.03f, 90.0f);
+  camera = fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 90.0f);
   scene->fps_camera = camera;
 }
 
@@ -50,7 +47,7 @@ void game_run()
   list_add(scene->model_list, m6);
 
   // dir_light_t *dl = dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
-  // scene->dir_light = dl;
+  // list_add(scene->dir_light_list, dl);
 
   skybox_t *s = skybox_new("sky");
   scene->skybox = s;
@@ -61,8 +58,8 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  model_t *d = iqm_load_model(scene, "data/human.iqm", 1);
-  list_add(scene->model_list, d);
+  // model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
+  // list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
   // model_set_anim(d, 0);
@@ -89,12 +86,6 @@ void game_run()
   // scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
-  // spot_light_t *sl = spot_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){1.0f, 1.0f, 1.0f}, 1);
-  // scene_add_spotlight(scene, sl);
-  // sl->inner = cos(rad(30.0f));
-  // sl->outer = cos(rad(35.0f));
-
-  srand(time(NULL));
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
@@ -113,9 +104,10 @@ void game_run()
 
     if (keys_down[GLFW_KEY_F]) {
       float r = (float)rand()/(float)(RAND_MAX/1.0f);
-      float g = (float)rand()/(float)(RAND_MAX/0.75f);
+      float g = (float)rand()/(float)(RAND_MAX/1.0f);
       float b = (float)rand()/(float)(RAND_MAX/1.0f);
-      point_light_t *l = point_light_new(camera->position, (vec3){r, g, b}, 0);;
+      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+      memcpy(l->position, camera->position, sizeof(vec3));
       scene_add_pointlight(scene, l);
       l->is_shadow = 1;
       keys_down[GLFW_KEY_F] = 0;
@@ -123,18 +115,17 @@ void game_run()
 
     /* debug entity movement */
     vec3 temp;
-    vec3_scale(temp, e->velocity, 5.0f * delta_time);
+    vec3_scale(temp, e->velocity, 25.0f * delta_time);
     temp[1] = 0.0f;
 
-    if (e->grounded == 1 || 1) 
+    if (e->grounded == 1) 
       vec3_sub(e->velocity, e->velocity, temp);
     else
       move_speed = 20.0f;
     
-    // if (e->grounded == 0)
-      // e->velocity[1] -= (100.0f * delta_time);
-    // else if (e->velocity[1] <= 0.0f)
-      // e->velocity[1] = 0.0f;
+    if (e->grounded == 0)
+      e->velocity[1] -= (100.0f * delta_time);
+    else if (e->velocity[1] <= 0.0f)
       e->velocity[1] = 0.0f;
 
     if (keys_down[GLFW_KEY_C])
@@ -143,7 +134,6 @@ void game_run()
       glfwSwapInterval(0);
 
     vec3 speed, side;
-    move_speed = 100.0f;
     if (keys_down[GLFW_KEY_W]) {
       vec3_scale(speed, camera->front, move_speed * delta_time);
       speed[1] = 0.0f;
@@ -168,20 +158,16 @@ void game_run()
       side[1] = 0.0f;
       vec3_add(e->velocity, e->velocity, side);
     }
-    if (keys_down[GLFW_KEY_SPACE])
-      e->velocity[1] = 25.0f;
-    if (keys_down[GLFW_KEY_LEFT_CONTROL])
-      e->velocity[1] = -25.0f;
     if (keys_down[GLFW_KEY_Q])
-      e->position[1] += 10.0f * delta_time;
+      e->velocity[1] = 50.0f;
     if (keys_down[GLFW_KEY_Z])
-      e->position[1] -= 10.0f * delta_time;
+      e->velocity[1] = -50.0f;
     if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
       e->velocity[1] = 20.0f;
     }
     if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
-      // e->radius[1] = 0.5f;
-      // move_speed = 100.0f;
+      e->radius[1] = 0.5f;
+      move_speed = 100.0f;
     } else {
       if (e->radius[1] != 1.0f) {
         e->position[1] += 0.5f;
@@ -195,6 +181,10 @@ void game_run()
       keys_down[GLFW_KEY_G] = 0;
       glimgui_keys_down[GLFW_KEY_G] = 0;
       glimgui_focus = !glimgui_focus;
+    }
+    if (keys_down[GLFW_KEY_X]) {
+      ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
+      keys_down[GLFW_KEY_X] = 0;
     }
     /* ------ */
 
@@ -244,10 +234,6 @@ void game_run()
     
     igShowTestWindow(NULL);
     ex_dbgui_render_profiler();
-    if (keys_down[GLFW_KEY_X]) {
-      ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
-      keys_down[GLFW_KEY_X] = 0;
-    }
 
     window_end();
     glfwSwapBuffers(display.window);
