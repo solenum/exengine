@@ -44,8 +44,8 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 temp = {0.0f, 0.0f, 0.0f};
   vec3_mul(temp, final_position, entity->packet.e_radius);
   vec3_sub(temp, temp, entity->position);
-  if (temp[1] <= 0.5f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
-    memcpy(entity->velocity, temp, sizeof(vec3));
+  // if (temp[1] <= 0.5f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
+    // memcpy(entity->velocity, temp, sizeof(vec3));
 
   // finally set entity position
   vec3_mul(entity->position, final_position, entity->packet.e_radius);

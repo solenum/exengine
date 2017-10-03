@@ -42,16 +42,17 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
   return plane;
 }
 
-float signed_distance_to_plane(const vec3 base_point, const plane_t *plane)
+double signed_distance_to_plane(const vec3 base_point, const plane_t *plane)
 {
-  return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
+  // return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
+  return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
 }
 
 int is_front_facing(plane_t *plane, const vec3 direction)
 {
-  float f = vec3_mul_inner(plane->normal, direction);
+  double f = vec3_mul_inner(plane->normal, direction);
   
-  if (f <= 0.0f)
+  if (f <= 0.0)
     return 1;
 
   return 0;
@@ -150,7 +151,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   int embedded_in_plane = 0;
 
   // signed distance from sphere to point on plane
-  float signed_dist_to_plane = signed_distance_to_plane(packet->e_base_point, &plane);
+  double signed_dist_to_plane = signed_distance_to_plane(packet->e_base_point, &plane);
 
   // cache this as we will reuse
   float normal_dot_vel = vec3_mul_inner(plane.normal, packet->e_velocity);
@@ -179,7 +180,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     }
 
     // check that at least one result is within range
-    if (t0 > 1.0f || t1 < 0.0f) {
+    if (t0 > 1.0 || t1 < 0.0) {
       // both values outside range [0,1] so no collision
       return;
     }
@@ -201,8 +202,8 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     vec3 plane_intersect, temp;
     vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
     // EITHER THE PDF IS WRONG OR SOMETHING ELSE IS WRONGafij00afhnwfaw
-    // THIS HAS BEEN CAUSING ISSUES FOR DAMN MONTHS WTF 
-    vec3_scale(temp, packet->e_velocity, t1); // THIS SHOULD BE t0 BUT t0 BREAKS EVERYTHING!!!
+    // THIS HAS BEEN CAUSING ISSUES FOR DAMN MONTHS WT 
+    vec3_scale(temp, packet->e_velocity, t0); // THIS SHOULD BE t0 BUT t0 BREAKS EVERYTHING!!!
     vec3_add(plane_intersect, plane_intersect, temp);
 
     if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {
