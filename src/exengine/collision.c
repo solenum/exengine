@@ -146,7 +146,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     return;
   
   // get interval of plane intersection
-  float t0, t1;
+  double t0, t1;
   int embedded_in_plane = 0;
 
   // signed distance from sphere to point on plane
@@ -163,17 +163,17 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     } else {
       // sphere is in plane in whole range [0..1]
       embedded_in_plane = 1;
-      t0 = 0.0f;
-      t1 = 1.0f;
+      t0 = 0.0;
+      t1 = 1.0;
     }
   } else {
     // N dot D is not 0, calc intersect interval
-    t0=(-1.0f - signed_dist_to_plane) / normal_dot_vel;
-    t1=( 1.0f - signed_dist_to_plane) / normal_dot_vel;
+    t0=(-1.0 - signed_dist_to_plane) / normal_dot_vel;
+    t1=( 1.0 - signed_dist_to_plane) / normal_dot_vel;
 
     // swap so t0 < t1
     if (t0 > t1) {
-      float temp = t1;
+      double temp = t1;
       t1 = t0;
       t0 = temp;
     }
@@ -185,10 +185,10 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     }
 
     // clamp to [0,1]
-    if (t0 < 0.0f) t0 = 0.0f;
-    if (t1 < 0.0f) t1 = 0.0f;
-    if (t0 > 1.0f) t0 = 1.0f;
-    if (t1 > 1.0f) t1 = 1.0f;
+    if (t0 < 0.0) t0 = 0.0;
+    if (t1 < 0.0) t1 = 0.0;
+    if (t0 > 1.0) t0 = 1.0;
+    if (t1 > 1.0) t1 = 1.0;
   }
 
   // time to check for a collision
@@ -200,7 +200,9 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   if (embedded_in_plane == 0) {
     vec3 plane_intersect, temp;
     vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
-    vec3_scale(temp, packet->e_velocity, t0);
+    // EITHER THE PDF IS WRONG OR SOMETHING ELSE IS WRONGafij00afhnwfaw
+    // THIS HAS BEEN CAUSING ISSUES FOR DAMN MONTHS WTF 
+    vec3_scale(temp, packet->e_velocity, t1); // THIS SHOULD BE t0 BUT t0 BREAKS EVERYTHING!!!
     vec3_add(plane_intersect, plane_intersect, temp);
 
     if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {

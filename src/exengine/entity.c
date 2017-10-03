@@ -57,7 +57,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   float very_close_dist = 0.000005f * unit_scale;
 
   if (entity->packet.depth > 5)
-    return; 
+    return;
 
   // check for collision
   vec3 temp;

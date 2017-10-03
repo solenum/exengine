@@ -270,7 +270,7 @@ void octree_get_colliding(octree_t *o, rect_t *bounds, list_t *data_list)
     data->data = oct_data;
     list_add(data_list, data);
   } else {
-    // return;
+    return;
   }
 
   // recurse adding data to the list
