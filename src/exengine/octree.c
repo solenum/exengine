@@ -264,13 +264,14 @@ void octree_get_colliding(octree_t *o, rect_t *bounds, list_t *data_list)
 
   // add our data to the list
   void *oct_data = octree_data_ptr(o);
-  if (oct_data != NULL && aabb_aabb(o->region, *bounds)) {
+  if (oct_data != NULL) {
+    if (!aabb_aabb(o->region, *bounds))
+      return;
+
     octree_data_t *data = malloc(sizeof(octree_data_t));
     data->len  = o->data_len;
     data->data = oct_data;
     list_add(data_list, data);
-  } else {
-    return;
   }
 
   // recurse adding data to the list
