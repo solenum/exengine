@@ -56,7 +56,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 dir, dist;
   vec3_sub(dir, entity->packet.r3_position, entity->position);
   memcpy(dist, dir, sizeof(vec3));
-  float len = vec3_len(entity->packet.r3_velocity);
+  float len = vec3_len(dir);
   vec3_norm(dir, dir);
   vec3_scale(dir, dir, len);
   igText("dir %f %f %f\n", dir[0], dir[1], dir[2]);
@@ -124,7 +124,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   /* checks for sliding planes at a funny angle that are *above* the entity
      and bounces it back and recalculates the sliding plane should it fine one.
      A temporary workaround for some odd behavior caused by overhanging edges etc. */
-  if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) < -0.1f && 1 == 0) {
+  /*if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) < -0.1f && 1 == 0) {
     dest_point[1] += 0.01f;
     entity->packet.intersect_point[1] += 0.01f;
     memcpy(slide_plane_origin, entity->packet.intersect_point, sizeof(vec3));
@@ -132,7 +132,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     vec3_norm(slide_plane_normal, slide_plane_normal);
     sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
     slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
-  }
+  }*/
 
   // if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) < 0.9f)
     // entity->grounded = 0;
