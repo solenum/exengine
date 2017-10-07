@@ -44,8 +44,8 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
 
 double signed_distance_to_plane(const vec3 base_point, const plane_t *plane)
 {
-  // return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
-  return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
+  return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
+  // return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
 }
 
 int is_front_facing(plane_t *plane, const vec3 direction)
@@ -169,8 +169,9 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     }
   } else {
     // N dot D is not 0, calc intersect interval
-    t0=(-1.0 - signed_dist_to_plane) / normal_dot_vel;
-    t1=( 1.0 - signed_dist_to_plane) / normal_dot_vel;
+    float nvi = 1.0f / normal_dot_vel;
+    t0=(-1.0 - signed_dist_to_plane) * nvi;
+    t1=( 1.0 - signed_dist_to_plane) * nvi;
 
     // swap so t0 < t1
     if (t0 > t1) {

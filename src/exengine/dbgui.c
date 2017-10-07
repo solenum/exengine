@@ -131,7 +131,7 @@ void ex_dbgui_render_profiler()
   }
 
   igPushStyleColor(ImGuiCol_FrameBg, (struct ImVec4){0.0f, 0.0f, 0.0f, 0.0f});
-  igPlotLines("", ex_dbgprofiler.frame_times, 128, 0, NULL, 0.0f, 250.0f, (struct ImVec2){ex_dbgprofiler_width, 64.0f}, sizeof(float));
+  igPlotLines("", ex_dbgprofiler.frame_times, 128, 0, NULL, 0.0f, 2000.0f, (struct ImVec2){ex_dbgprofiler_width, 64.0f}, sizeof(float));
   igPopStyleColor(1);
   igEnd();
 }

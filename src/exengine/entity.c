@@ -24,7 +24,6 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3 e_position, e_velocity, final_position;
   vec3_div(e_position, entity->packet.r3_position, entity->packet.e_radius);
   vec3_div(e_velocity, entity->packet.r3_velocity, entity->packet.e_radius);
-  e_velocity[1] = 0.0f;
 
   // do velocity iteration
   entity->packet.depth = 0;
@@ -34,16 +33,21 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3_mul(entity->packet.r3_position, final_position, entity->packet.e_radius);
   memcpy(entity->packet.r3_velocity, gravity, sizeof(vec3));
 
-  // convert velocity to e-space
-  vec3_div(e_velocity, gravity, entity->packet.e_radius);
-
+  /* apparently a separate iteration for y vel was causing some issues
+     things seem more consistent and smooth with a single iteration.. */
   // do gravity iteration
-  entity->packet.depth = 0;
-  entity_collide_with_world(entity, final_position, final_position, e_velocity);
+  // convert velocity to e-space
+  // vec3_div(e_velocity, gravity, entity->packet.e_radius);
+  // entity->packet.depth = 0;
+  // entity_collide_with_world(entity, final_position, final_position, e_velocity);
 
-  vec3 temp = {0.0f, 0.0f, 0.0f};
-  vec3_mul(temp, final_position, entity->packet.e_radius);
-  vec3_sub(temp, temp, entity->position);
+  /* this is pretty important but introduces a lot of weird shit
+     essentially the idea is to add the sliding direction to the entity velocity
+     causing it to slip and slide along surfaces like you would expect
+     in a source-engine game for example */
+  // vec3 temp = {0.0f, 0.0f, 0.0f};
+  // vec3_mul(temp, final_position, entity->packet.e_radius);
+  // vec3_sub(temp, temp, entity->position);
   // if (temp[1] <= 0.5f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
     // memcpy(entity->velocity, temp, sizeof(vec3));
 
@@ -53,8 +57,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 
 void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
-  float unit_scale = UNITS_PER_METER / 100.0f;
-  float very_close_dist = 0.000005f * unit_scale;
+  float very_close_dist = 0.0005f;
 
   if (entity->packet.depth > 5)
     return;
@@ -103,6 +106,20 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   plane_t sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
 
   float slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
+
+  /* checks for sliding planes at a funny angle that are *above* the entity
+     and bounces it back and recalculates the sliding plane should it fine one.
+     A temporary workaround for some odd behavior caused by overhanging edges etc. */
+  if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}); < -0.1f) {
+    dest_point[1] = out_position[1];
+    entity->packet.intersect_point[1] = out_position[1];
+    memcpy(slide_plane_origin, entity->packet.intersect_point, sizeof(vec3));
+    vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
+    vec3_norm(slide_plane_normal, slide_plane_normal);
+    sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
+    slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
+  }
+
   vec3 new_dest_point;
   vec3_scale(temp, slide_plane_normal, slide_factor);
   vec3_sub(new_dest_point, dest_point, temp);
@@ -118,6 +135,8 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
       return;
   }
 
+  /* seems to be an issue somewhere that causes collision to have a severe performance hit
+     mostly when the entity gets stuck between two walls or a complex mesh and a wall, etc */
   // dont recurse if velocity is tiny
   if (vec3_len(new_velocity) < very_close_dist)
     return;

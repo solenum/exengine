@@ -3,8 +3,6 @@
 
 #include "mathlib.h"
 
-#define UNITS_PER_METER 100.0f
-
 typedef struct {
   // r3 space
   vec3 r3_velocity, r3_position;
