@@ -60,9 +60,6 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   float len = vec3_len(dir);
   vec3_norm(dir, dir);
   vec3_scale(dir, dir, len);
-  igText("dir %f %f %f\n", dir[0], dir[1], dir[2]);
-  igText("vel %f %f %f\n", entity->packet.r3_velocity[0], entity->packet.r3_velocity[1], entity->packet.r3_velocity[2]);
-  igText("gro %i\n", entity->grounded);
 
   if (vec3_len(dir) == vec3_len(dir) && len != 0.0f)
     memcpy(entity->velocity, dir, sizeof(vec3));
@@ -226,7 +223,6 @@ void entity_check_grounded(entity_t *entity)
     vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
     vec3_norm(slide_plane_normal, slide_plane_normal);
     float slope = vec3_mul_inner(slide_plane_normal, (vec3){0.0f, 1.0f, 0.0f});
-    igText("slope %f\n", slope);
 
     if (slope > SLOPE_WALK_ANGLE) {
       // if the intersect point is closer than the very close dist we are

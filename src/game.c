@@ -11,7 +11,9 @@
 #include "exengine/dbgui.h"
 #include "inc/game.h"
 
-double delta_time;
+const double phys_delta_time = 1.0 / 120.0;
+const double slowest_frame = 1.0 / 4.0;
+double delta_time, accumulator = 0.0;
 fps_camera_t *camera = NULL;
 scene_t *scene;
 conf_t conf;
@@ -97,7 +99,17 @@ void game_run()
     delta_time = current_frame_time - last_frame_time;
     last_frame_time = current_frame_time;
 
-    entity_update(e, delta_time);
+    // prevent spiral of death
+    if (delta_time > slowest_frame)
+      delta_time = slowest_frame;
+
+    // update at a constant rate to keep physics in check
+    accumulator += delta_time;
+    while (accumulator >= phys_delta_time) {
+      entity_update(e, phys_delta_time);
+      accumulator -= phys_delta_time;
+    }
+
     memcpy(camera->position, e->position, sizeof(vec3));
     camera->position[1] += e->radius[1];
     memcpy(pl->position, camera->position, sizeof(vec3));
@@ -193,6 +205,9 @@ void game_run()
     scene_update(scene, delta_time);
     scene_draw(scene);
     scene_dbgui(scene);
+    // for (int i=0; i<20000000; i++) {
+
+    // }
     
     /* IMGUI DOCK TEST CRAP
     bool open = 1;
