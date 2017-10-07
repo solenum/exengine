@@ -110,7 +110,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   /* checks for sliding planes at a funny angle that are *above* the entity
      and bounces it back and recalculates the sliding plane should it fine one.
      A temporary workaround for some odd behavior caused by overhanging edges etc. */
-  if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}); < -0.1f) {
+  if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) < -0.1f) {
     dest_point[1] = out_position[1];
     entity->packet.intersect_point[1] = out_position[1];
     memcpy(slide_plane_origin, entity->packet.intersect_point, sizeof(vec3));
