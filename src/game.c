@@ -12,7 +12,7 @@
 #include "inc/game.h"
 
 const double phys_delta_time = 1.0 / 120.0;
-const double slowest_frame = 1.0 / 4.0;
+const double slowest_frame = 1.0 / 15.0;
 double delta_time, accumulator = 0.0;
 fps_camera_t *camera = NULL;
 scene_t *scene;
@@ -107,108 +107,107 @@ void game_run()
     accumulator += delta_time;
     while (accumulator >= phys_delta_time) {
       entity_update(e, phys_delta_time);
+
+
+      memcpy(camera->position, e->position, sizeof(vec3));
+      camera->position[1] += e->radius[1];
+      memcpy(pl->position, camera->position, sizeof(vec3));
+
+      if (keys_down[GLFW_KEY_F]) {
+        float r = (float)rand()/(float)(RAND_MAX/1.0f);
+        float g = (float)rand()/(float)(RAND_MAX/1.0f);
+        float b = (float)rand()/(float)(RAND_MAX/1.0f);
+        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+        memcpy(l->position, camera->position, sizeof(vec3));
+        scene_add_pointlight(scene, l);
+        l->is_shadow = 1;
+        // keys_down[GLFW_KEY_F] = 0;
+      }
+
+      /* debug entity movement */
+      vec3 temp;
+      vec3_scale(temp, e->velocity, 25.0f * phys_delta_time);
+      temp[1] = 0.0f;
+
+      if (e->grounded == 1) 
+        vec3_sub(e->velocity, e->velocity, temp);
+      else
+        move_speed = 20.0f;
+      
+      if (e->grounded == 0)
+        e->velocity[1] -= (100.0f * phys_delta_time);
+      if (e->velocity[1] <= 0.0f && e->grounded)
+        e->velocity[1] = 0.0f;
+
+      if (keys_down[GLFW_KEY_C])
+        glfwSwapInterval(1);
+      if (keys_down[GLFW_KEY_V])
+        glfwSwapInterval(0);
+
+      vec3 speed, side;
+      if (keys_down[GLFW_KEY_W]) {
+        vec3_scale(speed, camera->front, move_speed * phys_delta_time);
+        speed[1] = 0.0f;
+        vec3_add(e->velocity, e->velocity, speed);
+      }
+      if (keys_down[GLFW_KEY_S]) {
+        vec3_scale(speed, camera->front, move_speed * phys_delta_time);
+        speed[1] = 0.0f;
+        vec3_sub(e->velocity, e->velocity, speed);
+      }
+      if (keys_down[GLFW_KEY_A]) {
+        vec3_mul_cross(side, camera->front, camera->up);
+        vec3_norm(side, side);
+        vec3_scale(side, side, (move_speed*0.9f) * phys_delta_time);
+        side[1] = 0.0f;
+        vec3_sub(e->velocity, e->velocity, side);
+      }
+      if (keys_down[GLFW_KEY_D]) {
+        vec3_mul_cross(side, camera->front, camera->up);
+        vec3_norm(side, side);
+        vec3_scale(side, side, (move_speed*0.9f) * phys_delta_time);
+        side[1] = 0.0f;
+        vec3_add(e->velocity, e->velocity, side);
+      }
+      if (keys_down[GLFW_KEY_Q])
+        e->velocity[1] = 50.0f;
+      if (keys_down[GLFW_KEY_Z])
+        e->velocity[1] = -50.0f;
+      if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
+        e->velocity[1] = 20.0f;
+      }
+      if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
+        e->radius[1] = 0.5f;
+        move_speed = 100.0f;
+      } else {
+        if (e->radius[1] != 1.0f) {
+          e->position[1] += 0.5f;
+        }
+        move_speed = 200.0f;
+        e->radius[1] = 1.0f;
+      }
+      if (keys_down[GLFW_KEY_ESCAPE])
+        break;
+      if (keys_down[GLFW_KEY_G] || glimgui_keys_down[GLFW_KEY_G]) {
+        keys_down[GLFW_KEY_G] = 0;
+        glimgui_keys_down[GLFW_KEY_G] = 0;
+        glimgui_focus = !glimgui_focus;
+      }
+      if (keys_down[GLFW_KEY_X]) {
+        ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
+        keys_down[GLFW_KEY_X] = 0;
+      }
+
+      memcpy(pl->position, e->position, sizeof(vec3));
+      pl->position[1] += 1.0f;
+      scene_update(scene, phys_delta_time);
+
       accumulator -= phys_delta_time;
     }
 
-    memcpy(camera->position, e->position, sizeof(vec3));
-    camera->position[1] += e->radius[1];
-    memcpy(pl->position, camera->position, sizeof(vec3));
-
-    if (keys_down[GLFW_KEY_F]) {
-      float r = (float)rand()/(float)(RAND_MAX/1.0f);
-      float g = (float)rand()/(float)(RAND_MAX/1.0f);
-      float b = (float)rand()/(float)(RAND_MAX/1.0f);
-      point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
-      memcpy(l->position, camera->position, sizeof(vec3));
-      scene_add_pointlight(scene, l);
-      l->is_shadow = 1;
-      keys_down[GLFW_KEY_F] = 0;
-    }
-
-    /* debug entity movement */
-    vec3 temp;
-    vec3_scale(temp, e->velocity, 25.0f * delta_time);
-    temp[1] = 0.0f;
-
-    if (e->grounded == 1) 
-      vec3_sub(e->velocity, e->velocity, temp);
-    else
-      move_speed = 20.0f;
-    
-    if (e->grounded == 0)
-      e->velocity[1] -= (100.0f * delta_time);
-    if (e->velocity[1] <= 0.0f && e->grounded)
-      e->velocity[1] = 0.0f;
-
-    if (keys_down[GLFW_KEY_C])
-      glfwSwapInterval(1);
-    if (keys_down[GLFW_KEY_V])
-      glfwSwapInterval(0);
-
-    vec3 speed, side;
-    if (keys_down[GLFW_KEY_W]) {
-      vec3_scale(speed, camera->front, move_speed * delta_time);
-      speed[1] = 0.0f;
-      vec3_add(e->velocity, e->velocity, speed);
-    }
-    if (keys_down[GLFW_KEY_S]) {
-      vec3_scale(speed, camera->front, move_speed * delta_time);
-      speed[1] = 0.0f;
-      vec3_sub(e->velocity, e->velocity, speed);
-    }
-    if (keys_down[GLFW_KEY_A]) {
-      vec3_mul_cross(side, camera->front, camera->up);
-      vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed*0.9f) * delta_time);
-      side[1] = 0.0f;
-      vec3_sub(e->velocity, e->velocity, side);
-    }
-    if (keys_down[GLFW_KEY_D]) {
-      vec3_mul_cross(side, camera->front, camera->up);
-      vec3_norm(side, side);
-      vec3_scale(side, side, (move_speed*0.9f) * delta_time);
-      side[1] = 0.0f;
-      vec3_add(e->velocity, e->velocity, side);
-    }
-    if (keys_down[GLFW_KEY_Q])
-      e->velocity[1] = 50.0f;
-    if (keys_down[GLFW_KEY_Z])
-      e->velocity[1] = -50.0f;
-    if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
-      e->velocity[1] = 20.0f;
-    }
-    if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
-      e->radius[1] = 0.5f;
-      move_speed = 100.0f;
-    } else {
-      if (e->radius[1] != 1.0f) {
-        e->position[1] += 0.5f;
-      }
-      move_speed = 200.0f;
-      e->radius[1] = 1.0f;
-    }
-    if (keys_down[GLFW_KEY_ESCAPE])
-      break;
-    if (keys_down[GLFW_KEY_G] || glimgui_keys_down[GLFW_KEY_G]) {
-      keys_down[GLFW_KEY_G] = 0;
-      glimgui_keys_down[GLFW_KEY_G] = 0;
-      glimgui_focus = !glimgui_focus;
-    }
-    if (keys_down[GLFW_KEY_X]) {
-      ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
-      keys_down[GLFW_KEY_X] = 0;
-    }
-    /* ------ */
-
-    memcpy(pl->position, e->position, sizeof(vec3));
-    pl->position[1] += 1.0f;
-    scene_update(scene, delta_time);
     scene_draw(scene);
     scene_dbgui(scene);
-    // for (int i=0; i<20000000; i++) {
-
-    // }
-    
+        
     /* IMGUI DOCK TEST CRAP
     bool open = 1;
     igBegin("SUP", NULL, 0);

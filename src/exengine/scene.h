@@ -16,11 +16,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define MAX_POINT_LIGHTS 256
+#define MAX_POINT_LIGHTS 500
 #define MAX_SPOT_LIGHTS 128
 
 // this should be the value of the biggest define above
-#define SCENE_BIGGEST_LIGHT 256
+#define SCENE_BIGGEST_LIGHT 500
 
 typedef struct {
   GLuint shader, primshader;
