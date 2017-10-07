@@ -5,6 +5,7 @@
 #include <string.h>
 
 #define VERY_CLOSE_DIST 0.005f
+#define SLOPE_WALK_ANGLE 0.9f
 
 entity_t* entity_new(scene_t *scene, vec3 radius)
 {
@@ -201,10 +202,8 @@ void entity_check_grounded(entity_t *entity)
   memcpy(entity->packet.r3_velocity, vel, sizeof(vec3));
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
 
-  // lets get e-spacey?
   vec3 e_position, e_velocity;
   vec3_div(e_position, entity->packet.r3_position, entity->packet.e_radius);
-  // vec3_div(e_velocity, entity->packet.r3_velocity, entity->packet.e_radius);
   memcpy(e_velocity, vel, sizeof(vec3));
 
   memcpy(entity->packet.e_norm_velocity, e_velocity, sizeof(vec3));
@@ -215,11 +214,34 @@ void entity_check_grounded(entity_t *entity)
 
   entity_check_collision(entity);
 
-  // no collision move along
-  if (entity->packet.found_collision == 0)
+  if (entity->packet.found_collision == 0) {
     entity->grounded = 0;
-  else
-    entity->grounded = 1;
+  } else {
+    vec3 dest_point, new_base_point;
+    vec3_add(dest_point, e_position, e_velocity);
+    memcpy(new_base_point, e_position, sizeof(vec3));
+
+    // get the slope angle
+    vec3 slide_plane_normal;
+    vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
+    vec3_norm(slide_plane_normal, slide_plane_normal);
+    float slope = vec3_mul_inner(slide_plane_normal, (vec3){0.0f, 1.0f, 0.0f});
+    igText("slope %f\n", slope);
+
+    if (slope > SLOPE_WALK_ANGLE) {
+      // if the intersect point is closer than the very close dist we are
+      // stuck inside the floor, so pop us out
+      vec3 temp;
+      vec3_sub(temp, e_position, entity->packet.intersect_point);
+      temp[1] -= entity->packet.e_radius[1];
+      if (temp[1] < VERY_CLOSE_DIST)
+        entity->position[1] += VERY_CLOSE_DIST;
+
+      entity->grounded = 1;
+    } else {
+      entity->grounded = 0;
+    }
+  }
 }
 
 void entity_update(entity_t *entity, double dt)
