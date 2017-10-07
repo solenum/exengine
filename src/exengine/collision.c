@@ -202,9 +202,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   if (embedded_in_plane == 0) {
     vec3 plane_intersect, temp;
     vec3_sub(plane_intersect, packet->e_base_point, plane.normal);
-    // EITHER THE PDF IS WRONG OR SOMETHING ELSE IS WRONGafij00afhnwfaw
-    // THIS HAS BEEN CAUSING ISSUES FOR DAMN MONTHS WT 
-    vec3_scale(temp, packet->e_velocity, t0); // THIS SHOULD BE t0 BUT t0 BREAKS EVERYTHING!!!
+    vec3_scale(temp, packet->e_velocity, t0);
     vec3_add(plane_intersect, plane_intersect, temp);
 
     if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {

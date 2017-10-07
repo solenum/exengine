@@ -125,7 +125,7 @@ void game_run()
     
     if (e->grounded == 0)
       e->velocity[1] -= (100.0f * delta_time);
-    else if (e->velocity[1] <= 0.0f)
+    if (e->velocity[1] <= 0.0f && e->grounded)
       e->velocity[1] = 0.0f;
 
     if (keys_down[GLFW_KEY_C])

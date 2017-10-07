@@ -21,6 +21,8 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
 
 void entity_check_collision(entity_t *entity);
 
+void entity_check_grounded(entity_t *entity);
+
 void entity_update(entity_t *entity, double dt);
 
 #endif // ENTITY_H
