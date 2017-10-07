@@ -235,7 +235,8 @@ void entity_check_grounded(entity_t *entity)
       vec3_sub(temp, e_position, entity->packet.intersect_point);
       temp[1] -= entity->packet.e_radius[1];
       if (temp[1] < VERY_CLOSE_DIST)
-        entity->position[1] += (VERY_CLOSE_DIST - temp[1]) * entity->packet.e_radius[1];
+        entity->position[1] = (entity->packet.intersect_point[1]+0.1f+entity->packet.e_radius[1]) * entity->packet.e_radius[1];
+        // entity->position[1] += 0.1f;
 
       entity->grounded = 1;
     } else {
@@ -246,10 +247,10 @@ void entity_check_grounded(entity_t *entity)
 
 void entity_update(entity_t *entity, double dt)
 {
-  entity_check_grounded(entity);
 
   vec3 gravity = {0.0f, entity->velocity[1] * dt, 0.0f};
   vec3_scale(entity->velocity, entity->velocity, dt);
   entity_collide_and_slide(entity, gravity);
   vec3_scale(entity->velocity, entity->velocity, 1.0f / dt);
+  entity_check_grounded(entity);
 }
