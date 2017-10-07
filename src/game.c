@@ -108,7 +108,6 @@ void game_run()
     while (accumulator >= phys_delta_time) {
       entity_update(e, phys_delta_time);
 
-
       memcpy(camera->position, e->position, sizeof(vec3));
       camera->position[1] += e->radius[1];
       memcpy(pl->position, camera->position, sizeof(vec3));
@@ -117,11 +116,11 @@ void game_run()
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
         memcpy(l->position, camera->position, sizeof(vec3));
         scene_add_pointlight(scene, l);
         l->is_shadow = 1;
-        // keys_down[GLFW_KEY_F] = 0;
+        keys_down[GLFW_KEY_F] = 0;
       }
 
       /* debug entity movement */
@@ -207,7 +206,7 @@ void game_run()
 
     scene_draw(scene);
     scene_dbgui(scene);
-        
+
     /* IMGUI DOCK TEST CRAP
     bool open = 1;
     igBegin("SUP", NULL, 0);
