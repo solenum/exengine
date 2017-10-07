@@ -6,12 +6,12 @@ exengine/<ALL FILES>
 [ ]  Write CONTRIBUTING.md
 [ ]  Migrate all exengine source files and file names to use the prefix ex_
 [ ]  Migrate include guards to use the prefix EX_
-[ ]  Implement quad-trees for polygon soup etc
-[ ]  Implement Light culling
-[ ]  Finish render profiler
+[X]  Implement oct-trees for polygon soup etc
+[!]  Implement Light culling
+[X]  Finish render profiler
 [ ]  Add CPU profiler
 [ ]  Add scene editor using imgui
-[ ]  Document headers better
+[!]  Document headers better
 [ ]  Embed default shaders
 [ ]  Add simple raycast functions to collision.c
 [ ]  Add user-level input functions & handling
@@ -72,4 +72,11 @@ exengine/model.c
 [ ]  Set animations by name
 [ ]  Add fine control for animation speed etc
 [ ]  Fix model->bone attachments
+```
+
+```text
+! KEY !
+[ ] Not yet started
+[!] Being worked on
+[X] Completed
 ```
