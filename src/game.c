@@ -80,13 +80,19 @@ void game_run()
   // model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
-  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 0);
+  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   scene_add_pointlight(scene, l);
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
   // scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
+
+
+  model_t *box = iqm_load_model(scene, "data/cube.iqm", 0);
+  list_add(scene->model_list, box);
+  entity_t *cube = entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
+  cube->position[1] = 2.5f;
 
   double last_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
@@ -107,16 +113,51 @@ void game_run()
     accumulator += delta_time;
     while (accumulator >= phys_delta_time) {
       entity_update(e, phys_delta_time);
+      entity_update(cube, phys_delta_time);
 
       memcpy(camera->position, e->position, sizeof(vec3));
       camera->position[1] += e->radius[1];
       memcpy(pl->position, camera->position, sizeof(vec3));
 
+      memcpy(box->position, cube->position, sizeof(vec3));
+
+      vec3 temp;
+      vec3_sub(temp, cube->position, e->position);
+      float len = vec3_len(temp);
+      if (len <= cube->radius[1] + e->radius[1]) {
+        vec3_norm(temp, temp);
+        vec3_scale(temp, temp, len);
+        vec3_add(cube->velocity, cube->velocity, temp);
+        vec3_sub(e->velocity, e->velocity, temp);
+      }
+
+      vec3_scale(temp, cube->velocity, 25.0f * phys_delta_time);
+      temp[1] = 0.0f;
+      if (cube->grounded == 1)
+        vec3_sub(cube->velocity, cube->velocity, temp);
+
+      if (cube->grounded == 0)
+        cube->velocity[1] -= (100.0f * phys_delta_time);
+      if (cube->velocity[1] <= 0.0f && cube->grounded)
+        cube->velocity[1] = 0.0f;
+
+      if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
+        vec3_scale(cube->position, camera->front, 4.0f);
+        vec3_add(cube->position, cube->position, e->position);
+        memset(cube->velocity, 0, sizeof(vec3));
+      
+        if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
+          vec3_scale(temp, camera->front, 20.0f);
+          vec3_add(cube->velocity, cube->velocity, temp);
+          keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+        }
+      }
+
       if (keys_down[GLFW_KEY_F]) {
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
         memcpy(l->position, camera->position, sizeof(vec3));
         scene_add_pointlight(scene, l);
         l->is_shadow = 1;
@@ -124,7 +165,6 @@ void game_run()
       }
 
       /* debug entity movement */
-      vec3 temp;
       vec3_scale(temp, e->velocity, 25.0f * phys_delta_time);
       temp[1] = 0.0f;
 
@@ -175,16 +215,16 @@ void game_run()
       if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
         e->velocity[1] = 20.0f;
       }
-      if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
+      /* if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
         e->radius[1] = 0.5f;
         move_speed = 100.0f;
       } else {
         if (e->radius[1] != 1.0f) {
           e->position[1] += 0.5f;
         }
-        move_speed = 200.0f;
         e->radius[1] = 1.0f;
-      }
+      }*/
+      move_speed = 200.0f;
       if (keys_down[GLFW_KEY_ESCAPE])
         break;
       if (keys_down[GLFW_KEY_G] || glimgui_keys_down[GLFW_KEY_G]) {
