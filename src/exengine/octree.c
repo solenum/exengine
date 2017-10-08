@@ -332,7 +332,7 @@ void octree_render(octree_t *o)
   glDisable(GL_CULL_FACE);
   glCullFace(GL_NONE);
   glBindVertexArray(o->vao);
-  glLineWidth(1.5f);
+  glLineWidth(0.5f);
   glDrawElements(GL_LINES, INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_DEPTH_TEST);
