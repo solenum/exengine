@@ -16,6 +16,8 @@ void framebuffer_init()
 
   // color buffer
   glfwGetFramebufferSize(display.window, &width, &height);
+  width = conf_get_int(&conf, "render_width");
+  height = conf_get_int(&conf, "render_height");
   glGenTextures(1, &colorbuffer);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);

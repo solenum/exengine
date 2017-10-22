@@ -1,6 +1,9 @@
 #include "gbuffer.h"
 #include "window.h"
 #include "shader.h"
+#include "exe_conf.h"
+
+extern conf_t conf;
 
 GLuint gbuffer, gpositon, gnormal, gcolorspec, grenderbuffer;
 GLuint gvao, gvbo;
@@ -12,7 +15,8 @@ void gbuffer_init()
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
 
-  glfwGetFramebufferSize(display.window, &width, &height);
+  width = conf_get_int(&conf, "render_width");
+  height = conf_get_int(&conf, "render_height");
 
   // position buffer
   glGenTextures(1, &gpositon);
