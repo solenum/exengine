@@ -15,6 +15,7 @@ entity_t* entity_new(scene_t *scene, vec3 radius)
   memset(e->velocity, 0,      sizeof(vec3));
   e->scene = scene;
   e->grounded = 0;
+  return e;
 }
 
 void entity_collide_and_slide(entity_t *entity, vec3 gravity)

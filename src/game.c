@@ -51,8 +51,8 @@ void game_run()
   // dir_light_t *dl = dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
   // list_add(scene->dir_light_list, dl);
 
-  skybox_t *s = skybox_new("sky");
-  scene->skybox = s;
+  // skybox_t *s = skybox_new("sky");
+  // scene->skybox = s;
 
   entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
@@ -80,7 +80,7 @@ void game_run()
   // model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
-  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 0);
+  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   scene_add_pointlight(scene, l);
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
@@ -89,7 +89,7 @@ void game_run()
   pl->is_shadow = 0;
 
   model_t *box = iqm_load_model(scene, "data/cube.iqm", 0);
-  box->is_shadow = 0;
+  // box->is_shadow = 0;
   list_add(scene->model_list, box);
   entity_t *cube = entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
   cube->position[1] = 2.5f;
@@ -158,7 +158,7 @@ void game_run()
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
         memcpy(l->position, camera->position, sizeof(vec3));
         scene_add_pointlight(scene, l);
         l->is_shadow = 1;

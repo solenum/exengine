@@ -156,10 +156,6 @@ static inline int aabb_inside(rect_t outer, rect_t inner) {
           outer.max[2] >= inner.max[2]);
 };
 
-static inline int tri_in_rect(rect_t r, octree_obj_t *obj) {
-
-};
-
 static inline rect_t rect_from_triangle(vec3 tri[3]) {
   rect_t box;
 
