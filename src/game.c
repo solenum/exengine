@@ -142,10 +142,29 @@ void game_run()
         cube->velocity[1] = 0.0f;
 
       if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
-        vec3_scale(cube->position, camera->front, 2.5f);
-        vec3_add(cube->position, cube->position, e->position);
-        cube->position[1] += 0.5f;
-        memset(cube->velocity, 0, sizeof(vec3));
+        vec3 p;
+        vec3_scale(p, camera->front, 2.5f);
+        vec3_add(p, p, e->position);
+        p[1] += 0.5f;
+        
+        vec3_sub(p, p, cube->position);
+
+        float f = vec3_len(p);
+        if (f > 2.5f) {
+          keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+          break;
+        }
+
+        if (f > 1.0f)
+          f *= f;;
+
+        vec3_norm(p, p);
+        vec3_scale(p, p, f*5.0f);
+        f = cube->velocity[1];
+        memcpy(cube->velocity, p, sizeof(vec3));
+        cube->velocity[1] += f*0.1f;
+
+        // memset(cube->velocity, 0, sizeof(vec3));
       
         if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
           vec3_scale(temp, camera->front, 40.0f);
