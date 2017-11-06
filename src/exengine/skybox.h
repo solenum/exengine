@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <inttypes.h>
 
-static GLfloat skybox_vertices[] = {
+static GLfloat ex_skybox_vertices[] = {
     -1.0f,  1.0f, -1.0f,
     -1.0f, -1.0f, -1.0f,
      1.0f, -1.0f, -1.0f,
@@ -51,14 +51,14 @@ static GLfloat skybox_vertices[] = {
 
 typedef struct {
   GLuint texture, shader;
-} skybox_t;
+} ex_skybox_t;
 
-void skybox_init();
+void ex_skybox_init();
 
-skybox_t* skybox_new(const char *tex_name);
+ex_skybox_t* ex_skybox_new(const char *tex_name);
 
-void skybox_draw(skybox_t *s);
+void ex_skybox_draw(ex_skybox_t *s);
 
-void skybox_destroy(skybox_t *s);
+void ex_skybox_destroy(ex_skybox_t *s);
 
 #endif // EX_SKYBOX_H

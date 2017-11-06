@@ -10,12 +10,12 @@
 #include "exe_io.h"
 
 /**
- * [shader_compile loads and compiles a vertex fragment shader]
+ * [ex_shader_compile loads and compiles a vertex fragment shader]
  * @param  vertex_path   [vertex shader file path]
  * @param  fragment_path [fragment shader file path]
  * @return               [the shader program GLuint]
  */
-static GLuint shader_compile(const char *vertex_path, const char *fragment_path, const char *geometry_path)
+static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_path, const char *geometry_path)
 {
 	printf("Loading shader files %s, %s and %s\n", vertex_path, fragment_path, geometry_path);
 

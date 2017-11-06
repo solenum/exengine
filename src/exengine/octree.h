@@ -10,8 +10,8 @@
 #include "exe_list.h"
 #include "mathlib.h" 
 
-#define OCTREE_DEFAULT_MIN_SIZE 5.0f
-extern int octree_min_size;
+#define EX_OCTREE_DEFAULT_MIN_SIZE 5.0f
+extern int ex_octree_min_size;
 
 enum {
   OBJ_TYPE_UINT,
@@ -20,11 +20,11 @@ enum {
   OBJ_TYPE_FLOAT,
   OBJ_TYPE_DOUBLE,
   OBJ_TYPE_NULL
-} octree_obj_type;
+} ex_ex_octree_obj_type;
 
 typedef struct {
   vec3 min, max;
-} rect_t;
+} ex_rect_t;
 
 typedef struct {
   union {
@@ -34,18 +34,18 @@ typedef struct {
     float    data_float;
     double   data_double;
   };
-  rect_t box;
-} octree_obj_t;
+  ex_rect_t box;
+} ex_octree_obj_t;
 
 typedef struct {
   void *data;
   size_t len;
-} octree_data_t;
+} ex_octree_data_t;
 
-typedef struct octree_t octree_t;
-struct octree_t {
-  rect_t region;
-  octree_t *children[8];
+typedef struct ex_octree_t ex_octree_t;
+struct ex_octree_t {
+  ex_rect_t region;
+  ex_octree_t *children[8];
   int max_life, cur_life;
   list_t *obj_list;
   // flags etc
@@ -66,21 +66,21 @@ struct octree_t {
   GLuint vbo, vao, ebo;
 };
 
-octree_t* octree_new(uint8_t type);
+ex_octree_t* ex_octree_new(uint8_t type);
 
-void octree_init(octree_t *o, rect_t region, list_t *objects);
+void ex_octree_init(ex_octree_t *o, ex_rect_t region, list_t *objects);
 
-void octree_build(octree_t *o);
+void ex_octree_build(ex_octree_t *o);
 
-void octree_finalize(octree_t *o);
+void ex_octree_finalize(ex_octree_t *o);
 
-octree_t* octree_reset(octree_t *o);
+ex_octree_t* ex_octree_reset(ex_octree_t *o);
 
-void octree_get_colliding(octree_t *o, rect_t *bounds, list_t *data_list);
+void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, list_t *data_list);
 
-void octree_render(octree_t *o);
+void ex_octree_render(ex_octree_t *o);
 
-static inline void octree_clean_colliding(list_t *data) {
+static inline void ex_octree_clean_colliding(list_t *data) {
   while (data->data != NULL) {
     if (data->data != NULL)
       free(data->data);
@@ -94,7 +94,7 @@ static inline void octree_clean_colliding(list_t *data) {
   list_destroy(data);
 }
 
-static inline void* octree_data_ptr(octree_t *o) {
+static inline void* ex_octree_data_ptr(ex_octree_t *o) {
   switch (o->data_type) {
     case OBJ_TYPE_UINT:
       if (o->data_uint != NULL)
@@ -119,26 +119,26 @@ static inline void* octree_data_ptr(octree_t *o) {
   }
 }
 
-static inline rect_t rect_new(vec3 min, vec3 max) {
-  rect_t r;
+static inline ex_rect_t ex_rect_new(vec3 min, vec3 max) {
+  ex_rect_t r;
   memcpy(r.min, min, sizeof(vec3));
   memcpy(r.max, max, sizeof(vec3));
   return r;
 };
 
-static inline float squared(float v) { return v * v; };
-static inline int rect_intersect_sphere(rect_t r, vec3 pos, float radius) {
+static inline float ex_squared(float v) { return v * v; };
+static inline int ex_rect_intersect_sphere(ex_rect_t r, vec3 pos, float radius) {
   float dist = radius * radius;
-  if (pos[0] < r.min[0]) dist -= squared(pos[0] - r.min[0]);
-  else if (pos[0] > r.max[0]) dist -= squared(pos[0] - r.max[0]);
-  if (pos[1] < r.min[1]) dist -= squared(pos[1] - r.min[1]);
-  else if (pos[1] > r.max[1]) dist -= squared(pos[1] - r.max[1]);
-  if (pos[2] < r.min[2]) dist -= squared(pos[2] - r.min[2]);
-  else if (pos[2] > r.max[2]) dist -= squared(pos[2] - r.max[2]);
+  if (pos[0] < r.min[0]) dist -= ex_squared(pos[0] - r.min[0]);
+  else if (pos[0] > r.max[0]) dist -= ex_squared(pos[0] - r.max[0]);
+  if (pos[1] < r.min[1]) dist -= ex_squared(pos[1] - r.min[1]);
+  else if (pos[1] > r.max[1]) dist -= ex_squared(pos[1] - r.max[1]);
+  if (pos[2] < r.min[2]) dist -= ex_squared(pos[2] - r.min[2]);
+  else if (pos[2] > r.max[2]) dist -= ex_squared(pos[2] - r.max[2]);
   return dist > 0;
 };
 
-static inline int aabb_aabb(rect_t a, rect_t b) {
+static inline int ex_aabb_aabb(ex_rect_t a, ex_rect_t b) {
   return (a.max[0] >= b.min[0] &&
           a.min[0] <= b.max[0] &&
           a.max[1] >= b.min[1] &&
@@ -147,7 +147,7 @@ static inline int aabb_aabb(rect_t a, rect_t b) {
           a.min[2] <= b.max[2]);
 };
 
-static inline int aabb_inside(rect_t outer, rect_t inner) {
+static inline int ex_aabb_inside(ex_rect_t outer, ex_rect_t inner) {
   return (outer.min[0] <= inner.min[0] &&
           outer.max[0] >= inner.max[0] &&
           outer.min[1] <= inner.min[1] &&
@@ -156,8 +156,8 @@ static inline int aabb_inside(rect_t outer, rect_t inner) {
           outer.max[2] >= inner.max[2]);
 };
 
-static inline rect_t rect_from_triangle(vec3 tri[3]) {
-  rect_t box;
+static inline ex_rect_t ex_rect_from_triangle(vec3 tri[3]) {
+  ex_rect_t box;
 
   memcpy(box.min, tri[0], sizeof(vec3));
   vec3_min(box.min, box.min, tri[1]);

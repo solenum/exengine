@@ -1,5 +1,5 @@
-#ifndef IQM_LOADER_H
-#define IQM_LOADER_H
+#ifndef EX_IQM_LOADER_H
+#define EX_IQM_LOADER_H
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -9,8 +9,8 @@
 #include "model.h"
 
 #define uint uint32_t
-#define IQM_MAGIC "INTERQUAKEMODEL"
-#define IQM_VERSION 2
+#define EX_IQM_MAGIC "INTERQUAKEMODEL"
+#define EX_IQM_VERSION 2
 
 typedef struct {
   char magic[16];
@@ -27,7 +27,7 @@ typedef struct {
   uint num_frames, num_framechannels, ofs_frames, ofs_bounds;
   uint num_comment, ofs_comment;
   uint num_extensions, ofs_extensions;
-} iqm_header_t;
+} ex_iqm_header_t;
 
 enum {
   IQM_POSITION     = 0,
@@ -52,27 +52,27 @@ enum {
 
 typedef struct {
   uint triangle[3];
-} iqmadjacency_t;
+} ex_iqmadjacency_t;
 
 typedef struct {
   uint name;
   int parent;
   float translate[3], rotate[4], scale[3];
-} iqmjoint_t;
+} ex_iqmjoint_t;
 
 typedef struct {
   int parent;
   uint channelmask;
   float channeloffset[10];
   float channelscale[10];
-} iqmpose_t;
+} ex_iqmex_pose_t;
 
 typedef struct {
   uint name;
   uint first_frame, num_frames;
   float framerate;
   uint flags;
-} iqmanim_t;
+} ex_iqmex_anim_t;
 
 typedef struct {
   uint type;
@@ -80,27 +80,27 @@ typedef struct {
   uint format;
   uint size;
   uint offset;
-} iqmvertexarray_t;
+} ex_iqmvertexarray_t;
 
 typedef struct {
   float bbmin[3], bbmax[3];
   float xyradius, radius;
-} iqmbounds_t;
+} ex_iqmbounds_t;
 
 typedef struct {
   uint name;
   uint material;
   uint first_vertex, num_vertexes;
   uint first_triangle, num_triangles;
-} iqmmesh_t;
+} ex_iqmex_mesh_t;
 
-model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices);
+ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vertices);
 
-static inline uint get_uint(uint8_t *data) { 
+static inline uint ex_get_uint(uint8_t *data) { 
   return (data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24));
 }
 
-static void iqm_get_args(const char *str, vec4 args) {
+static void ex_iqm_get_args(const char *str, vec4 args) {
   char *end;
   args[0] = strtof(str, &end);
   args[1] = strtof(&end[1], &end);
@@ -108,4 +108,4 @@ static void iqm_get_args(const char *str, vec4 args) {
   args[3] = strtof(&end[1], &end);
 }
 
-#endif // IQM_LOADER_H
+#endif // EX_IQM_LOADER_H

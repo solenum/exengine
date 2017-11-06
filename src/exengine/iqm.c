@@ -3,7 +3,7 @@
 #include "pointlight.h"
 #include <string.h>
 
-model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
+ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vertices)
 {
   printf("Loading IQM model file %s\n", path);
 
@@ -15,31 +15,31 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   }
 
   // the header contents
-  iqm_header_t header;
+  ex_iqm_header_t header;
 
   // check magic string and version
   memcpy(header.magic, data, 16);
   uint *head = (uint *)&data[16];
   header.version = head[0];
-  if (strcmp(header.magic, IQM_MAGIC) != 0 || header.version != IQM_VERSION) {
+  if (strcmp(header.magic, EX_IQM_MAGIC) != 0 || header.version != EX_IQM_VERSION) {
     printf("Loaded IQM model version is not 2.0\nFailed loading %s\n", path);
     free(data);
     return NULL;
   }
 
   // get the rest of the header weeeeee
-  memcpy(&header, data, sizeof(iqm_header_t));
+  memcpy(&header, data, sizeof(ex_iqm_header_t));
 
-  iqmmesh_t *meshes = (iqmmesh_t *)&data[header.ofs_meshes];
+  ex_iqmex_mesh_t *meshes = (ex_iqmex_mesh_t *)&data[header.ofs_meshes];
   char *file_text = header.ofs_text ? (char *)&data[header.ofs_text] : "";
 
   // set the vertices
-  vertex_t *vertices  = malloc(sizeof(vertex_t)*(header.num_vertexes));
+  ex_vertex_t *vertices  = malloc(sizeof(ex_vertex_t)*(header.num_vertexes));
   float *position, *uv, *normal, *tangent;
   uint8_t *blend_indexes, *blend_weights, *color;
-  iqmvertexarray_t *vas = (iqmvertexarray_t *)&data[header.ofs_vertexarrays];
+  ex_iqmvertexarray_t *vas = (ex_iqmvertexarray_t *)&data[header.ofs_vertexarrays];
   for (int i=0; i<header.num_vertexarrays; i++) {
-    iqmvertexarray_t va = vas[i];
+    ex_iqmvertexarray_t va = vas[i];
 
     switch (va.type) {
       case IQM_POSITION: {
@@ -88,17 +88,17 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   }
 
   // bones and joints
-  bone_t *bones      = NULL;
-  frame_t bind_pose  = NULL;
-  frame_t pose       = NULL;
-  iqmjoint_t *joints  = (iqmjoint_t *)&data[header.ofs_joints];
+  ex_bone_t *bones      = NULL;
+  ex_frame_t bind_pose  = NULL;
+  ex_frame_t pose       = NULL;
+  ex_iqmjoint_t *joints  = (ex_iqmjoint_t *)&data[header.ofs_joints];
   if (header.ofs_joints > 0) {
-    bones     = malloc(sizeof(bone_t)*header.num_joints);
-    bind_pose = malloc(sizeof(pose_t)*header.num_joints);
-    pose      = malloc(sizeof(pose_t)*header.num_joints);
+    bones     = malloc(sizeof(ex_bone_t)*header.num_joints);
+    bind_pose = malloc(sizeof(ex_pose_t)*header.num_joints);
+    pose      = malloc(sizeof(ex_pose_t)*header.num_joints);
     printf("Bones: ");
     for (int i=0; i<header.num_joints; i++) {
-      iqmjoint_t *j   = &joints[i];
+      ex_iqmjoint_t *j   = &joints[i];
       strncpy(bones[i].name, &file_text[j->name], 64);
       printf("%s ", bones[i].name);
       bones[i].parent = j->parent;
@@ -113,12 +113,12 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   }
 
   // anims
-  anim_t *anims = NULL;
-  iqmanim_t *animdata = (iqmanim_t *)&data[header.ofs_anims];
+  ex_anim_t *anims = NULL;
+  ex_iqmex_anim_t *animdata = (ex_iqmex_anim_t *)&data[header.ofs_anims];
   if (header.ofs_anims > 0) {
-    anims = malloc(sizeof(anim_t)*header.num_anims);
+    anims = malloc(sizeof(ex_anim_t)*header.num_anims);
     for (int i=0; i<header.num_anims; i++) {
-      iqmanim_t *a    = &animdata[i];
+      ex_iqmex_anim_t *a    = &animdata[i];
       anims[i].name   = a->name;
       anims[i].first  = a->first_frame;
       anims[i].last   = a->num_frames;
@@ -129,16 +129,16 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
 
   // poses
   unsigned short *framedata = NULL;
-  frame_t *frames = NULL;
-  iqmpose_t *posedata = (iqmpose_t *)&data[header.ofs_poses];
+  ex_frame_t *frames = NULL;
+  ex_iqmex_pose_t *posedata = (ex_iqmex_pose_t *)&data[header.ofs_poses];
   if (header.ofs_poses > 0) {
-    frames = malloc(sizeof(frame_t)*header.num_frames);
+    frames = malloc(sizeof(ex_frame_t)*header.num_frames);
     framedata = (unsigned short *)&data[header.ofs_frames];
     
     for (int i=0; i<header.num_frames; i++) {
-      pose_t *frame = malloc(header.num_poses*sizeof(pose_t));
+      ex_pose_t *frame = malloc(header.num_poses*sizeof(ex_pose_t));
       for (int p=0; p<header.num_poses; p++) {
-        iqmpose_t *pose = &posedata[p];
+        ex_iqmex_pose_t *pose = &posedata[p];
         
         float v[10];
         for (int o=0; o<10; o++) {
@@ -170,7 +170,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   }
 
   // create the model
-  model_t *model = model_new();
+  ex_model_t *model = ex_model_new();
   model->bones       = bones;
   model->anims       = anims;
   model->frames      = frames;
@@ -194,10 +194,10 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       model->skeleton = malloc(sizeof(mat4x4)*header.num_joints);
     }
 
-    bone_t b = model->bones[i];
+    ex_bone_t b = model->bones[i];
 
     mat4x4 mat, inv;
-    calc_bone_matrix(mat, b.position, b.rotation, b.scale);
+    ex_calc_bone_matrix(mat, b.position, b.rotation, b.scale);
     mat4x4_invert(inv, mat);
 
     if (b.parent >= 0) {
@@ -207,7 +207,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     }
 
     if (i >= header.num_joints-1)
-      model_update_matrices(model);
+      ex_model_update_matrices(model);
   }
 
   // backup vertices of visible meshes
@@ -217,7 +217,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
   // add the meshes to the model
   GLuint index_offset = 0;
   for (int i=0; i<header.num_meshes; i++) {
-    vertex_t *vert = &vertices[meshes[i].first_vertex];
+    ex_vertex_t *vert = &vertices[meshes[i].first_vertex];
     GLuint *ind    = &indices[meshes[i].first_triangle*3];
 
     // negative offset indices
@@ -245,13 +245,13 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       vec4 args;
 
       if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
-        iqm_get_args(&arg_start[1], args);
-        point_light_t *l = point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
-        scene_add_pointlight(scene, l);
+        ex_iqm_get_args(&arg_start[1], args);
+        ex_point_light_t *l = ex_point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
+        ex_scene_add_pointlight(scene, l);
       }
     } else {
       // create mesh
-      mesh_t *m = mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
+      ex_mesh_t *m = ex_mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
       // store vertices
       if (keep_vertices) {
@@ -266,19 +266,19 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
       char *tex_types[] = {"spec_", "norm_"};
       if (is_file != NULL) {
         // diffuse
-        m->texture = scene_add_texture(scene, tex_name);
+        m->texture = ex_scene_add_texture(scene, tex_name);
       
         // spec
         char spec[strlen(tex_name)+strlen(tex_types[0])];
         strcpy(spec, tex_types[0]);
         strcpy(&spec[strlen(tex_types[0])], tex_name);
-        m->texture_spec = scene_add_texture(scene, spec);
+        m->texture_spec = ex_scene_add_texture(scene, spec);
 
         // norm
         char norm[strlen(tex_name)+strlen(tex_types[1])];
         strcpy(norm, tex_types[1]);
         strcpy(&norm[strlen(tex_types[1])], tex_name);
-        m->texture_norm = scene_add_texture(scene, norm);
+        m->texture_norm = ex_scene_add_texture(scene, norm);
       }
 
       // push mesh into mesh list
@@ -291,7 +291,7 @@ model_t *iqm_load_model(scene_t *scene, const char *path, int keep_vertices)
     model->vertices = malloc(vis_len*sizeof(vec3));
     model->num_vertices = vis_len;
     memcpy(model->vertices, vis_vertices, vis_len*sizeof(vec3));
-    scene_add_collision(scene, model);
+    ex_scene_add_collision(scene, model);
   }
 
   printf("Finished loading IQM model %s\n", path);

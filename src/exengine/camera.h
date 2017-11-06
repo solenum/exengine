@@ -13,31 +13,31 @@ typedef struct {
   float yaw, pitch, last_x, last_y, fov, sensitivity;
   mat4x4 view, projection;
   int width, height;
-  model_t *view_model;
+  ex_model_t *view_model;
   vec3 view_model_offset, view_model_rotate;
-} fps_camera_t;
+} ex_fps_camera_t;
 
 /**
- * [fps_camera_new create a new isometric ortho camera]
+ * [ex_fps_camera_new create a new isometric ortho camera]
  * @param  x [x position]
  * @param  y [y position]
  * @param  z [z position]
  */
-fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float fov);
+ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity, float fov);
 
 /**
  * [iso_cam_resize reset projections etc]
- * @param cam [fps_camera_t pointer]
+ * @param cam [ex_fps_camera_t pointer]
  */
-void fps_camera_resize(fps_camera_t *cam);
+void ex_fps_camera_resize(ex_fps_camera_t *cam);
 
 /**
- * [fps_camera_update update the cams projections etc]
- * @param cam            [fps_camera_t pointer]
+ * [ex_fps_camera_update update the cams projections etc]
+ * @param cam            [ex_fps_camera_t pointer]
  * @param shader_program [shader program to use]
  */
-void fps_camera_update(fps_camera_t *cam, GLuint shader_program);
+void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program);
 
-void fps_camera_draw(fps_camera_t *cam, GLuint shader_program);
+void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program);
 
 #endif // EX_CAMERA_H

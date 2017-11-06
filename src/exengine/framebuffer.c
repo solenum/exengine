@@ -6,10 +6,10 @@
 
 extern conf_t conf;
 
-GLuint fbo, rbo, colorbuffer, fbo_shader, fbo_vao, fbo_vbo;
+GLuint fbo, rbo, colorbuffer, ex_fbo_shader, fbo_vao, fbo_vbo;
 int width, height;
 
-void framebuffer_init()
+void ex_framebuffer_init()
 {
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -45,7 +45,7 @@ void framebuffer_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // load the fbo shader
-  fbo_shader = shader_compile("data/fboshader.vs", "data/fboshader.fs", NULL);
+  ex_fbo_shader = ex_shader_compile("data/fboshader.vs", "data/fboshader.fs", NULL);
   /* ------------------------- */
 
   /* -- screen quad -- */
@@ -79,7 +79,7 @@ void framebuffer_init()
   /* ----------------- */
 }
 
-void framebuffer_first()
+void ex_framebuffer_first()
 {
   // first render pass
   glViewport(0, 0, width, height);
@@ -91,7 +91,7 @@ void framebuffer_first()
   glCullFace(GL_BACK);
 }
 
-void framebuffer_render_quad()
+void ex_framebuffer_render_quad()
 {
   // second render pass
   glViewport(0, 0, conf_get_int(&conf, "window_width"), conf_get_int(&conf, "window_height"));
@@ -102,17 +102,17 @@ void framebuffer_render_quad()
   glEnable(GL_FRAMEBUFFER_SRGB);
 
   // render screen quad
-  glUseProgram(fbo_shader);
+  glUseProgram(ex_fbo_shader);
   glBindVertexArray(fbo_vao);
   glActiveTexture(GL_TEXTURE0);
-  glUniform1i(glGetUniformLocation(fbo_shader, "u_texture"), 0);
+  glUniform1i(glGetUniformLocation(ex_fbo_shader, "u_texture"), 0);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void framebuffer_destroy()
+void ex_framebuffer_destroy()
 {
   glDeleteBuffers(1, &fbo_vbo);
   glDeleteVertexArrays(1, &fbo_vao);

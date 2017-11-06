@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-texture_t* texture_load(const char *file, int get_data)
+ex_texture_t* ex_texture_load(const char *file, int get_data)
 {
   // prepend file directory
   size_t len = strlen(EX_TEXTURE_LOC);
@@ -22,7 +22,7 @@ texture_t* texture_load(const char *file, int get_data)
   }
 
   // create texture obj
-  texture_t *t = malloc(sizeof(texture_t));
+  ex_texture_t *t = malloc(sizeof(ex_texture_t));
   t->width  = w;
   t->height = h;
   strncpy(t->name, file, 32);

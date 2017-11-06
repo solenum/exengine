@@ -9,17 +9,17 @@
 mat4x4 spot_shadow_projection;
 GLuint spot_light_shader;
 
-void spot_light_init()
+void ex_spot_light_init()
 {
-  spot_light_shader = dir_light_shader;
+  spot_light_shader = ex_dir_light_shader;
 
   float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-  mat4x4_perspective(spot_shadow_projection, rad(90.0f), aspect, 0.1f, SPOT_FAR_PLANE); 
+  mat4x4_perspective(spot_shadow_projection, rad(90.0f), aspect, 0.1f, EX_SPOT_FAR_PLANE); 
 }
 
-spot_light_t* spot_light_new(vec3 pos, vec3 color, int dynamic)
+ex_spot_light_t* ex_spot_light_new(vec3 pos, vec3 color, int dynamic)
 {
-  spot_light_t *l = malloc(sizeof(spot_light_t));
+  ex_spot_light_t *l = malloc(sizeof(ex_spot_light_t));
 
   memcpy(l->position, pos, sizeof(vec3));
   memcpy(l->color, color, sizeof(vec3));
@@ -59,7 +59,7 @@ spot_light_t* spot_light_new(vec3 pos, vec3 color, int dynamic)
   return l;
 }
 
-void spot_light_begin(spot_light_t *l)
+void ex_spot_light_begin(ex_spot_light_t *l)
 {
   l->update = 0;
 
@@ -79,7 +79,7 @@ void spot_light_begin(spot_light_t *l)
   glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
 }
 
-void spot_light_draw(spot_light_t *l, GLuint shader, const char *prefix)
+void ex_spot_light_draw(ex_spot_light_t *l, GLuint shader, const char *prefix)
 {
   if (l->is_shadow) {
     glUniform1i(glGetUniformLocation(shader, "u_spot_light.is_shadow"), 1);
@@ -97,14 +97,14 @@ void spot_light_draw(spot_light_t *l, GLuint shader, const char *prefix)
   if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.far", prefix);
-    glUniform1f(glGetUniformLocation(shader,  buff), SPOT_FAR_PLANE);
+    glUniform1f(glGetUniformLocation(shader,  buff), EX_SPOT_FAR_PLANE);
     sprintf(buff, "%s.position", prefix);
     glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
     sprintf(buff, "%s.color", prefix);
     glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
   } else {
     glUniform1i(glGetUniformLocation(shader,  "u_spot_active"), 1);
-    glUniform1f(glGetUniformLocation(shader,  "u_spot_light.far"), SPOT_FAR_PLANE);
+    glUniform1f(glGetUniformLocation(shader,  "u_spot_light.far"), EX_SPOT_FAR_PLANE);
     glUniform3fv(glGetUniformLocation(shader, "u_spot_light.position"), 1, l->position);
     glUniform3fv(glGetUniformLocation(shader, "u_spot_light.direction"), 1, l->direction);
     glUniform3fv(glGetUniformLocation(shader, "u_spot_light.color"), 1, l->color);
@@ -113,7 +113,7 @@ void spot_light_draw(spot_light_t *l, GLuint shader, const char *prefix)
   }
 }
 
-void spot_light_destroy(spot_light_t *l)
+void ex_spot_light_destroy(ex_spot_light_t *l)
 {
   glDeleteFramebuffers(1, &l->depth_map_fbo);
   glDeleteTextures(1, &l->depth_map);

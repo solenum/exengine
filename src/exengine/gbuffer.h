@@ -5,14 +5,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-extern GLuint gshader, gmainshader;
+extern GLuint ex_gshader, ex_gmainshader;
 
-void gbuffer_init();
+void ex_gbuffer_init();
 
-void gbuffer_first();
+void ex_gbuffer_first();
 
-void gbuffer_render(GLuint shader);
+void ex_gbuffer_render(GLuint shader);
 
-void gbuffer_destroy();
+void ex_gbuffer_destroy();
 
 #endif // EX_GBUFFER_H

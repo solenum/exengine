@@ -29,11 +29,11 @@ void ex_dbgui_init()
   }
 
   for (int i=0; i<64; i++)
-    ex_dbgprofiler.frame_times[i] = 0.0f;
+    ex_dbgprofiler.ex_frame_times[i] = 0.0f;
 
   ex_dbgprofiler.timer           = 0.0f;
   ex_dbgprofiler.wireframe       = 0;
-  ex_dbgprofiler.last_frame_time = 0;
+  ex_dbgprofiler.last_ex_frame_time = 0;
   ex_dbgprofiler.render_octree   = 1;
   ex_dbgprofiler.octree_obj_only = 0;
 
@@ -57,7 +57,7 @@ void ex_dbgui_end_profiler()
     if (ex_dbgprofiler.timer > 0.1f) {
       ex_dbgprofiler.timer = 0.0f;
       ex_dbgprofiler.delta_time = (ex_dbgprofiler.delta_end - ex_dbgprofiler.delta_begin);
-      ex_dbgprofiler.frame_times[ex_dbgprofiler.last_frame_time++] = (int)(1.0f/ex_dbgprofiler.delta_time);
+      ex_dbgprofiler.ex_frame_times[ex_dbgprofiler.last_ex_frame_time++] = (int)(1.0f/ex_dbgprofiler.delta_time);
       for (int i=0; i<ex_dbgprofiler_count; i++) {
         ex_dbgprofiler.values[i] = (ex_dbgprofiler.end[i] - ex_dbgprofiler.begin[i]);
       }
@@ -65,14 +65,14 @@ void ex_dbgui_end_profiler()
       ex_dbgprofiler.values[ex_dbgprofiler_other] -= ex_dbgprofiler.values[ex_dbgprofiler_update];
     }
 
-    if (ex_dbgprofiler.last_frame_time >= 128)
-      ex_dbgprofiler.last_frame_time = 0;
+    if (ex_dbgprofiler.last_ex_frame_time >= 128)
+      ex_dbgprofiler.last_ex_frame_time = 0;
   }
 }
 
 void ex_dbgui_render_profiler()
 {
-  float frame_time = ex_dbgprofiler.delta_time;
+  float ex_frame_time = ex_dbgprofiler.delta_time;
   double val;
  
   igSetNextWindowSize((struct ImVec2){ex_dbgprofiler_width, ex_dbgprofiler_height}, 0);
@@ -86,19 +86,19 @@ void ex_dbgui_render_profiler()
   igCheckbox("Octree OBJ only ", (bool*)&ex_dbgprofiler.octree_obj_only);
   igSameLine(0.0f, 0.0f);
   igPushItemWidth(150.0f);
-  igSliderInt("", &octree_min_size, 1, 100, NULL);
+  igSliderInt("", &ex_octree_min_size, 1, 100, NULL);
   igSameLine(0.0f, 8.0f);
   int build = igButton("Rebuild Tree", (struct ImVec2){128.0f, 13.0f});
   if (build)
     scene->collision_built = 0;
-  igText("Render Time %i FPS (%.2fms)", (int)(1.0/frame_time), 1000.0/(1.0/frame_time));
+  igText("Render Time %i FPS (%.2fms)", (int)(1.0/ex_frame_time), 1000.0/(1.0/ex_frame_time));
   igNewLine();
 
   float last_offset = 0.0f;
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
     val = 1000.0/(1.0/x);
-    x = scale_to_range(x, 24.0f, ex_dbgprofiler_width, 0.0f, frame_time);
+    x = scale_to_range(x, 24.0f, ex_dbgprofiler_width, 0.0f, ex_frame_time);
     
     if (i == ex_dbgprofiler_count-1)
       x = ex_dbgprofiler_width;
@@ -117,7 +117,7 @@ void ex_dbgui_render_profiler()
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     float x = ex_dbgprofiler.values[i];
     val = 1000.0/(1.0/x);
-    x = scale_to_range(x, 8.0f, ex_dbgprofiler_width*0.5f, 0.0f, frame_time);
+    x = scale_to_range(x, 8.0f, ex_dbgprofiler_width*0.5f, 0.0f, ex_frame_time);
 
     igPushStyleColor(ImGuiCol_Button, ex_profiler_colors[i]);
     igButton("", (struct ImVec2){x, 16.0f});
@@ -131,7 +131,7 @@ void ex_dbgui_render_profiler()
   }
 
   igPushStyleColor(ImGuiCol_FrameBg, (struct ImVec4){0.0f, 0.0f, 0.0f, 0.0f});
-  igPlotLines("", ex_dbgprofiler.frame_times, 128, 0, NULL, 0.0f, 2000.0f, (struct ImVec2){ex_dbgprofiler_width, 64.0f}, sizeof(float));
+  igPlotLines("", ex_dbgprofiler.ex_frame_times, 128, 0, NULL, 0.0f, 2000.0f, (struct ImVec2){ex_dbgprofiler_width, 64.0f}, sizeof(float));
   igPopStyleColor(1);
   igEnd();
 }

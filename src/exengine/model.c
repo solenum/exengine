@@ -1,10 +1,10 @@
 #include <string.h>
 #include "model.h"
 
-model_t* model_new()
+ex_model_t* ex_model_new()
 {
   // init lists etc
-  model_t *m = malloc(sizeof(model_t));
+  ex_model_t *m = malloc(sizeof(ex_model_t));
   m->mesh_list = list_new();
 
   // init attributes
@@ -23,13 +23,13 @@ model_t* model_new()
   return m;
 }
 
-void model_update(model_t *m, float delta_time)
+void ex_model_update(ex_model_t *m, float delta_time)
 {
   // update mesh transform
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
     // update attributes 
-    mesh_t *mesh = n->data;
+    ex_mesh_t *mesh = n->data;
     memcpy(mesh->position, m->position, sizeof(vec3));
     memcpy(mesh->rotation, m->rotation, sizeof(vec3));
     mesh->scale  = m->scale;
@@ -46,7 +46,7 @@ void model_update(model_t *m, float delta_time)
   }
 
   // handle animations
-  anim_t *anim = m->current_anim;
+  ex_anim_t *anim = m->current_anim;
 
   if (anim == NULL)
     return;
@@ -80,12 +80,12 @@ void model_update(model_t *m, float delta_time)
   }
 
   // update skeleton matrices
-  mix_pose(m, m->frames[m->current_frame], m->frames[next_frame], position - (float)floor(position));
+  ex_mix_pose(m, m->frames[m->current_frame], m->frames[next_frame], position - (float)floor(position));
 
-  model_update_matrices(m);
+  ex_model_update_matrices(m);
 }
 
-void model_draw(model_t *m, GLuint shader)
+void ex_model_draw(ex_model_t *m, GLuint shader)
 {
   // pass bone data
   GLuint has_skeleton_loc = glGetUniformLocation(shader, "u_has_skeleton");
@@ -101,7 +101,7 @@ void model_draw(model_t *m, GLuint shader)
   // render meshes
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
-    mesh_draw(n->data, shader);
+    ex_mesh_draw(n->data, shader);
 
     if (n->next != NULL)
       n = n->next;
@@ -110,12 +110,12 @@ void model_draw(model_t *m, GLuint shader)
   }
 }
 
-void model_destroy(model_t *m)
+void ex_model_destroy(ex_model_t *m)
 {
   // cleanup meshes
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
-    mesh_destroy(n->data);
+    ex_mesh_destroy(n->data);
 
     if (n->next != NULL)
       n = n->next;
@@ -159,16 +159,16 @@ void model_destroy(model_t *m)
   free(m);
 }
 
-void model_update_matrices(model_t *m)
+void ex_model_update_matrices(ex_model_t *m)
 {
   mat4x4 transform[m->bones_len];
-  frame_t pose = m->pose;
+  ex_frame_t pose = m->pose;
 
   for (int i=0; i<m->bones_len; i++) {
-    bone_t b = m->bones[i];
+    ex_bone_t b = m->bones[i];
 
     mat4x4 mat, result;
-    calc_bone_matrix(mat, pose[i].translate, pose[i].rotate, pose[i].scale);
+    ex_calc_bone_matrix(mat, pose[i].translate, pose[i].rotate, pose[i].scale);
     mat4x4_identity(result);
 
     if (b.parent >= 0) {
@@ -184,10 +184,10 @@ void model_update_matrices(model_t *m)
   }
 }
 
-void model_set_pose(model_t *m, frame_t frame)
+void ex_model_set_pose(ex_model_t *m, ex_frame_t frame)
 {
   for (int i=0; i<m->bones_len; i++) {
-    pose_t f = frame[i];
+    ex_pose_t f = frame[i];
     
     quat rotate;
     memcpy(rotate, f.rotate, sizeof(quat));
@@ -199,7 +199,7 @@ void model_set_pose(model_t *m, frame_t frame)
   }
 }
 
-void model_set_anim(model_t *m, size_t index)
+void ex_model_set_anim(ex_model_t *m, size_t index)
 {
   if (index > m->anims_len) {
     m->current_anim = NULL;
@@ -211,7 +211,7 @@ void model_set_anim(model_t *m, size_t index)
   m->current_frame = m->current_anim->first;
 }
 
-void model_get_bone_transform(model_t *m, const char *name, mat4x4 transform)
+void ex_model_get_ex_bone_transform(ex_model_t *m, const char *name, mat4x4 transform)
 {
   mat4x4 temp;
   mat4x4_identity(transform);
@@ -249,7 +249,7 @@ void model_get_bone_transform(model_t *m, const char *name, mat4x4 transform)
   }
 }
 
-void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
+void ex_calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
 {
   mat4x4 mat;
 
@@ -265,7 +265,7 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
   mat4x4_mul(m, m, mat);
 }
 
-void mix_pose(model_t *m, frame_t a, frame_t b, float weight)
+void ex_mix_pose(ex_model_t *m, ex_frame_t a, ex_frame_t b, float weight)
 {
   weight = MIN(MAX(weight, 0.0f), 1.0f);
   for (int i=0; i<m->bones_len; i++) {

@@ -14,7 +14,7 @@ typedef struct {
   uint8_t color[4];
   uint8_t blend_indexes[4];
   uint8_t blend_weights[4];
-} vertex_t;
+} ex_vertex_t;
 
 typedef struct {
   GLuint VAO, VBO, EBO, vcount, icount;
@@ -26,30 +26,30 @@ typedef struct {
   vec3 position, rotation;
   float scale;
   uint8_t is_lit;
-} mesh_t;
+} ex_mesh_t;
 
 /**
- * [mesh_new generate a mesh with the given vertices, indices, and texture]
+ * [ex_mesh_new generate a mesh with the given vertices, indices, and texture]
  * @param  vertices [pointer to vertices]
  * @param  vcount   [length of vertices]
  * @param  indices  [pointer to indces]
  * @param  icount   [length of indices]
  * @param  texture  [the texture's uint]
- * @return          [mesh_t pointer]
+ * @return          [ex_mesh_t pointer]
  */
-mesh_t* mesh_new(vertex_t *vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture);
+ex_mesh_t* ex_mesh_new(ex_vertex_t *vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture);
 
 /**
- * [mesh_draw renders a mesh to the screen]
- * @param m              [mesh_t pointer]
+ * [ex_mesh_draw renders a mesh to the screen]
+ * @param m              [ex_mesh_t pointer]
  * @param shader_program [shader program to use]
  */
-void mesh_draw(mesh_t* m, GLuint shader_program);
+void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program);
 
 /**
- * [mesh_destroy free any malloc'd data]
- * @param m [mesh_t pointer]
+ * [ex_mesh_destroy free any malloc'd data]
+ * @param m [ex_mesh_t pointer]
  */
-void mesh_destroy(mesh_t *m);
+void ex_mesh_destroy(ex_mesh_t *m);
 
 #endif // EX_MESH_H

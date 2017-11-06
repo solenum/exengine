@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float fov)
+ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity, float fov)
 {
-  fps_camera_t *c = malloc(sizeof(fps_camera_t));
+  ex_fps_camera_t *c = malloc(sizeof(ex_fps_camera_t));
 
   c->position[0] = 0.0f+x;
   c->position[1] = 0.0f+y;
@@ -39,7 +39,7 @@ fps_camera_t* fps_camera_new(float x, float y, float z, float sensitivity, float
   return c;
 }
 
-void fps_camera_resize(fps_camera_t *cam)
+void ex_fps_camera_resize(ex_fps_camera_t *cam)
 {
   int width, height;
   glfwGetFramebufferSize(display.window, &width, &height);
@@ -51,9 +51,9 @@ void fps_camera_resize(fps_camera_t *cam)
   }
 }
 
-void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
+void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
 {
-  fps_camera_resize(cam);
+  ex_fps_camera_resize(cam);
 
   float x = display.mouse_x;
   float y = display.mouse_y;
@@ -98,7 +98,7 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program)
   }
 }
 
-void fps_camera_draw(fps_camera_t *cam, GLuint shader_program)
+void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program)
 {
   // send vars to shader
   GLuint projection_location = glGetUniformLocation(shader_program, "u_projection");

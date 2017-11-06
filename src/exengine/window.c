@@ -1,11 +1,11 @@
 #include "window.h"
 #include <stdio.h>
 
-window_t display;
-uint8_t keys_down[GLFW_KEY_LAST];
-uint8_t buttons_down[GLFW_KEY_LAST];
+ex_window_t display;
+uint8_t ex_keys_down[GLFW_KEY_LAST];
+uint8_t ex_buttons_down[GLFW_KEY_LAST];
 
-bool window_init(uint32_t width, uint32_t height, const char *title)
+bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 {
   // init glfw
   glfwInit();
@@ -24,12 +24,12 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   }
 
   // set callbacks
-  glfwSetKeyCallback(display.window, key_callback);
-  glfwSetCursorPosCallback(display.window, mouse_callback);
-  glfwSetFramebufferSizeCallback(display.window, resize_callback);
-  glfwSetMouseButtonCallback(display.window, button_callback);
-  glfwSetScrollCallback(display.window, scroll_callback);
-  glfwSetCharCallback(display.window, char_callback);
+  glfwSetKeyCallback(display.window, ex_key_callback);
+  glfwSetCursorPosCallback(display.window, ex_mouse_callback);
+  glfwSetFramebufferSizeCallback(display.window, ex_resize_callback);
+  glfwSetMouseButtonCallback(display.window, ex_button_callback);
+  glfwSetScrollCallback(display.window, ex_scroll_callback);
+  glfwSetCharCallback(display.window, ex_char_callback);
 
   // set context
   glfwMakeContextCurrent(display.window);
@@ -60,7 +60,7 @@ bool window_init(uint32_t width, uint32_t height, const char *title)
   return 1;
 }
 
-void window_begin()
+void ex_window_begin()
 {
   if (!glimgui_focus)
     glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -70,22 +70,22 @@ void window_begin()
   glimgui_newframe();
 }
 
-void window_end()
+void ex_window_end()
 {
   igRender();
 }
 
-void window_destroy()
+void ex_window_destroy()
 {
   glfwTerminate();
 }
 
-void resize_callback(GLFWwindow* window, int width, int height)
+void ex_resize_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double x, double y)
+void ex_mouse_callback(GLFWwindow* window, double x, double y)
 {
   if (!glimgui_focus) {
     display.mouse_x = x;
@@ -93,40 +93,40 @@ void mouse_callback(GLFWwindow* window, double x, double y)
   }
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+void ex_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
   if (!glimgui_focus) {
     if (action == GLFW_PRESS)
-      keys_down[key] = 1;
+      ex_keys_down[key] = 1;
     if (action == GLFW_RELEASE)
-      keys_down[key] = 0;
+      ex_keys_down[key] = 0;
   } else {
     // pass to imgui
     glimgui_keyinput(key, action);
   }
 }
 
-void button_callback(GLFWwindow *window, int button, int action, int mods)
+void ex_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
   if (!glimgui_focus) {
     if (action == GLFW_PRESS)
-      buttons_down[button] = 1;
+      ex_buttons_down[button] = 1;
     if (action == GLFW_RELEASE)
-      buttons_down[button] = 0;
+      ex_buttons_down[button] = 0;
   } else {
     // pass to imgui
     glimgui_mousebuttoninput(button, action);
   }
 }
 
-void char_callback(GLFWwindow *window, unsigned int c)
+void ex_char_callback(GLFWwindow *window, unsigned int c)
 {
   // pass to imgui
   if (glimgui_focus)
     glimgui_charinput(c);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+void ex_scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
   // pass to imgui
   if (glimgui_focus)

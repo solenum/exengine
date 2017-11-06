@@ -10,7 +10,7 @@ static int          shader = 0, locationtex = 0, locationproj = 0;
 static int          locationposition = 0, locationUV = 0, locationcolor = 0;
 static GLuint       VBO = 0, VAO = 0, EAO = 0;
 bool glimgui_focus = 0;
-uint8_t glimgui_keys_down[GLFW_KEY_LAST];
+uint8_t glimgui_ex_keys_down[GLFW_KEY_LAST];
 
 void glimgui_init(GLFWwindow *win)
 {
@@ -164,7 +164,7 @@ void glimgui_createobjects()
   glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
   glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
-  shader = shader_compile("data/imgui.vs", "data/imgui.fs", NULL);
+  shader = ex_shader_compile("data/imgui.vs", "data/imgui.fs", NULL);
 
   locationtex = glGetUniformLocation(shader, "Texture");
   locationproj = glGetUniformLocation(shader, "ProjMtx");
@@ -300,11 +300,11 @@ void glimgui_keyinput(int key, int action)
   struct ImGuiIO *io = igGetIO();
 
   if (action == GLFW_PRESS) {
-    glimgui_keys_down[key] = 1;
+    glimgui_ex_keys_down[key] = 1;
     io->KeysDown[key] = 1;
   }
   if (action == GLFW_RELEASE) {
-    glimgui_keys_down[key] = 0;
+    glimgui_ex_keys_down[key] = 0;
     io->KeysDown[key] = 0;
   }
 

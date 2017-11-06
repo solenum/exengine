@@ -7,9 +7,9 @@
 #define VERY_CLOSE_DIST 0.005f
 #define SLOPE_WALK_ANGLE 0.9f
 
-entity_t* entity_new(scene_t *scene, vec3 radius)
+ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 {
-  entity_t *e = malloc(sizeof(entity_t));
+  ex_entity_t *e = malloc(sizeof(ex_entity_t));
   memcpy(e->radius,   radius, sizeof(vec3));
   memset(e->position, 0,      sizeof(vec3));
   memset(e->velocity, 0,      sizeof(vec3));
@@ -18,7 +18,7 @@ entity_t* entity_new(scene_t *scene, vec3 radius)
   return e;
 }
 
-void entity_collide_and_slide(entity_t *entity, vec3 gravity)
+void ex_entity_collide_and_slide(ex_entity_t *entity, vec3 gravity)
 {
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
   memcpy(entity->packet.r3_velocity, entity->velocity, sizeof(vec3));
@@ -31,7 +31,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
 
   // do velocity iteration
   entity->packet.depth = 0;
-  entity_collide_with_world(entity, final_position, e_position, e_velocity);
+  ex_entity_collide_with_world(entity, final_position, e_position, e_velocity);
 
   // convert back to r3 space
   vec3_mul(entity->packet.r3_position, final_position, entity->packet.e_radius);
@@ -43,7 +43,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   // memcpy(entity->packet.r3_velocity, gravity, sizeof(vec3));
   // vec3_div(e_velocity, gravity, entity->packet.e_radius);
   // entity->packet.depth = 0;
-  // entity_collide_with_world(entity, final_position, final_position, e_velocity);
+  // ex_entity_collide_with_world(entity, final_position, final_position, e_velocity);
 
   /* this is pretty important but introduces a lot of weird shit
      essentially the idea is to add the sliding direction to the entity velocity
@@ -70,7 +70,7 @@ void entity_collide_and_slide(entity_t *entity, vec3 gravity)
   vec3_mul(entity->position, final_position, entity->packet.e_radius);
 }
 
-void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
+void ex_entity_collide_with_world(ex_entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity)
 {
   if (entity->packet.depth > 5)
     return;
@@ -84,7 +84,7 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   entity->packet.found_collision = 0;
   entity->packet.nearest_distance = FLT_MAX;
 
-  entity_check_collision(entity);
+  ex_entity_check_collision(entity);
 
   // no collision move along
   if (entity->packet.found_collision == 0) {
@@ -116,9 +116,9 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
   vec3_norm(slide_plane_normal, slide_plane_normal);
 
-  plane_t sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
+  ex_plane_t sliding_plane = ex_plane_new(slide_plane_origin, slide_plane_normal);
 
-  float slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
+  float slide_factor = ex_signed_distance_to_plane(dest_point, &sliding_plane);
 
   /* checks for sliding planes at a funny angle that are *above* the entity
      and bounces it back and recalculates the sliding plane should it fine one.
@@ -129,8 +129,8 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
     memcpy(slide_plane_origin, entity->packet.intersect_point, sizeof(vec3));
     vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
     vec3_norm(slide_plane_normal, slide_plane_normal);
-    sliding_plane = plane_new(slide_plane_origin, slide_plane_normal);
-    slide_factor = signed_distance_to_plane(dest_point, &sliding_plane);
+    sliding_plane = ex_plane_new(slide_plane_origin, slide_plane_normal);
+    slide_factor = ex_signed_distance_to_plane(dest_point, &sliding_plane);
   }*/
 
   // if (vec3_mul_inner(sliding_plane.normal, (vec3){0.0f, 1.0f, 0.0f}) < 0.9f)
@@ -160,28 +160,28 @@ void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_posit
   entity->packet.depth++;
 
   // down the rabbit hole we go
-  entity_collide_with_world(entity, out_position, out_position, new_velocity);
+  ex_entity_collide_with_world(entity, out_position, out_position, new_velocity);
 }
 
-void entity_check_collision(entity_t *entity)
+void ex_entity_check_collision(ex_entity_t *entity)
 {
-  rect_t r;
+  ex_rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
   
   list_t *data = list_new();
-  octree_get_colliding(entity->scene->coll_tree, &r, data);
+  ex_octree_get_colliding(entity->scene->coll_tree, &r, data);
 
   vec3 *vertices = entity->scene->coll_vertices;
   while (data->data != NULL) {
-    octree_data_t *oct_data = data->data;
+    ex_octree_data_t *oct_data = data->data;
     uint32_t *indices = oct_data->data;
     for (int i=0; i<oct_data->len; i++) {
       vec3 a,b,c;
       vec3_div(a, vertices[indices[i]+0], entity->packet.e_radius);
       vec3_div(b, vertices[indices[i]+1], entity->packet.e_radius);
       vec3_div(c, vertices[indices[i]+2], entity->packet.e_radius);
-      collision_check_triangle(&entity->packet, a, b, c);
+      ex_collision_check_triangle(&entity->packet, a, b, c);
     }
 
     if (data->next != NULL)
@@ -190,10 +190,10 @@ void entity_check_collision(entity_t *entity)
       break;
   }
 
-  octree_clean_colliding(data);
+  ex_octree_clean_colliding(data);
 }
 
-void entity_check_grounded(entity_t *entity)
+void ex_entity_check_grounded(ex_entity_t *entity)
 {
   vec3 vel = {0.0f, -0.1f, 0.0f};
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
@@ -210,7 +210,7 @@ void entity_check_grounded(entity_t *entity)
   entity->packet.found_collision = 0;
   entity->packet.nearest_distance = FLT_MAX;
 
-  entity_check_collision(entity);
+  ex_entity_check_collision(entity);
 
   if (entity->packet.found_collision == 0) {
     entity->grounded = 0;
@@ -242,12 +242,12 @@ void entity_check_grounded(entity_t *entity)
   }
 }
 
-void entity_update(entity_t *entity, double dt)
+void ex_entity_update(ex_entity_t *entity, double dt)
 {
 
   vec3 gravity = {0.0f, entity->velocity[1] * dt, 0.0f};
   vec3_scale(entity->velocity, entity->velocity, dt);
-  entity_collide_and_slide(entity, gravity);
+  ex_entity_collide_and_slide(entity, gravity);
   vec3_scale(entity->velocity, entity->velocity, 1.0f / dt);
-  entity_check_grounded(entity);
+  ex_entity_check_grounded(entity);
 }

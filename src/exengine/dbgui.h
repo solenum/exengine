@@ -30,8 +30,8 @@ typedef struct {
   double end[ex_dbgprofiler_count];
   double values[ex_dbgprofiler_count];
   double delta_begin, delta_end, delta_time, timer;
-  float  frame_times[128];
-  int    paused, last_frame_time, render_octree, octree_obj_only, wireframe;
+  float  ex_frame_times[128];
+  int    paused, last_ex_frame_time, render_octree, octree_obj_only, wireframe;
 } ex_dbgprofiler_t;
 
 extern ex_dbgprofiler_t ex_dbgprofiler;

@@ -7,18 +7,18 @@
 mat4x4 point_shadow_projection;
 GLuint point_light_shader;
 
-void point_light_init()
+void ex_point_light_init()
 {
   // compile the shaders
-  point_light_shader = shader_compile("data/pointfbo.vs", "data/pointfbo.fs", "data/pointfbo.gs");
+  point_light_shader = ex_shader_compile("data/pointfbo.vs", "data/pointfbo.fs", "data/pointfbo.gs");
 
   float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 0.1f, POINT_FAR_PLANE); 
+  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 0.1f, EX_POINT_FAR_PLANE); 
 }
 
-point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
+ex_point_light_t *ex_point_light_new(vec3 pos, vec3 color, int dynamic)
 {
-  point_light_t *l = malloc(sizeof(point_light_t));
+  ex_point_light_t *l = malloc(sizeof(ex_point_light_t));
 
   // set light properties
   memcpy(l->position, pos, sizeof(vec3));
@@ -58,7 +58,7 @@ point_light_t *point_light_new(vec3 pos, vec3 color, int dynamic)
   return l;
 }
 
-void point_light_begin(point_light_t *l)
+void ex_point_light_begin(ex_point_light_t *l)
 {
   l->update = 0;
 
@@ -104,11 +104,11 @@ void point_light_begin(point_light_t *l)
   glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[4]"), 1, GL_FALSE, *l->transform[4]);
   glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[5]"), 1, GL_FALSE, *l->transform[5]);
 
-  glUniform1f(glGetUniformLocation(l->shader, "u_far_plane"), POINT_FAR_PLANE);
+  glUniform1f(glGetUniformLocation(l->shader, "u_far_plane"), EX_POINT_FAR_PLANE);
   glUniform3fv(glGetUniformLocation(l->shader, "u_light_pos"), 1, l->position);
 }
 
-void point_light_draw(point_light_t *l, GLuint shader, const char *prefix)
+void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix)
 {
   if (l->is_shadow) {
     glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 1);
@@ -126,20 +126,20 @@ void point_light_draw(point_light_t *l, GLuint shader, const char *prefix)
   if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.far", prefix);
-    glUniform1f(glGetUniformLocation(shader,  buff), POINT_FAR_PLANE);
+    glUniform1f(glGetUniformLocation(shader,  buff), EX_POINT_FAR_PLANE);
     sprintf(buff, "%s.position", prefix);
     glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
     sprintf(buff, "%s.color", prefix);
     glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
   } else {
     glUniform1i(glGetUniformLocation(shader,  "u_point_active"), 1);
-    glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), POINT_FAR_PLANE);
+    glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), EX_POINT_FAR_PLANE);
     glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
     glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
   }
 }
 
-void point_light_destroy(point_light_t *l)
+void ex_point_light_destroy(ex_point_light_t *l)
 {
   glDeleteFramebuffers(1, &l->depth_map_fbo);
   glDeleteTextures(1, &l->depth_map);

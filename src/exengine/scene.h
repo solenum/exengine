@@ -16,53 +16,53 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define MAX_POINT_LIGHTS 500
-#define MAX_SPOT_LIGHTS 128
+#define EX_MAX_POINT_LIGHTS 500
+#define EX_MAX_SPOT_LIGHTS 128
 
 // this should be the value of the biggest define above
-#define SCENE_BIGGEST_LIGHT 500
+#define EX_SCENE_BIGGEST_LIGHT 500
 
 typedef struct {
   GLuint shader, primshader;
   list_t *model_list, *texture_list, *coll_list;
-  fps_camera_t *fps_camera;
-  skybox_t *skybox;
+  ex_fps_camera_t *fps_camera;
+  ex_skybox_t *skybox;
   vec3 gravity;
-  point_light_t *point_lights[MAX_POINT_LIGHTS];
-  spot_light_t *spot_lights[MAX_SPOT_LIGHTS];
-  dir_light_t *dir_light;
-  octree_t *coll_tree;
+  ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
+  ex_spot_light_t *spot_lights[EX_MAX_SPOT_LIGHTS];
+  ex_dir_light_t *dir_light;
+  ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;
   size_t coll_vertices_last;;
 
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
-} scene_t;
-extern scene_t *scene;
+} ex_scene_t;
+extern ex_scene_t *scene;
 
-scene_t* scene_new();
+ex_scene_t* scene_new();
 
-void scene_add_collision(scene_t *s, model_t *m);
+void ex_scene_add_collision(ex_scene_t *s, ex_model_t *m);
 
-void scene_build_collision(scene_t *s);
+void ex_scene_build_collision(ex_scene_t *s);
 
-void scene_add_pointlight(scene_t *s, point_light_t *pl);
+void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl);
 
-void scene_add_spotlight(scene_t *s, spot_light_t *pl);
+void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *pl);
 
-void scene_update(scene_t *s, float delta_time);
+void ex_scene_update(ex_scene_t *s, float delta_time);
 
-void scene_draw(scene_t *s);
+void ex_scene_draw(ex_scene_t *s);
 
-void scene_manage_lights(scene_t *s);
+void ex_scene_manage_lights(ex_scene_t *s);
 
-void scene_dbgui(scene_t *s);
+void ex_scene_dbgui(ex_scene_t *s);
 
-void scene_render_models(scene_t *s, GLuint shader, int shadows);
+void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows);
 
-GLuint scene_add_texture(scene_t *s, const char *file);
+GLuint ex_scene_add_texture(ex_scene_t *s, const char *file);
 
-void scene_destroy(scene_t *s);
+void ex_scene_destroy(ex_scene_t *s);
 
 #endif // EX_SCENE_H

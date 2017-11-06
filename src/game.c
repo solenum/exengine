@@ -14,8 +14,8 @@
 const double phys_delta_time = 1.0 / 120.0;
 const double slowest_frame = 1.0 / 15.0;
 double delta_time, accumulator = 0.0;
-fps_camera_t *camera = NULL;
-scene_t *scene;
+ex_fps_camera_t *camera = NULL;
+ex_scene_t *scene;
 conf_t conf;
 
 void game_init()
@@ -29,7 +29,7 @@ void game_init()
   height = conf_get_int(&conf, "window_height");
   
   // init the window and gl
-  if (!window_init(width, height, "Underwater Zombie Maniac")) {
+  if (!ex_window_init(width, height, "Underwater Zombie Maniac")) {
     game_exit();
     return;
   }
@@ -39,71 +39,71 @@ void game_init()
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
-  camera = fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 90.0f);
+  camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 90.0f);
   scene->fps_camera = camera;
 }
 
 void game_run()
 {
-  model_t *m6 = iqm_load_model(scene, "data/level.iqm", 1);
+  ex_model_t *m6 = ex_iqm_load_model(scene, "data/level.iqm", 1);
   list_add(scene->model_list, m6);
 
-  // dir_light_t *dl = dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
+  // ex_dir_light_t *dl = ex_dir_light_new((vec3){4.0f, 16.0f, 4.0f}, (vec3){0.4f, 0.4f, 0.45f}, 1);
   // list_add(scene->dir_light_list, dl);
 
-  // skybox_t *s = skybox_new("sky");
+  // ex_skybox_t *s = ex_skybox_new("sky");
   // scene->skybox = s;
 
-  entity_t *e = entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
+  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
   e->position[0] = 1.1f; 
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  // model_t *d = iqm_load_model(scene, "data/human.iqm", 0);
+  // ex_model_t *d = ex_iqm_load_model(scene, "data/human.iqm", 0);
   // list_add(scene->model_list, d);
   // d->position[1] = 1.5f;
   // d->rotation[0] = -90.0f;
-  // model_set_anim(d, 0);
+  // ex_model_set_anim(d, 0);
 
-  // model_t *g = iqm_load_model(scene, "data/gun.iqm", 0);
+  // ex_model_t *g = ex_iqm_load_model(scene, "data/gun.iqm", 0);
   // list_add(scene->model_list, g);
   // camera->view_model = g;
   // float lastyaw = 0;
   // int aim = 0;
   // vec3 oldpos;
-  // model_set_anim(g, 0);
+  // ex_model_set_anim(g, 0);
   // camera->view_model_offset[0]  = 0.0f;
   // camera->view_model_offset[1]  = -0.15f;
   // camera->view_model_offset[2]  = 0.25f;
 
-  // model_t *grass = iqm_load_model(scene, "data/tall-grass.iqm", 0);
+  // ex_model_t *grass = ex_iqm_load_model(scene, "data/tall-grass.iqm", 0);
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
-  point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
-  scene_add_pointlight(scene, l);
+  ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  ex_scene_add_pointlight(scene, l);
 
-  point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
+  ex_point_light_t *pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // scene_add_pointlight(scene, pl);
+  // ex_scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
-  model_t *box = iqm_load_model(scene, "data/cube.iqm", 0);
+  ex_model_t *box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
   // box->is_shadow = 0;
   list_add(scene->model_list, box);
-  entity_t *cube = entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
+  ex_entity_t *cube = ex_entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
   cube->position[1] = 2.5f;
 
-  double last_frame_time = glfwGetTime();
+  double last_ex_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
     glfwPollEvents();
-    window_begin();
+    ex_window_begin();
 
     // calculate delta time
-    double current_frame_time = (double)glfwGetTime();
-    delta_time = current_frame_time - last_frame_time;
-    last_frame_time = current_frame_time;
+    double current_ex_frame_time = (double)glfwGetTime();
+    delta_time = current_ex_frame_time - last_ex_frame_time;
+    last_ex_frame_time = current_ex_frame_time;
 
     // prevent spiral of death
     if (delta_time > slowest_frame)
@@ -112,8 +112,8 @@ void game_run()
     // update at a constant rate to keep physics in check
     accumulator += delta_time;
     while (accumulator >= phys_delta_time) {
-      entity_update(e, phys_delta_time);
-      entity_update(cube, phys_delta_time);
+      ex_entity_update(e, phys_delta_time);
+      ex_entity_update(cube, phys_delta_time);
 
       memcpy(camera->position, e->position, sizeof(vec3));
       camera->position[1] += e->radius[1];
@@ -141,7 +141,7 @@ void game_run()
       if (cube->velocity[1] <= 0.0f && cube->grounded)
         cube->velocity[1] = 0.0f;
 
-      if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
+      if (ex_keys_down[GLFW_KEY_LEFT_CONTROL]) {
         vec3 p;
         vec3_scale(p, camera->front, 2.5f);
         vec3_add(p, p, e->position);
@@ -151,7 +151,7 @@ void game_run()
 
         float f = vec3_len(p);
         if (f > 2.5f) {
-          keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+          ex_keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
           break;
         }
 
@@ -166,22 +166,22 @@ void game_run()
 
         // memset(cube->velocity, 0, sizeof(vec3));
       
-        if (buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
+        if (ex_buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
           vec3_scale(temp, camera->front, 40.0f);
           vec3_add(cube->velocity, cube->velocity, temp);
-          keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+          ex_keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
         }
       }
 
-      if (keys_down[GLFW_KEY_F]) {
+      if (ex_keys_down[GLFW_KEY_F]) {
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+        ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
         memcpy(l->position, camera->position, sizeof(vec3));
-        scene_add_pointlight(scene, l);
+        ex_scene_add_pointlight(scene, l);
         l->is_shadow = 0;
-        keys_down[GLFW_KEY_F] = 0;
+        ex_keys_down[GLFW_KEY_F] = 0;
       }
 
       /* debug entity movement */
@@ -198,44 +198,44 @@ void game_run()
       if (e->velocity[1] <= 0.0f && e->grounded)
         e->velocity[1] = 0.0f;
 
-      if (keys_down[GLFW_KEY_C])
+      if (ex_keys_down[GLFW_KEY_C])
         glfwSwapInterval(1);
-      if (keys_down[GLFW_KEY_V])
+      if (ex_keys_down[GLFW_KEY_V])
         glfwSwapInterval(0);
 
       vec3 speed, side;
-      if (keys_down[GLFW_KEY_W]) {
+      if (ex_keys_down[GLFW_KEY_W]) {
         vec3_scale(speed, camera->front, move_speed * phys_delta_time);
         speed[1] = 0.0f;
         vec3_add(e->velocity, e->velocity, speed);
       }
-      if (keys_down[GLFW_KEY_S]) {
+      if (ex_keys_down[GLFW_KEY_S]) {
         vec3_scale(speed, camera->front, move_speed * phys_delta_time);
         speed[1] = 0.0f;
         vec3_sub(e->velocity, e->velocity, speed);
       }
-      if (keys_down[GLFW_KEY_A]) {
+      if (ex_keys_down[GLFW_KEY_A]) {
         vec3_mul_cross(side, camera->front, camera->up);
         vec3_norm(side, side);
         vec3_scale(side, side, (move_speed*0.9f) * phys_delta_time);
         side[1] = 0.0f;
         vec3_sub(e->velocity, e->velocity, side);
       }
-      if (keys_down[GLFW_KEY_D]) {
+      if (ex_keys_down[GLFW_KEY_D]) {
         vec3_mul_cross(side, camera->front, camera->up);
         vec3_norm(side, side);
         vec3_scale(side, side, (move_speed*0.9f) * phys_delta_time);
         side[1] = 0.0f;
         vec3_add(e->velocity, e->velocity, side);
       }
-      if (keys_down[GLFW_KEY_Q])
+      if (ex_keys_down[GLFW_KEY_Q])
         e->velocity[1] = 50.0f;
-      if (keys_down[GLFW_KEY_Z])
+      if (ex_keys_down[GLFW_KEY_Z])
         e->velocity[1] = -50.0f;
-      if (keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
+      if (ex_keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
         e->velocity[1] = 20.0f;
       }
-      /* if (keys_down[GLFW_KEY_LEFT_CONTROL]) {
+      /* if (ex_keys_down[GLFW_KEY_LEFT_CONTROL]) {
         e->radius[1] = 0.5f;
         move_speed = 100.0f;
       } else {
@@ -245,27 +245,27 @@ void game_run()
         e->radius[1] = 1.0f;
       }*/
       move_speed = 200.0f;
-      if (keys_down[GLFW_KEY_ESCAPE])
+      if (ex_keys_down[GLFW_KEY_ESCAPE])
         break;
-      if (keys_down[GLFW_KEY_G] || glimgui_keys_down[GLFW_KEY_G]) {
-        keys_down[GLFW_KEY_G] = 0;
-        glimgui_keys_down[GLFW_KEY_G] = 0;
+      if (ex_keys_down[GLFW_KEY_G] || glimgui_ex_keys_down[GLFW_KEY_G]) {
+        ex_keys_down[GLFW_KEY_G] = 0;
+        glimgui_ex_keys_down[GLFW_KEY_G] = 0;
         glimgui_focus = !glimgui_focus;
       }
-      if (keys_down[GLFW_KEY_X]) {
+      if (ex_keys_down[GLFW_KEY_X]) {
         ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
-        keys_down[GLFW_KEY_X] = 0;
+        ex_keys_down[GLFW_KEY_X] = 0;
       }
 
       memcpy(pl->position, e->position, sizeof(vec3));
       pl->position[1] += 1.0f;
-      scene_update(scene, phys_delta_time);
+      ex_scene_update(scene, phys_delta_time);
 
       accumulator -= phys_delta_time;
     }
 
-    scene_draw(scene);
-    scene_dbgui(scene);
+    ex_scene_draw(scene);
+    ex_scene_dbgui(scene);
 
     /* IMGUI DOCK TEST CRAP
     bool open = 1;
@@ -308,7 +308,7 @@ void game_run()
     igShowTestWindow(NULL);
     ex_dbgui_render_profiler();
 
-    window_end();
+    ex_window_end();
     glfwSwapBuffers(display.window);
   }
 }
@@ -316,8 +316,8 @@ void game_run()
 void game_exit()
 {
   glimgui_shutdown();
-  scene_destroy(scene);
+  ex_scene_destroy(scene);
   conf_free(&conf);
-  window_destroy();
+  ex_window_destroy();
   printf("Exiting\n");
 }

@@ -6,9 +6,9 @@
 
 GLuint skybox_shader, skybox_vao, skybox_vbo;
 
-void skybox_init()
+void ex_skybox_init()
 {
-  skybox_shader = shader_compile("data/skyshader.vs", "data/skyshader.fs", NULL);
+  skybox_shader = ex_shader_compile("data/skyshader.vs", "data/skyshader.fs", NULL);
 
   // vao for skybox
   glGenVertexArrays(1, &skybox_vao);
@@ -17,7 +17,7 @@ void skybox_init()
 
   // vertices
   glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), &skybox_vertices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(ex_skybox_vertices), &ex_skybox_vertices[0], GL_STATIC_DRAW);
 
   // position
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*3, (GLvoid*)0);
@@ -26,9 +26,9 @@ void skybox_init()
   glBindVertexArray(0);
 }
 
-skybox_t* skybox_new(const char *tex_name)
+ex_skybox_t* ex_skybox_new(const char *tex_name)
 {
-  skybox_t *s = malloc(sizeof(skybox_t));
+  ex_skybox_t *s = malloc(sizeof(ex_skybox_t));
   s->shader = skybox_shader;
 
   printf("Loading skybox %s\n", tex_name);
@@ -50,7 +50,7 @@ skybox_t* skybox_new(const char *tex_name)
     strcpy(&name[strlen(tex_name)], suffix[i]);
 
     // load texture
-    texture_t *tex = texture_load(name, 1);
+    ex_texture_t *tex = ex_texture_load(name, 1);
     if (tex == NULL) {
       printf("Failed creating skybox\n");
       return NULL;
@@ -75,7 +75,7 @@ skybox_t* skybox_new(const char *tex_name)
   return s;
 }
 
-void skybox_draw(skybox_t *s)
+void ex_skybox_draw(ex_skybox_t *s)
 {
   glDepthMask(GL_FALSE);
   glUseProgram(s->shader);
@@ -94,7 +94,7 @@ void skybox_draw(skybox_t *s)
   glDepthMask(GL_TRUE);
 }
 
-void skybox_destroy(skybox_t *s)
+void ex_skybox_destroy(ex_skybox_t *s)
 {
   glDeleteTextures(1, &s->texture);
   free(s);

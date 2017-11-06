@@ -7,18 +7,18 @@
 #define DIR_FAR_PLANE   50
 #define DIR_LIGHT_SIZE  15
 mat4x4 dir_shadow_projection;
-GLuint dir_light_shader;
+GLuint ex_dir_light_shader;
 
-void dir_light_init()
+void ex_dir_light_init()
 {
   float s = DIR_LIGHT_SIZE;
-  dir_light_shader = shader_compile("data/dirfbo.vs", "data/dirfbo.fs", NULL);
+  ex_dir_light_shader = ex_shader_compile("data/dirfbo.vs", "data/dirfbo.fs", NULL);
   mat4x4_ortho(dir_shadow_projection, -s, s, -s, s, 0.1f, DIR_FAR_PLANE);
 }
 
-dir_light_t* dir_light_new(vec3 pos, vec3 color, int dynamic)
+ex_dir_light_t* ex_dir_light_new(vec3 pos, vec3 color, int dynamic)
 {
-  dir_light_t *l = malloc(sizeof(dir_light_t));
+  ex_dir_light_t *l = malloc(sizeof(ex_dir_light_t));
 
   memcpy(l->position, pos, sizeof(vec3));
   memcpy(l->color, color, sizeof(vec3));
@@ -47,14 +47,14 @@ dir_light_t* dir_light_new(vec3 pos, vec3 color, int dynamic)
     printf("Error! Dir light framebuffer is not complete!\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  l->shader  = dir_light_shader;
+  l->shader  = ex_dir_light_shader;
   l->dynamic = dynamic;
   l->update  = 1;
 
   return l;
 }
 
-void dir_light_begin(dir_light_t *l)
+void ex_dir_light_begin(ex_dir_light_t *l)
 {
   l->update = 0;
 
@@ -76,7 +76,7 @@ void dir_light_begin(dir_light_t *l)
   glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
 }
 
-void dir_light_draw(dir_light_t *l, GLuint shader)
+void ex_dir_light_draw(ex_dir_light_t *l, GLuint shader)
 {
   glActiveTexture(GL_TEXTURE4);
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
@@ -91,7 +91,7 @@ void dir_light_draw(dir_light_t *l, GLuint shader)
   glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
 }
 
-void dir_light_destroy(dir_light_t *l)
+void ex_dir_light_destroy(ex_dir_light_t *l)
 {
   glDeleteFramebuffers(1, &l->depth_map_fbo);
   glDeleteTextures(1, &l->depth_map);

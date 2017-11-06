@@ -15,13 +15,13 @@ typedef struct {
   int width, height;
   char name[32];
   uint8_t *data;
-} texture_t;
+} ex_texture_t;
 
 /**
- * [texture_load load a texture from file]
+ * [ex_texture_load load a texture from file]
  * @param  file [file path string]
  * @return      [texture var]
  */
-texture_t* texture_load(const char *file, int get_data);
+ex_texture_t* ex_texture_load(const char *file, int get_data);
 
 #endif // EX_TEXTURE_H

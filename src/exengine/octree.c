@@ -3,11 +3,11 @@
 #include "dbgui.h"
 #include <stdio.h>
 
-int octree_min_size = OCTREE_DEFAULT_MIN_SIZE;
+int ex_octree_min_size = EX_OCTREE_DEFAULT_MIN_SIZE;
 
-octree_t* octree_new(uint8_t type)
+ex_octree_t* ex_octree_new(uint8_t type)
 {
-  octree_t *o = malloc(sizeof(octree_t));
+  ex_octree_t *o = malloc(sizeof(ex_octree_t));
 
   for (int i=0; i<8; i++) {
     o->children[i] = NULL;
@@ -19,7 +19,7 @@ octree_t* octree_new(uint8_t type)
   o->built    = 0;
   o->first    = 1;
   o->obj_list = list_new();
-  octree_min_size = octree_min_size;
+  ex_octree_min_size = ex_octree_min_size;
 
   o->data_len    = 0;
   o->data_type   = type;
@@ -32,7 +32,7 @@ octree_t* octree_new(uint8_t type)
   return o;
 }
 
-void octree_init(octree_t *o, rect_t region, list_t *objects)
+void ex_octree_init(ex_octree_t *o, ex_rect_t region, list_t *objects)
 {
   memcpy(&o->region, &region, sizeof(region));
   for (int i=0; i<8; i++) {
@@ -51,13 +51,13 @@ void octree_init(octree_t *o, rect_t region, list_t *objects)
   o->data_double = NULL;
 }
 
-void octree_build(octree_t *o)
+void ex_octree_build(ex_octree_t *o)
 {
   if (o->obj_list->data == NULL)
     return;
 
   if (o->obj_list->next == NULL) {
-    octree_finalize(o);
+    ex_octree_finalize(o);
     return;
   }
 
@@ -65,9 +65,9 @@ void octree_build(octree_t *o)
   vec3 region;
   vec3_sub(region, o->region.max, o->region.min);
 
-  if (region[0] <= octree_min_size || region[1] <= octree_min_size || region[2] <= octree_min_size) {
+  if (region[0] <= ex_octree_min_size || region[1] <= ex_octree_min_size || region[2] <= ex_octree_min_size) {
     if (!o->first) {
-      octree_finalize(o);
+      ex_octree_finalize(o);
       return;
     }
   }
@@ -77,15 +77,15 @@ void octree_build(octree_t *o)
   vec3_add(center, o->region.min, half);
 
   // octant regions
-  rect_t octants[8];
-  octants[0] = rect_new(o->region.min, center);
-  octants[1] = rect_new((vec3){center[0], o->region.min[1], o->region.min[2]}, (vec3){o->region.max[0], center[1], center[2]});
-  octants[2] = rect_new((vec3){center[0], o->region.min[1], center[2]}, (vec3){o->region.max[0], center[1], o->region.max[2]});
-  octants[3] = rect_new((vec3){o->region.min[0], o->region.min[1], center[2]}, (vec3){center[0], center[1], o->region.max[2]});
-  octants[4] = rect_new((vec3){o->region.min[0], center[1], o->region.min[2]}, (vec3){center[0], o->region.max[1], center[2]});
-  octants[5] = rect_new((vec3){center[0], center[1], o->region.min[2]}, (vec3){o->region.max[0], o->region.max[1], center[2]});
-  octants[6] = rect_new(center, o->region.max);
-  octants[7] = rect_new((vec3){o->region.min[0], center[1], center[2]}, (vec3){center[0], o->region.max[1], o->region.max[2]});
+  ex_rect_t octants[8];
+  octants[0] = ex_rect_new(o->region.min, center);
+  octants[1] = ex_rect_new((vec3){center[0], o->region.min[1], o->region.min[2]}, (vec3){o->region.max[0], center[1], center[2]});
+  octants[2] = ex_rect_new((vec3){center[0], o->region.min[1], center[2]}, (vec3){o->region.max[0], center[1], o->region.max[2]});
+  octants[3] = ex_rect_new((vec3){o->region.min[0], o->region.min[1], center[2]}, (vec3){center[0], center[1], o->region.max[2]});
+  octants[4] = ex_rect_new((vec3){o->region.min[0], center[1], o->region.min[2]}, (vec3){center[0], o->region.max[1], center[2]});
+  octants[5] = ex_rect_new((vec3){center[0], center[1], o->region.min[2]}, (vec3){o->region.max[0], o->region.max[1], center[2]});
+  octants[6] = ex_rect_new(center, o->region.max);
+  octants[7] = ex_rect_new((vec3){o->region.min[0], center[1], center[2]}, (vec3){center[0], o->region.max[1], o->region.max[2]});
 
   // object lists
   list_t *obj_lists[8];
@@ -102,8 +102,8 @@ void octree_build(octree_t *o)
     int found = 0;
 
     for (int j=0; j<8; j++) {
-      octree_obj_t *obj = n->data;
-      if (aabb_inside(octants[j], obj->box)) {
+      ex_octree_obj_t *obj = n->data;
+      if (ex_aabb_inside(octants[j], obj->box)) {
         list_add(obj_lists[j], (void*)n->data);
         obj_lenghts[j]++;
         found = 1;
@@ -135,27 +135,27 @@ void octree_build(octree_t *o)
   // create children
   for (int i=0; i<8; i++) {
     if (obj_lists[i]->data != NULL) {
-      o->children[i] = malloc(sizeof(octree_t));
-      octree_init(o->children[i], octants[i], obj_lists[i]);
+      o->children[i] = malloc(sizeof(ex_octree_t));
+      ex_octree_init(o->children[i], octants[i], obj_lists[i]);
       o->children[i]->data_len  = obj_lenghts[i];
       o->children[i]->data_type = o->data_type;
-      octree_build(o->children[i]);
+      ex_octree_build(o->children[i]);
     } else {
       o->children[i] = NULL;
     }
   }
 
   o->data_len = obj_count;
-  octree_finalize(o);
+  ex_octree_finalize(o);
 }
 
-void octree_finalize(octree_t *o)
+void ex_octree_finalize(ex_octree_t *o)
 {
   // move object data into a flat array
   int i = 0;
   list_node_t *n = o->obj_list;
   while (n->data != NULL) {
-    octree_obj_t *data = n->data;
+    ex_octree_obj_t *data = n->data;
 
     switch (o->data_type) {
       case OBJ_TYPE_UINT:
@@ -203,14 +203,14 @@ void octree_finalize(octree_t *o)
   o->built = 1;
 }
 
-octree_t* octree_reset(octree_t *o)
+ex_octree_t* ex_octree_reset(ex_octree_t *o)
 {
   if (o == NULL)
     return NULL;
 
   for (int i=0; i<8; i++)
     if (o->children[i] != NULL)
-      octree_reset(o->children[i]);
+      ex_octree_reset(o->children[i]);
 
   if (o->obj_list != NULL) {
     list_destroy(o->obj_list);
@@ -253,22 +253,22 @@ octree_t* octree_reset(octree_t *o)
     free(o);
   } else {
     free(o);
-    return octree_new(data_type);
+    return ex_octree_new(data_type);
   }
 }
 
-void octree_get_colliding(octree_t *o, rect_t *bounds, list_t *data_list)
+void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, list_t *data_list)
 {
   if (o == NULL)
     return;
 
   // add our data to the list
-  void *oct_data = octree_data_ptr(o);
+  void *oct_data = ex_octree_data_ptr(o);
   if (oct_data != NULL) {
-    if (!aabb_aabb(o->region, *bounds))
+    if (!ex_aabb_aabb(o->region, *bounds))
       return;
 
-    octree_data_t *data = malloc(sizeof(octree_data_t));
+    ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t));
     data->len  = o->data_len;
     data->data = oct_data;
     list_add(data_list, data);
@@ -277,10 +277,10 @@ void octree_get_colliding(octree_t *o, rect_t *bounds, list_t *data_list)
   // recurse adding data to the list
   for (int i=0; i<8; i++)
     if (o->children[i] != NULL)
-      octree_get_colliding(o->children[i], bounds, data_list);
+      ex_octree_get_colliding(o->children[i], bounds, data_list);
 }
 
-void octree_render(octree_t *o)
+void ex_octree_render(ex_octree_t *o)
 {
   if (o == NULL || !o->built)
     return;
@@ -288,7 +288,7 @@ void octree_render(octree_t *o)
   int alive = 0;
   for (int i=0; i<8; i++) {
     if (o->children[i] != NULL) {
-      octree_render(o->children[i]);
+      ex_octree_render(o->children[i]);
       alive++;
     }
   }
@@ -300,10 +300,10 @@ void octree_render(octree_t *o)
     return;
 
   if (!o->rendered) {
-    float vertices[VERTICES_CUBE_LEN];
-    memcpy(vertices, vertices_cube, sizeof(float)*VERTICES_CUBE_LEN);
+    float vertices[EX_VERTICES_CUBE_LEN];
+    memcpy(vertices, ex_vertices_cube, sizeof(float)*EX_VERTICES_CUBE_LEN);
 
-    for (int i=0; i<VERTICES_CUBE_LEN; i+=3) {
+    for (int i=0; i<EX_VERTICES_CUBE_LEN; i+=3) {
       vertices[i+0] > 0.0f ? (vertices[i+0] = o->region.max[0]) : (vertices[i+0] = o->region.min[0]);
       vertices[i+1] > 0.0f ? (vertices[i+1] = o->region.max[1]) : (vertices[i+1] = o->region.min[1]);
       vertices[i+2] > 0.0f ? (vertices[i+2] = o->region.max[2]) : (vertices[i+2] = o->region.min[2]);
@@ -315,10 +315,10 @@ void octree_render(octree_t *o)
     glBindVertexArray(o->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, o->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*VERTICES_CUBE_LEN, &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*EX_VERTICES_CUBE_LEN, &vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*INDICES_CUBE_LEN, &indices_cube[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*EX_INDICES_CUBE_LEN, &ex_indices_cube[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -333,7 +333,7 @@ void octree_render(octree_t *o)
   glCullFace(GL_NONE);
   glBindVertexArray(o->vao);
   glLineWidth(0.5f);
-  glDrawElements(GL_LINES, INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_LINES, EX_INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);

@@ -7,10 +7,10 @@ extern conf_t conf;
 
 GLuint gbuffer, gpositon, gnormal, gcolorspec, grenderbuffer;
 GLuint gvao, gvbo;
-GLuint gshader, gmainshader;
+GLuint ex_gshader, ex_gmainshader;
 int width, height;
 
-void gbuffer_init()
+void ex_gbuffer_init()
 {
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
@@ -58,8 +58,8 @@ void gbuffer_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // compile shaders
-  gshader     = shader_compile("data/gbuffer.vs", "data/gbuffer.fs", NULL);
-  gmainshader = shader_compile("data/gmain.vs", "data/gmain.fs", NULL);
+  ex_gshader     = ex_shader_compile("data/gbuffer.vs", "data/gbuffer.fs", NULL);
+  ex_gmainshader = ex_shader_compile("data/gmain.vs", "data/gmain.fs", NULL);
 
   /* -- screen quad -- */
   GLfloat vertices[] = {   
@@ -92,9 +92,9 @@ void gbuffer_init()
   /* ----------------- */
 }
 
-void gbuffer_first()
+void ex_gbuffer_first()
 {
-  glUseProgram(gshader);
+  glUseProgram(ex_gshader);
   glViewport(0, 0, width, height);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -105,7 +105,7 @@ void gbuffer_first()
   glCullFace(GL_BACK);
 }
 
-void gbuffer_render(GLuint shader)
+void ex_gbuffer_render(GLuint shader)
 {
   // bind textures
   glUniform1i(glGetUniformLocation(shader, "u_position"), 0);
@@ -126,7 +126,7 @@ void gbuffer_render(GLuint shader)
   glBindVertexArray(0);
 }
 
-void gbuffer_destroy()
+void ex_gbuffer_destroy()
 {
   glDeleteRenderbuffers(1, &grenderbuffer);
   glDeleteFramebuffers(1, &gbuffer);

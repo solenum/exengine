@@ -20,26 +20,26 @@ typedef struct {
 
   // iteration depth
   int depth;
-} coll_packet_t;
+} ex_coll_packet_t;
 
 typedef struct {
   vec3 origin;
   vec3 normal;
   float equation[4];
-} plane_t;
+} ex_plane_t;
 
-plane_t plane_new(const vec3 a, const vec3 b);
+ex_plane_t ex_plane_new(const vec3 a, const vec3 b);
 
-plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c);
+ex_plane_t ex_triangle_to_plane(const vec3 a, const vec3 b, const vec3 c);
 
-double signed_distance_to_plane(const vec3 base_point, const plane_t *plane);
+double ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane);
 
-int is_front_facing(plane_t *plane, const vec3 direction);
+int ex_is_front_facing(ex_plane_t *plane, const vec3 direction);
 
-int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3);
+int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3);
 
-int get_lowest_root(float a, float b, float c, float max, float *root);
+int ex_get_lowest_root(float a, float b, float c, float max, float *root);
 
-void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3);
+void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3);
 
 #endif // EX_COLLISION_H

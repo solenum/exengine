@@ -7,9 +7,9 @@
 // use signbit(a) instead?
 #define in(a) *((uint32_t*) &a)
 
-plane_t plane_new(const vec3 a, const vec3 b)
+ex_plane_t ex_plane_new(const vec3 a, const vec3 b)
 {
-  plane_t plane;
+  ex_plane_t plane;
   memcpy(plane.origin, a, sizeof(vec3));
   memcpy(plane.normal, b, sizeof(vec3));
   plane.equation[0] = b[0];
@@ -20,7 +20,7 @@ plane_t plane_new(const vec3 a, const vec3 b)
   return plane;
 }
 
-plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
+ex_plane_t ex_triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
 {
   vec3 ba, ca;
   vec3_sub(ba, b, a);
@@ -30,7 +30,7 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
   vec3_mul_cross(temp, ba, ca);
   vec3_norm(temp, temp);
 
-  plane_t plane;
+  ex_plane_t plane;
   memcpy(plane.origin, a, sizeof(vec3));
   memcpy(plane.normal, temp, sizeof(vec3));
 
@@ -42,13 +42,13 @@ plane_t triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
   return plane;
 }
 
-double signed_distance_to_plane(const vec3 base_point, const plane_t *plane)
+double ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane)
 {
   return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
   // return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
 }
 
-int is_front_facing(plane_t *plane, const vec3 direction)
+int ex_is_front_facing(ex_plane_t *plane, const vec3 direction)
 {
   double f = vec3_mul_inner(plane->normal, direction);
   
@@ -58,7 +58,7 @@ int is_front_facing(plane_t *plane, const vec3 direction)
   return 0;
 }
 
-int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3)
+int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3)
 {
   /*
   vec3 e10, e20;
@@ -102,7 +102,7 @@ int check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, cons
   return ((r + t) <= 1.0f);
 }
 
-int get_lowest_root(float a, float b, float c, float max, float *root)
+int ex_get_lowest_root(float a, float b, float c, float max, float *root)
 {
   // check if solution exists
   float determinant = b*b - 4.0f*a*c;
@@ -138,12 +138,12 @@ int get_lowest_root(float a, float b, float c, float max, float *root)
   return 0;
 }
 
-void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3)
+void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3)
 {
-  plane_t plane = triangle_to_plane(p1, p2, p3);
+  ex_plane_t plane = ex_triangle_to_plane(p1, p2, p3);
 
   // only check front facing triangles
-  if (!is_front_facing(&plane, packet->e_norm_velocity))
+  if (!ex_is_front_facing(&plane, packet->e_norm_velocity))
     return;
   
   // get interval of plane intersection
@@ -151,7 +151,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
   int embedded_in_plane = 0;
 
   // signed distance from sphere to point on plane
-  double signed_dist_to_plane = signed_distance_to_plane(packet->e_base_point, &plane);
+  double signed_dist_to_plane = ex_signed_distance_to_plane(packet->e_base_point, &plane);
 
   // cache this as we will reuse
   float normal_dot_vel = vec3_mul_inner(plane.normal, packet->e_velocity);
@@ -205,7 +205,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     vec3_scale(temp, packet->e_velocity, t0);
     vec3_add(plane_intersect, plane_intersect, temp);
 
-    if (check_point_in_triangle(plane_intersect, p1, p2, p3)) {
+    if (ex_check_point_in_triangle(plane_intersect, p1, p2, p3)) {
       found_collision = 1;
       t = t0;
       memcpy(collision_point, plane_intersect, sizeof(vec3));
@@ -232,7 +232,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
     b = 2.0f*(vec3_mul_inner(velocity, temp));
     vec3_sub(temp, p1, base);
     c = vec3_len2(temp) - 1.0;
-    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+    if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
       t = new_t;
       found_collision = 1;
       memcpy(collision_point, p1, sizeof(vec3));
@@ -244,7 +244,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
       b = 2.0f*(vec3_mul_inner(velocity, temp));
       vec3_sub(temp, p2, base);
       c = vec3_len2(temp) - 1.0;
-      if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+      if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
         t = new_t;
         found_collision = 1;
         memcpy(collision_point, p2, sizeof(vec3));
@@ -257,7 +257,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
       b = 2.0f*(vec3_mul_inner(velocity, temp));
       vec3_sub(temp, p3, base);
       c = vec3_len2(temp) - 1.0;
-      if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+      if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
         t = new_t;
         found_collision = 1;
         memcpy(collision_point, p3, sizeof(vec3));
@@ -281,7 +281,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+    if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0f && f <= 1.0f) {
@@ -309,7 +309,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+    if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0f && f <= 1.0f) {
@@ -337,7 +337,7 @@ void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p
         edge_dot_base_to_vertex * edge_dot_base_to_vertex;
 
     // do we collide against infinite edge
-    if (get_lowest_root(a, b, c, t, &new_t) == 1) {
+    if (ex_get_lowest_root(a, b, c, t, &new_t) == 1) {
       // check if intersect is within line segment
       float f = (edge_dot_velocity * new_t - edge_dot_base_to_vertex) / edge_sqrt_length;
       if (f >= 0.0f && f <= 1.0f) {

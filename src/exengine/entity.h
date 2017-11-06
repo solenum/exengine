@@ -8,21 +8,21 @@
 
 typedef struct {
   vec3 position, velocity, radius;
-  coll_packet_t packet;
-  scene_t *scene;
+  ex_coll_packet_t packet;
+  ex_scene_t *scene;
   int grounded;
-} entity_t;
+} ex_entity_t;
 
-entity_t* entity_new(scene_t *scene, vec3 radius);
+ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius);
 
-void entity_collide_and_slide(entity_t *entity, vec3 gravity);
+void ex_entity_collide_and_slide(ex_entity_t *entity, vec3 gravity);
 
-void entity_collide_with_world(entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity);
+void ex_entity_collide_with_world(ex_entity_t *entity, vec3 out_position, vec3 e_position, vec3 e_velocity);
 
-void entity_check_collision(entity_t *entity);
+void ex_entity_check_collision(ex_entity_t *entity);
 
-void entity_check_grounded(entity_t *entity);
+void ex_entity_check_grounded(ex_entity_t *entity);
 
-void entity_update(entity_t *entity, double dt);
+void ex_entity_update(ex_entity_t *entity, double dt);
 
 #endif // EX_ENTITY_H
