@@ -11,7 +11,7 @@ IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 # -- Flags -- #
 FLAGS 	= -g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
-CFLAGS +=-std=c99 -O3
+CFLAGS +=-std=c99
 
 # -- Files -- #
 # engine deps

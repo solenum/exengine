@@ -81,7 +81,7 @@ void game_run()
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
   point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
-  scene_add_pointlight(scene, l);
+  // scene_add_pointlight(scene, l);
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -177,10 +177,10 @@ void game_run()
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+        point_light_t *l = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
         memcpy(l->position, camera->position, sizeof(vec3));
         scene_add_pointlight(scene, l);
-        l->is_shadow = 1;
+        l->is_shadow = 0;
         keys_down[GLFW_KEY_F] = 0;
       }
 

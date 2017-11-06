@@ -401,7 +401,8 @@ void scene_manage_lights(scene_t *s)
     float f = vec3_mul_inner(thisfront, thatpos);
 
     // check if its behind us and far away
-    if (f <= 0.1f && pl->distance_to_cam > POINT_FAR_PLANE)
+    igText("dot l %f\n", f);
+    if (f <= -0.5f && pl->distance_to_cam > POINT_FAR_PLANE)
       pl->is_visible = 0;
     else
       pl->is_visible = 1;
@@ -424,7 +425,7 @@ void scene_manage_lights(scene_t *s)
     float f = vec3_mul_inner(thisfront, thatpos);
 
     // check if its behind us and far away
-    if (f <= 0.1f && sl->distance_to_cam > SPOT_FAR_PLANE)
+    if (f <= -0.5f && sl->distance_to_cam > SPOT_FAR_PLANE)
       sl->is_visible = 0;
     else
       sl->is_visible = 1;
