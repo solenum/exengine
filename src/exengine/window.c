@@ -53,6 +53,7 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   glEnable(GL_FRAMEBUFFER_SRGB);
 
   glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSwapInterval(0);
 
   // setup imgui debug gui
   glimgui_init(display.window);

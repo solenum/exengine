@@ -150,7 +150,7 @@ void game_run()
         vec3_sub(p, p, cube->position);
 
         float f = vec3_len(p);
-        if (f > 2.5f) {
+        if (f > 1.5f) {
           ex_keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
           break;
         }
@@ -159,7 +159,7 @@ void game_run()
           f *= f;;
 
         vec3_norm(p, p);
-        vec3_scale(p, p, f*5.0f);
+        vec3_scale(p, p, f*35.0f);
         f = cube->velocity[1];
         memcpy(cube->velocity, p, sizeof(vec3));
         cube->velocity[1] += f*0.1f;
@@ -177,10 +177,10 @@ void game_run()
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
         float b = (float)rand()/(float)(RAND_MAX/1.0f);
-        ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
+        ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
         memcpy(l->position, camera->position, sizeof(vec3));
         ex_scene_add_pointlight(scene, l);
-        l->is_shadow = 0;
+        l->is_shadow = 1;
         ex_keys_down[GLFW_KEY_F] = 0;
       }
 
@@ -205,12 +205,14 @@ void game_run()
 
       vec3 speed, side;
       if (ex_keys_down[GLFW_KEY_W]) {
-        vec3_scale(speed, camera->front, move_speed * phys_delta_time);
+        vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
+        vec3_scale(speed, speed, move_speed * phys_delta_time);
         speed[1] = 0.0f;
         vec3_add(e->velocity, e->velocity, speed);
       }
       if (ex_keys_down[GLFW_KEY_S]) {
-        vec3_scale(speed, camera->front, move_speed * phys_delta_time);
+        vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
+        vec3_scale(speed, speed, move_speed * phys_delta_time);
         speed[1] = 0.0f;
         vec3_sub(e->velocity, e->velocity, speed);
       }
