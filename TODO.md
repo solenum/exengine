@@ -4,10 +4,10 @@
 exengine/<ALL FILES>
 [X]  Finish writing this damn TODO list
 [ ]  Write CONTRIBUTING.md
-[ ]  Migrate all exengine source files and file names to use the prefix ex_
-[ ]  Migrate include guards to use the prefix EX_
+[X]  Migrate all exengine source files and file names to use the prefix ex_
+[X]  Migrate include guards to use the prefix EX_
 [X]  Implement oct-trees for polygon soup etc
-[!]  Implement Light culling
+[X]  Implement Light culling
 [X]  Finish render profiler
 [ ]  Add CPU profiler
 [ ]  Add scene editor using imgui
@@ -17,7 +17,7 @@ exengine/<ALL FILES>
 [ ]  Add user-level input functions & handling
 [ ]  Implement user-level file io for safe locations
 [ ]  Add instanced rendering for things like grass etc
-[ ]  Migrate to forward+ rendering?
+[?]  Migrate to forward+ rendering?
 [ ]  Write API documentation
 [ ]  A better cross-platform build system
 ```
