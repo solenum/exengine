@@ -1,7 +1,7 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef EX_TEXTURE_H
+#define EX_TEXTURE_H
 
-#define TEXTURE_LOC "data/textures/"
+#define EX_TEXTURE_LOC "data/textures/"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -24,4 +24,4 @@ typedef struct {
  */
 texture_t* texture_load(const char *file, int get_data);
 
-#endif // TEXTURE_H
+#endif // EX_TEXTURE_H

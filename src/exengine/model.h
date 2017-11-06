@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef EX_MODEL_H
+#define EX_MODEL_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -102,4 +102,4 @@ void calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale);
 void mix_pose(model_t *m, frame_t a, frame_t b, float weight);
 
 
-#endif // MODEL_H
+#endif // EX_MODEL_H

@@ -1,5 +1,5 @@
-#ifndef POINTLIGHT_H
-#define POINTLIGHT_H
+#ifndef EX_POINTLIGHT_H
+#define EX_POINTLIGHT_H
 
 #include "mathlib.h"
 
@@ -27,4 +27,4 @@ void point_light_draw(point_light_t *l, GLuint shader, const char *prefix);
 
 void point_light_destroy(point_light_t *l);
 
-#endif // POINTLIGHT_H
+#endif // EX_POINTLIGHT_H

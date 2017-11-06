@@ -6,9 +6,9 @@
 texture_t* texture_load(const char *file, int get_data)
 {
   // prepend file directory
-  size_t len = strlen(TEXTURE_LOC);
+  size_t len = strlen(EX_TEXTURE_LOC);
   char file_dir[len + strlen(file)];
-  strcpy(file_dir, TEXTURE_LOC);
+  strcpy(file_dir, EX_TEXTURE_LOC);
   strcpy(&file_dir[len], file);
   
   printf("Loading texture %s\n", file_dir);

@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef EX_SCENE_H
+#define EX_SCENE_H
 
 #include "exe_list.h"
 #include "texture.h"
@@ -65,4 +65,4 @@ GLuint scene_add_texture(scene_t *s, const char *file);
 
 void scene_destroy(scene_t *s);
 
-#endif // SCENE_H
+#endif // EX_SCENE_H

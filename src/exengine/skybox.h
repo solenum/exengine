@@ -1,5 +1,5 @@
-#ifndef SKYBOX_H
-#define SKYBOX_H
+#ifndef EX_SKYBOX_H
+#define EX_SKYBOX_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -61,4 +61,4 @@ void skybox_draw(skybox_t *s);
 
 void skybox_destroy(skybox_t *s);
 
-#endif // SKYBOX_H
+#endif // EX_SKYBOX_H

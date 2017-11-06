@@ -1,5 +1,5 @@
-#ifndef MATHLIB_H
-#define MATHLIB_H
+#ifndef EX_MATHLIB_H
+#define EX_MATHLIB_H
 
 #include <math.h>
 
@@ -704,4 +704,4 @@ static inline void quat_from_mat4x4(quat q, mat4x4 M)
   q[3] = (M[p[2]][p[1]] - M[p[1]][p[2]])/(2.f*r);
 }
 
-#endif // MATHLIB_H
+#endif // EX_MATHLIB_H

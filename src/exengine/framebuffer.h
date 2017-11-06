@@ -1,5 +1,5 @@
-#ifndef FRAMEBUFFER_H
-#define FRAMEBUFFER_H
+#ifndef EX_FRAMEBUFFER_H
+#define EX_FRAMEBUFFER_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -24,4 +24,4 @@ void framebuffer_render_quad();
 
 void framebuffer_destroy();
 
-#endif // FRAMEBUFFER_H
+#endif // EX_FRAMEBUFFER_H

@@ -1,5 +1,5 @@
-#ifndef DIRLIGHT_H
-#define DIRLIGHT_H
+#ifndef EX_DIRLIGHT_H
+#define EX_DIRLIGHT_H
 
 #include "mathlib.h"
 
@@ -25,4 +25,4 @@ void dir_light_draw(dir_light_t *l, GLuint shader);
 
 void dir_light_destroy(dir_light_t *l);
 
-#endif // DIRLIGHT_H
+#endif // EX_DIRLIGHT_H

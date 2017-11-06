@@ -81,7 +81,7 @@ void game_run()
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
   point_light_t *l = point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
-  // scene_add_pointlight(scene, l);
+  scene_add_pointlight(scene, l);
 
   point_light_t *pl = point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));

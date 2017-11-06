@@ -1,5 +1,5 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef EX_SHADER_H
+#define EX_SHADER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,4 +130,4 @@ exit:
 }
 
 
-#endif // SHADER_H
+#endif // EX_SHADER_H

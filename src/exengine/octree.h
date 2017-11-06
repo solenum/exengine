@@ -1,5 +1,5 @@
-#ifndef OCTREE_H
-#define OCTREE_H
+#ifndef EX_OCTREE_H
+#define EX_OCTREE_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -171,4 +171,4 @@ static inline rect_t rect_from_triangle(vec3 tri[3]) {
 };
 
 
-#endif // OCTREE_H
+#endif // EX_OCTREE_H

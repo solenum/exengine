@@ -1,5 +1,5 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef EX_MESH_H
+#define EX_MESH_H
 
 #include "mathlib.h"
 
@@ -52,4 +52,4 @@ void mesh_draw(mesh_t* m, GLuint shader_program);
  */
 void mesh_destroy(mesh_t *m);
 
-#endif // MESH_H
+#endif // EX_MESH_H

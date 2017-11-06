@@ -1,5 +1,5 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef EX_WINDOW_H
+#define EX_WINDOW_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -48,4 +48,4 @@ void window_end();
  */
 void window_destroy();
 
-#endif // WINDOW_H
+#endif // EX_WINDOW_H

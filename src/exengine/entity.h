@@ -1,5 +1,5 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef EX_ENTITY_H
+#define EX_ENTITY_H
 
 #include "mathlib.h"
 #include "collision.h"
@@ -25,4 +25,4 @@ void entity_check_grounded(entity_t *entity);
 
 void entity_update(entity_t *entity, double dt);
 
-#endif // ENTITY_H
+#endif // EX_ENTITY_H

@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef EX_CAMERA_H
+#define EX_CAMERA_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -40,4 +40,4 @@ void fps_camera_update(fps_camera_t *cam, GLuint shader_program);
 
 void fps_camera_draw(fps_camera_t *cam, GLuint shader_program);
 
-#endif // CAMERA_H
+#endif // EX_CAMERA_H

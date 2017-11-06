@@ -1,5 +1,5 @@
-#ifndef COLLISION_H
-#define COLLISION_H
+#ifndef EX_COLLISION_H
+#define EX_COLLISION_H
 
 #include "mathlib.h"
 
@@ -42,4 +42,4 @@ int get_lowest_root(float a, float b, float c, float max, float *root);
 
 void collision_check_triangle(coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3);
 
-#endif // COLLISION_H
+#endif // EX_COLLISION_H

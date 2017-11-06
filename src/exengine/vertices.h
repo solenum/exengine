@@ -1,5 +1,5 @@
-#ifndef VERTICES_H
-#define VERTICES_H
+#ifndef EX_VERTICES_H
+#define EX_VERTICES_H
 
 #define VERTICES_CUBE_LEN 24
 static float vertices_cube[] = {
@@ -22,4 +22,4 @@ static unsigned int indices_cube[] = {
   1, 5, 2, 6
 };
 
-#endif // VERTICES_H
+#endif // EX_VERTICES_H
