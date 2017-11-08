@@ -2,6 +2,7 @@
 #define EX_DBGUI_H
 
 #include "glimgui.h"
+#include "scene.h"
 
 typedef enum {
   ex_dbgprofiler_lighting_depth,
@@ -36,7 +37,7 @@ typedef struct {
 
 extern ex_dbgprofiler_t ex_dbgprofiler;
 
-void ex_dbgui_init();
+void ex_dbgui_init(ex_scene_t *s);
 
 void ex_dbgui_begin_profiler();
 

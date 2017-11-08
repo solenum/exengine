@@ -6,7 +6,6 @@
 #include "shader.h"
 #include "skybox.h"
 #include "camera.h"
-#include "dbgui.h"
 #include "pointlight.h"
 #include "dirlight.h"
 #include "spotlight.h"
@@ -39,7 +38,6 @@ typedef struct {
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
 } ex_scene_t;
-extern ex_scene_t *scene;
 
 ex_scene_t* scene_new();
 

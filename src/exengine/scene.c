@@ -7,6 +7,7 @@
 #include "framebuffer.h"
 #include "gbuffer.h"
 #include "window.h"
+#include "dbgui.h"
 
 ex_scene_t* scene_new()
 {
@@ -45,7 +46,7 @@ ex_scene_t* scene_new()
   s->coll_vertices_last = 0;
 
   // init debug gui
-  ex_dbgui_init();
+  ex_dbgui_init(s);
 
   // init debug vars
   s->plightc    = 0;
@@ -56,8 +57,6 @@ ex_scene_t* scene_new()
 
   // primitive debug shader
   s->primshader = ex_shader_compile("data/primshader.vs", "data/primshader.fs", NULL);
-
-  scene = s;
 
   return s;
 }
@@ -334,8 +333,8 @@ void ex_scene_draw(ex_scene_t *s)
       continue;
 
     // point light
-    if (pl != NULL && pl->is_visible) {
-      if (pl->is_shadow && pl->distance_to_cam <= EX_POINT_SHADOW_DIST) {
+    if (pl != NULL) {
+      if (pl->is_shadow && pl->distance_to_cam <= EX_POINT_SHADOW_DIST && pl->is_visible) {
         glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_active"), 1);
         ex_point_light_draw(pl, ex_gmainshader, NULL);
       } else {
@@ -344,8 +343,8 @@ void ex_scene_draw(ex_scene_t *s)
     }
 
     // spot light
-    if (sl != NULL && sl->is_visible) {
-      if (sl->is_shadow && sl->distance_to_cam <= EX_SPOT_SHADOW_DIST) {
+    if (sl != NULL) {
+      if (sl->is_shadow && sl->distance_to_cam <= EX_SPOT_SHADOW_DIST && sl->is_visible) {
         glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_active"), 1);
         ex_spot_light_draw(sl, ex_gmainshader, NULL);
       } else {
@@ -354,7 +353,8 @@ void ex_scene_draw(ex_scene_t *s)
     }
 
     // render gbuffer to screen quad
-    ex_gbuffer_render(ex_gmainshader);
+    if (pl != NULL || sl != NULL)
+      ex_gbuffer_render(ex_gmainshader);
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();

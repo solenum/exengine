@@ -60,11 +60,9 @@ void game_run()
   e->position[2] = 5.0f;
   float move_speed = 1.5f;
 
-  // ex_model_t *d = ex_iqm_load_model(scene, "data/human.iqm", 0);
-  // list_add(scene->model_list, d);
-  // d->position[1] = 1.5f;
-  // d->rotation[0] = -90.0f;
-  // ex_model_set_anim(d, 0);
+  ex_model_t *d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
+  list_add(scene->model_list, d);
+  ex_model_set_anim(d, 0);
 
   // ex_model_t *g = ex_iqm_load_model(scene, "data/gun.iqm", 0);
   // list_add(scene->model_list, g);
@@ -85,13 +83,13 @@ void game_run()
 
   ex_point_light_t *pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // ex_scene_add_pointlight(scene, pl);
+  ex_scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   ex_model_t *box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
   // box->is_shadow = 0;
   list_add(scene->model_list, box);
-  ex_entity_t *cube = ex_entity_new(scene, (vec3){1.0f, 1.0f, 1.0f});
+  ex_entity_t *cube = ex_entity_new(scene, (vec3){0.95f, 0.95f, 0.95f});
   cube->position[1] = 2.5f;
 
   double last_ex_frame_time = glfwGetTime();
@@ -173,6 +171,11 @@ void game_run()
         }
       }
 
+      if (ex_keys_down[GLFW_KEY_1])
+        ex_model_set_anim(d, 0);
+      if (ex_keys_down[GLFW_KEY_2])
+        ex_model_set_anim(d, 1);
+
       if (ex_keys_down[GLFW_KEY_F]) {
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
         float g = (float)rand()/(float)(RAND_MAX/1.0f);
@@ -247,8 +250,6 @@ void game_run()
         e->radius[1] = 1.0f;
       }*/
       move_speed = 200.0f;
-      if (ex_keys_down[GLFW_KEY_ESCAPE])
-        break;
       if (ex_keys_down[GLFW_KEY_G] || glimgui_ex_keys_down[GLFW_KEY_G]) {
         ex_keys_down[GLFW_KEY_G] = 0;
         glimgui_ex_keys_down[GLFW_KEY_G] = 0;

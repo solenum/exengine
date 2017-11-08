@@ -1,7 +1,8 @@
 #include "window.h"
 #include "octree.h"
-#include "scene.h"
 #include "dbgui.h"
+
+ex_scene_t *scene = NULL;
 
 const int ex_dbgprofiler_width  = 640;
 const int ex_dbgprofiler_height = 250;
@@ -20,8 +21,10 @@ float scale_to_range(float input, float mina, float maxa, float minb, float maxb
   return (maxa - mina) * (input - minb) / (maxb - minb) + mina;
 }
 
-void ex_dbgui_init()
+void ex_dbgui_init(ex_scene_t *s)
 {
+  scene = s;
+
   // set default starting values
   for (int i=0; i<ex_dbgprofiler_count; i++) {
     ex_dbgprofiler.begin[i] = 0.0f;
@@ -34,7 +37,7 @@ void ex_dbgui_init()
   ex_dbgprofiler.timer           = 0.0f;
   ex_dbgprofiler.wireframe       = 0;
   ex_dbgprofiler.last_ex_frame_time = 0;
-  ex_dbgprofiler.render_octree   = 1;
+  ex_dbgprofiler.render_octree   = 0;
   ex_dbgprofiler.octree_obj_only = 0;
 
   // set gui style

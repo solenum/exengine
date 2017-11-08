@@ -55,6 +55,8 @@ void ex_entity_collide_and_slide(ex_entity_t *entity, vec3 gravity)
   // if (temp[1] <= 0.5f || (entity->velocity[1] > 0.0f && entity->grounded == 0))
     // memcpy(entity->velocity, temp, sizeof(vec3));
 
+  // add our sliding direction to the velocity
+  // causing a smooth ice-skating sort of effect on angled surfaces
   vec3 dir, dist;
   vec3_sub(dir, entity->packet.r3_position, entity->position);
   memcpy(dist, dir, sizeof(vec3));
