@@ -95,7 +95,6 @@ void game_run()
   double last_ex_frame_time = glfwGetTime();
   while (!glfwWindowShouldClose(display.window)) {
     // handle window events
-    glfwPollEvents();
     ex_window_begin();
 
     // calculate delta time
@@ -110,6 +109,8 @@ void game_run()
     // update at a constant rate to keep physics in check
     accumulator += delta_time;
     while (accumulator >= phys_delta_time) {
+      glfwPollEvents();
+      
       ex_entity_update(e, phys_delta_time);
       ex_entity_update(cube, phys_delta_time);
 
