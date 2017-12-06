@@ -197,7 +197,7 @@ void game_run()
       else
         move_speed = 20.0f;
       
-      if (e->grounded == 0)
+      // if (e->grounded == 0)
         e->velocity[1] -= (100.0f * phys_delta_time);
       if (e->velocity[1] <= 0.0f && e->grounded)
         e->velocity[1] = 0.0f;
