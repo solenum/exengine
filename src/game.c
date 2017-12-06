@@ -54,10 +54,10 @@ void game_run()
   // ex_skybox_t *s = ex_skybox_new("sky");
   // scene->skybox = s;
 
-  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
+  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 0.5f, 0.5f});
   e->position[1] = 1.1f;
   e->position[0] = 1.1f; 
-  e->position[2] = 5.0f;
+  e->position[2] = -50.0f;
   float move_speed = 1.5f;
 
   ex_model_t *d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
@@ -78,7 +78,7 @@ void game_run()
   // ex_model_t *grass = ex_iqm_load_model(scene, "data/tall-grass.iqm", 0);
   // list_add(scene->model_list, grass);
   // grass->position[0] = -2.0f;
-  ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 5.0f, 0.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 5.0f, -50.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   ex_scene_add_pointlight(scene, l);
 
   ex_point_light_t *pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.05f, 0.05f, 0.05f}, 0);
