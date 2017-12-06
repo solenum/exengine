@@ -54,7 +54,7 @@ void game_run()
   // ex_skybox_t *s = ex_skybox_new("sky");
   // scene->skybox = s;
 
-  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 0.5f, 0.5f});
+  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
   e->position[0] = 1.1f; 
   e->position[2] = -50.0f;
@@ -197,7 +197,7 @@ void game_run()
       else
         move_speed = 20.0f;
       
-      // if (e->grounded == 0)
+      if (e->grounded == 0)
         e->velocity[1] -= (100.0f * phys_delta_time);
       if (e->velocity[1] <= 0.0f && e->grounded)
         e->velocity[1] = 0.0f;

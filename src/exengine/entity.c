@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define VERY_CLOSE_DIST 0.005f
-#define SLOPE_WALK_ANGLE 0.85f
+#define SLOPE_WALK_ANGLE 0.9f
 
 ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 {
@@ -153,16 +153,14 @@ void ex_entity_check_collision(ex_entity_t *entity)
 
 void ex_entity_check_grounded(ex_entity_t *entity, double dt)
 {
-  vec3 vel = {0.0f, -0.5f, 0.0f};
+  vec3 vel = {0.0f, -0.1f, 0.0f};
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
   memcpy(entity->packet.r3_velocity, vel, sizeof(vec3));
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
-  entity->packet.r3_position[1] += 0.1f;
 
   vec3 e_position, e_velocity;
   vec3_div(e_position, entity->packet.r3_position, entity->packet.e_radius);
   vec3_div(e_velocity, vel, entity->packet.e_radius);
-  memcpy(e_velocity, vel, sizeof(vec3));
 
   vec3_norm(entity->packet.e_norm_velocity, e_velocity);
   memcpy(entity->packet.e_norm_velocity, e_velocity, sizeof(vec3));
@@ -186,11 +184,12 @@ void ex_entity_check_grounded(ex_entity_t *entity, double dt)
     vec3_norm(slide_plane_normal, slide_plane_normal);
     float slope = vec3_mul_inner(slide_plane_normal, (vec3){0.0f, 1.0f, 0.0f});
 
-
     if (slope > SLOPE_WALK_ANGLE) {
       entity->grounded = 1;
       vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
       entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
+      if (entity->velocity[1] > 0.0f)
+        entity->velocity[1] = 0.0f;
     } else {
       entity->grounded = 0;
     }
