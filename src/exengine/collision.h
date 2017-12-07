@@ -4,6 +4,12 @@
 #include "mathlib.h"
 
 typedef struct {
+  vec3 origin;
+  vec3 normal;
+  float equation[4];
+} ex_plane_t;
+
+typedef struct {
   // r3 space
   vec3 r3_velocity, r3_position;
 
@@ -16,17 +22,13 @@ typedef struct {
   // hit information
   int found_collision;
   float nearest_distance;
+  double t;
   vec3 intersect_point;
+  ex_plane_t plane;
 
   // iteration depth
   int depth;
 } ex_coll_packet_t;
-
-typedef struct {
-  vec3 origin;
-  vec3 normal;
-  float equation[4];
-} ex_plane_t;
 
 ex_plane_t ex_plane_new(const vec3 a, const vec3 b);
 

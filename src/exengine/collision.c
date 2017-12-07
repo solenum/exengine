@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // use signbit(a) instead?
-#define in(a) *((uint32_t*) &a)
+// #define in(a) *((uint32_t*) &a)
 
 ex_plane_t ex_plane_new(const vec3 a, const vec3 b)
 {
@@ -44,8 +44,8 @@ ex_plane_t ex_triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
 
 double ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane)
 {
-  return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
-  // return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
+  // return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
+  return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
 }
 
 int ex_is_front_facing(ex_plane_t *plane, const vec3 direction)
@@ -60,8 +60,7 @@ int ex_is_front_facing(ex_plane_t *plane, const vec3 direction)
 
 int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3)
 {
-  /*
-  vec3 e10, e20;
+  /*vec3 e10, e20;
   vec3_sub(e10, p2, p1);
   vec3_sub(e20, p3, p1);
   float a = vec3_mul_inner(e10, e10);
@@ -72,9 +71,9 @@ int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, c
   float d = vec3_mul_inner(vp, e10);
   float e = vec3_mul_inner(vp, e20);
   float x = (d * c) - (e * b);
-  float y = (e * a) - (d * d);
+  float y = (e * a) - (d * b);
   float z = x + y - ac_bb;
-  return (( in(z)& ~(in(x)|in(y)) ) & 0x80000000);*/
+  return (( signbit(z)& ~(signbit(x)|signbit(y)) ) & 0x80000000);*/
 
   vec3 u, v, w, vw, vu, uw, uv;
   vec3_sub(u, p2, p1);
@@ -169,9 +168,9 @@ void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const 
     }
   } else {
     // N dot D is not 0, calc intersect interval
-    float nvi = 1.0f / normal_dot_vel;
-    t0=(-1.0 - signed_dist_to_plane) * nvi;
-    t1=( 1.0 - signed_dist_to_plane) * nvi;
+    // float nvi = 1.0f / normal_dot_vel;
+    t0=(-1.0 - signed_dist_to_plane) / normal_dot_vel;
+    t1=( 1.0 - signed_dist_to_plane) / normal_dot_vel;
 
     // swap so t0 < t1
     if (t0 > t1) {
@@ -196,7 +195,7 @@ void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const 
   // time to check for a collision
   vec3 collision_point;
   int found_collision = 0;
-  float t = 1.0;
+  double t = 1.0;
 
   // first check collision with the inside of the triangle
   if (embedded_in_plane == 0) {
@@ -353,13 +352,15 @@ void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const 
   // set results
   if (found_collision == 1) {
     // distance to collision, t is time of collision
-    float dist_to_coll = t*vec3_len(packet->e_velocity);
+    double dist_to_coll = t*vec3_len(packet->e_velocity);
     
     // are we the closest hit?
     if (packet->found_collision == 0 || dist_to_coll < packet->nearest_distance) {
       packet->nearest_distance = dist_to_coll;
       memcpy(packet->intersect_point, collision_point, sizeof(vec3));
       packet->found_collision = 1;
+      packet->t = t;
+      memcpy(&packet->plane, &plane, sizeof(ex_plane_t));
     }
   }
 }

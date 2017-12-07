@@ -54,7 +54,7 @@ void game_run()
   // ex_skybox_t *s = ex_skybox_new("sky");
   // scene->skybox = s;
 
-  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
+  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 0.5f, 0.5f});
   e->position[1] = 1.1f;
   e->position[0] = 1.1f; 
   e->position[2] = -50.0f;
