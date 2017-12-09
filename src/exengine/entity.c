@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define VERY_CLOSE_DIST 0.005f
-#define SLOPE_WALK_ANGLE 0.95f
+#define SLOPE_WALK_ANGLE 0.98f
 
 ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 {
@@ -44,7 +44,6 @@ void ex_entity_collide_and_slide(ex_entity_t *entity)
 
   // finally set entity position & velocity
   vec3_mul(entity->position, e_position, entity->packet.e_radius);
-  // vec3_mul(entity->velocity, e_velocity, entity->packet.e_radius);
   vec3_sub(entity->velocity, entity->position, entity->packet.r3_position);
 }
 
@@ -59,7 +58,6 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
   vec3 temp;
 
   for (int i=0; i<3; ++i) {
-
     // setup coll packet
     vec3_norm(temp, e_velocity);
     memcpy(entity->packet.e_norm_velocity, temp, sizeof(vec3));
@@ -132,32 +130,63 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
 
 void ex_entity_check_collision(ex_entity_t *entity)
 {
-  ex_rect_t r;
+  /*ex_rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
+
+  ex_octree_inside(entity->scene->coll_tree, &r);
   
-  list_t *data = list_new();
-  ex_octree_get_colliding(entity->scene->coll_tree, &r, data);
+  int count = 0;
+  ex_octree_get_colliding_count(entity->scene->coll_tree, &r, &count);
+  printf("%i\n", count);
+
+  if (count <= 0)
+    return;
+
+  ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t) * count);
+  for (int i=0; i<count; i++) {
+    data[i].data = NULL;
+    data[i].len  = 0;
+  }
+
+  ex_octree_get_colliding(entity->scene->coll_tree, &r, data, 0);
 
   vec3 *vertices = entity->scene->coll_vertices;
-  while (data->data != NULL) {
-    ex_octree_data_t *oct_data = data->data;
-    uint32_t *indices = oct_data->data;
-    for (int i=0; i<oct_data->len; i++) {
+  for (int i=0; i<count; i++) {
+    uint32_t *indices = (uint32_t*)data[i].data;
+
+    if (indices == NULL)
+      continue;
+
+    for (int j=0; j<data[i].len; j++) {
       vec3 a,b,c;
-      vec3_div(a, vertices[indices[i]+0], entity->packet.e_radius);
-      vec3_div(b, vertices[indices[i]+1], entity->packet.e_radius);
-      vec3_div(c, vertices[indices[i]+2], entity->packet.e_radius);
+      vec3_div(a, vertices[indices[j]+0], entity->packet.e_radius);
+      vec3_div(b, vertices[indices[j]+1], entity->packet.e_radius);
+      vec3_div(c, vertices[indices[j]+2], entity->packet.e_radius);
       ex_collision_check_triangle(&entity->packet, a, b, c);
     }
+  }
 
-    if (data->next != NULL)
-      data = data->next;
+  free(data);*/
+  list_node_t *n = entity->scene->model_list;
+  while (n->data != NULL) {
+    ex_model_t *m = n->data;
+    if (m->vertices != NULL) {
+      vec3 *v = m->vertices;
+      for (int i=0; i<m->num_vertices; i) {
+        vec3 a,b,c;
+        vec3_div(a, v[i++], entity->packet.e_radius);
+        vec3_div(b, v[i++], entity->packet.e_radius);
+        vec3_div(c, v[i++], entity->packet.e_radius);
+        ex_collision_check_triangle(&entity->packet, a, b, c);
+      }
+    }
+
+    if (n->next != NULL)
+      n = n->next;
     else
       break;
   }
-
-  ex_octree_clean_colliding(data);
 }
 
 void ex_entity_check_grounded(ex_entity_t *entity, double dt)

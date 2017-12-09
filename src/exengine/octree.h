@@ -64,6 +64,7 @@ struct ex_octree_t {
   };
   // debug render stuffs
   GLuint vbo, vao, ebo;
+  int player_inside;
 };
 
 ex_octree_t* ex_octree_new(uint8_t type);
@@ -76,23 +77,13 @@ void ex_octree_finalize(ex_octree_t *o);
 
 ex_octree_t* ex_octree_reset(ex_octree_t *o);
 
-void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, list_t *data_list);
+void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count);
+
+void ex_octree_inside(ex_octree_t *o, ex_rect_t *bounds); 
+
+void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int index);
 
 void ex_octree_render(ex_octree_t *o);
-
-static inline void ex_octree_clean_colliding(list_t *data) {
-  while (data->data != NULL) {
-    if (data->data != NULL)
-      free(data->data);
-
-    if (data->next != NULL)
-      data = data->next;
-    else
-      break;
-  }
-
-  list_destroy(data);
-}
 
 static inline void* ex_octree_data_ptr(ex_octree_t *o) {
   switch (o->data_type) {
@@ -139,12 +130,12 @@ static inline int ex_rect_intersect_sphere(ex_rect_t r, vec3 pos, float radius) 
 };
 
 static inline int ex_aabb_aabb(ex_rect_t a, ex_rect_t b) {
-  return (a.max[0] >= b.min[0] &&
-          a.min[0] <= b.max[0] &&
-          a.max[1] >= b.min[1] &&
+  return (a.min[0] <= b.max[0] &&
+          a.max[0] >= b.min[0] &&
           a.min[1] <= b.max[1] &&
-          a.max[2] >= b.min[2] &&
-          a.min[2] <= b.max[2]);
+          a.max[1] >= b.min[1] &&
+          a.min[2] <= b.max[2] &&
+          a.max[2] >= b.min[2]);
 };
 
 static inline int ex_aabb_inside(ex_rect_t outer, ex_rect_t inner) {

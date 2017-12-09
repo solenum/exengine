@@ -33,7 +33,7 @@ typedef struct {
   ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;
-  size_t coll_vertices_last;;
+  size_t coll_vertices_last;
 
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;

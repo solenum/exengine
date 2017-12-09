@@ -28,6 +28,7 @@ ex_octree_t* ex_octree_new(uint8_t type)
   o->data_byte   = NULL;
   o->data_float  = NULL;
   o->data_double = NULL;
+  o->player_inside = 0;
 
   return o;
 }
@@ -49,6 +50,7 @@ void ex_octree_init(ex_octree_t *o, ex_rect_t region, list_t *objects)
   o->data_byte   = NULL;
   o->data_float  = NULL;
   o->data_double = NULL;
+  o->player_inside = 0;
 }
 
 void ex_octree_build(ex_octree_t *o)
@@ -143,7 +145,7 @@ void ex_octree_build(ex_octree_t *o)
     } else {
       o->children[i] = NULL;
     }
-  }
+}
 
   o->data_len = obj_count;
   ex_octree_finalize(o);
@@ -234,7 +236,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
       case OBJ_TYPE_FLOAT:
         if (o->data_float != NULL)
           free(o->data_float);
-        break;
+        break; 
       case OBJ_TYPE_DOUBLE:
         if (o->data_double != NULL)
           free(o->data_double);
@@ -257,7 +259,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
   }
 }
 
-void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, list_t *data_list)
+void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count)
 {
   if (o == NULL)
     return;
@@ -265,19 +267,51 @@ void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, list_t *data_lis
   // add our data to the list
   void *oct_data = ex_octree_data_ptr(o);
   if (oct_data != NULL) {
-    if (!ex_aabb_aabb(o->region, *bounds))
-      return;
+    // if (!ex_aabb_aabb(o->region, *bounds))
+      // return;
 
-    ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t));
-    data->len  = o->data_len;
-    data->data = oct_data;
-    list_add(data_list, data);
+    (*count)++;
   }
 
   // recurse adding data to the list
   for (int i=0; i<8; i++)
     if (o->children[i] != NULL)
-      ex_octree_get_colliding(o->children[i], bounds, data_list);
+      ex_octree_get_colliding_count(o->children[i], bounds, count);
+}
+
+void ex_octree_inside(ex_octree_t *o, ex_rect_t *bounds)
+{
+  if (o == NULL)
+    return;
+
+  if (ex_aabb_aabb(o->region, *bounds))
+    o->player_inside = 1;
+  else
+    o->player_inside = 0;
+
+  for (int i=0; i<8; i++)
+    ex_octree_inside(o->children[i], bounds);
+}
+
+void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int index)
+{
+  if (o == NULL)
+    return;
+
+  // add our data to the list
+  void *oct_data = ex_octree_data_ptr(o);
+  if (oct_data != NULL) {
+    // if (!ex_aabb_aabb(o->region, *bounds))
+      // return;
+
+    data_list[index].len = o->data_len;
+    data_list[index].data = oct_data;
+    index++;
+  }
+
+  // recurse adding data to the list
+  for (int i=0; i<8; i++)
+      ex_octree_get_colliding(o->children[i], bounds, data_list, index);
 }
 
 void ex_octree_render(ex_octree_t *o)
@@ -327,15 +361,17 @@ void ex_octree_render(ex_octree_t *o)
     o->rendered = 1;
   }
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glCullFace(GL_NONE);
-  glBindVertexArray(o->vao);
-  glLineWidth(0.5f);
-  glDrawElements(GL_LINES, EX_INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glBindVertexArray(0);
+  if (o->player_inside) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glCullFace(GL_NONE);
+    glBindVertexArray(o->vao);
+    glLineWidth(0.5f);
+    glDrawElements(GL_LINES, EX_INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glBindVertexArray(0);
+  }
 }

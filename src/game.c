@@ -11,7 +11,7 @@
 #include "exengine/dbgui.h"
 #include "inc/game.h"
 
-const double phys_delta_time = 1.0 / 120.0;
+const double phys_delta_time = 1.0 / 60.0;
 const double slowest_frame = 1.0 / 15.0;
 double delta_time, accumulator = 0.0;
 ex_fps_camera_t *camera = NULL;
@@ -54,7 +54,7 @@ void game_run()
   // ex_skybox_t *s = ex_skybox_new("sky");
   // scene->skybox = s;
 
-  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 0.5f, 0.5f});
+  ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 1.1f;
   e->position[0] = 1.1f; 
   e->position[2] = -50.0f;

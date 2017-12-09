@@ -44,6 +44,8 @@ ex_scene_t* scene_new()
   s->coll_vertices   = NULL;
   s->collision_built = 0;
   s->coll_vertices_last = 0;
+  memset(s->coll_tree->region.min, 0, sizeof(vec3));
+  memset(s->coll_tree->region.max, 0, sizeof(vec3));
 
   // init debug gui
   ex_dbgui_init(s);
@@ -80,8 +82,8 @@ void ex_scene_add_collision(ex_scene_t *s, ex_model_t *model)
         s->coll_vertices_last = model->num_vertices;
       }
 
-      model->vertices     = NULL;
-      model->num_vertices = 0;
+      // model->vertices     = NULL;
+      // model->num_vertices = 0;
       s->collision_built  = 0;
     }
   }
