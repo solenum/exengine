@@ -66,7 +66,7 @@ ex_scene_t* scene_new()
 void ex_scene_add_collision(ex_scene_t *s, ex_model_t *model)
 {
   if (model != NULL) {
-    if (model->vertices != NULL || model->num_vertices == 0) {
+    if (model->vertices != NULL && model->num_vertices > 0) {
       list_add(s->coll_list, (void*)model);
       s->collision_built = 0;
 
@@ -74,7 +74,6 @@ void ex_scene_add_collision(ex_scene_t *s, ex_model_t *model)
         size_t len = model->num_vertices + s->coll_vertices_last;
         s->coll_vertices = realloc(s->coll_vertices, sizeof(vec3)*len);
         memcpy(&s->coll_vertices[s->coll_vertices_last], &model->vertices[0], sizeof(vec3)*model->num_vertices);
-        free(model->vertices);
         s->coll_vertices_last = len;
       } else {
         s->coll_vertices = malloc(sizeof(vec3)*model->num_vertices);
@@ -82,8 +81,9 @@ void ex_scene_add_collision(ex_scene_t *s, ex_model_t *model)
         s->coll_vertices_last = model->num_vertices;
       }
 
-      // model->vertices     = NULL;
-      // model->num_vertices = 0;
+      free(model->vertices);
+      model->vertices     = NULL;
+      model->num_vertices = 0;
       s->collision_built  = 0;
     }
   }
@@ -99,8 +99,7 @@ void ex_scene_build_collision(ex_scene_t *s)
     return;
 
   ex_rect_t region;
-  memcpy(&region.min, &s->coll_tree->region.min, sizeof(vec3));
-  memcpy(&region.max, &s->coll_tree->region.max, sizeof(vec3));
+  memcpy(&region, &s->coll_tree->region, sizeof(ex_rect_t));
   for (int i=0; i<s->coll_vertices_last; i+=3) {
     vec3 tri[3];
     memcpy(tri[0], s->coll_vertices[i+0], sizeof(vec3));
@@ -115,6 +114,7 @@ void ex_scene_build_collision(ex_scene_t *s)
     vec3_max(region.max, region.max, tri[2]);
 
     ex_octree_obj_t *obj = malloc(sizeof(ex_octree_obj_t));
+
     obj->data_uint    = i;
     obj->box          = ex_rect_from_triangle(tri);
     list_add(s->coll_tree->obj_list, (void*)obj);

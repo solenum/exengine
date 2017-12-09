@@ -218,7 +218,7 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
   GLuint index_offset = 0;
   for (int i=0; i<header.num_meshes; i++) {
     ex_vertex_t *vert = &vertices[meshes[i].first_vertex];
-    GLuint *ind    = &indices[meshes[i].first_triangle*3];
+    GLuint *ind       = &indices[meshes[i].first_triangle*3];
 
     // negative offset indices
     GLuint offset = 0;

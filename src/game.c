@@ -112,7 +112,7 @@ void game_run()
       glfwPollEvents();
       
       ex_entity_update(e, phys_delta_time);
-      ex_entity_update(cube, phys_delta_time);
+      // ex_entity_update(cube, phys_delta_time);
 
       memcpy(camera->position, e->position, sizeof(vec3));
       camera->position[1] += e->radius[1];

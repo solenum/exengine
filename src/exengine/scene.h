@@ -30,6 +30,7 @@ typedef struct {
   ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
   ex_spot_light_t *spot_lights[EX_MAX_SPOT_LIGHTS];
   ex_dir_light_t *dir_light;
+  
   ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;

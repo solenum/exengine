@@ -130,18 +130,21 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
 
 void ex_entity_check_collision(ex_entity_t *entity)
 {
-  /*ex_rect_t r;
+  ex_rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
+  // vec3_add(r.min, entity->position, entity->scene->coll_tree->region.min);
+  // vec3_add(r.max, entity->position, entity->scene->coll_tree->region.max);
 
   ex_octree_inside(entity->scene->coll_tree, &r);
   
   int count = 0;
   ex_octree_get_colliding_count(entity->scene->coll_tree, &r, &count);
-  printf("%i\n", count);
 
   if (count <= 0)
     return;
+
+  // printf("%i\n", count);
 
   ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t) * count);
   for (int i=0; i<count; i++) {
@@ -158,35 +161,16 @@ void ex_entity_check_collision(ex_entity_t *entity)
     if (indices == NULL)
       continue;
 
-    for (int j=0; j<data[i].len; j++) {
+    for (int k=0; k<data[i].len; k++) {
       vec3 a,b,c;
-      vec3_div(a, vertices[indices[j]+0], entity->packet.e_radius);
-      vec3_div(b, vertices[indices[j]+1], entity->packet.e_radius);
-      vec3_div(c, vertices[indices[j]+2], entity->packet.e_radius);
+      vec3_div(a, vertices[indices[k]+0], entity->packet.e_radius);
+      vec3_div(b, vertices[indices[k]+1], entity->packet.e_radius);
+      vec3_div(c, vertices[indices[k]+2], entity->packet.e_radius);
       ex_collision_check_triangle(&entity->packet, a, b, c);
     }
   }
 
-  free(data);*/
-  list_node_t *n = entity->scene->model_list;
-  while (n->data != NULL) {
-    ex_model_t *m = n->data;
-    if (m->vertices != NULL) {
-      vec3 *v = m->vertices;
-      for (int i=0; i<m->num_vertices; i) {
-        vec3 a,b,c;
-        vec3_div(a, v[i++], entity->packet.e_radius);
-        vec3_div(b, v[i++], entity->packet.e_radius);
-        vec3_div(c, v[i++], entity->packet.e_radius);
-        ex_collision_check_triangle(&entity->packet, a, b, c);
-      }
-    }
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
+  free(data);
 }
 
 void ex_entity_check_grounded(ex_entity_t *entity, double dt)
@@ -227,8 +211,8 @@ void ex_entity_check_grounded(ex_entity_t *entity, double dt)
       entity->grounded = 1;
 
       // snap to surface (also stepup)
-      vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
-      entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
+      // vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
+      // entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
     } else {
       entity->grounded = 0;
     }

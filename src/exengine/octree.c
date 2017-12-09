@@ -35,7 +35,7 @@ ex_octree_t* ex_octree_new(uint8_t type)
 
 void ex_octree_init(ex_octree_t *o, ex_rect_t region, list_t *objects)
 {
-  memcpy(&o->region, &region, sizeof(region));
+  memcpy(&o->region, &region, sizeof(ex_rect_t));
   for (int i=0; i<8; i++) {
     o->children[i] = NULL;
   }
@@ -104,13 +104,12 @@ void ex_octree_build(ex_octree_t *o)
     int found = 0;
 
     for (int j=0; j<8; j++) {
-      ex_octree_obj_t *obj = n->data;
+      ex_octree_obj_t *obj = (ex_octree_obj_t*)n->data;
       if (ex_aabb_inside(octants[j], obj->box)) {
         list_add(obj_lists[j], (void*)n->data);
         obj_lenghts[j]++;
         found = 1;
         break;
-        // obj should be added to node its most in by % ?
       }
     }
 
@@ -145,7 +144,7 @@ void ex_octree_build(ex_octree_t *o)
     } else {
       o->children[i] = NULL;
     }
-}
+  }
 
   o->data_len = obj_count;
   ex_octree_finalize(o);
@@ -168,22 +167,22 @@ void ex_octree_finalize(ex_octree_t *o)
       case OBJ_TYPE_INT:
         if (i == 0)
           o->data_int    = malloc(o->data_len * sizeof(int32_t));
-        memcpy(&o->data_int[i], &data->data_uint, sizeof(int32_t));
+        memcpy(&o->data_int[i], &data->data_int, sizeof(int32_t));
         break;
       case OBJ_TYPE_BYTE:
         if (i == 0)
           o->data_byte   = malloc(o->data_len * sizeof(uint8_t));
-        memcpy(&o->data_byte[i], &data->data_uint, sizeof(uint8_t));
+        memcpy(&o->data_byte[i], &data->data_byte, sizeof(uint8_t));
         break;
       case OBJ_TYPE_FLOAT:
         if (i == 0)
           o->data_float  = malloc(o->data_len * sizeof(float));
-        memcpy(&o->data_float[i], &data->data_uint, sizeof(float));
+        memcpy(&o->data_float[i], &data->data_float, sizeof(float));
         break;
       case OBJ_TYPE_DOUBLE:
         if (i == 0)
           o->data_double = malloc(o->data_len * sizeof(double));
-        memcpy(&o->data_double[i], &data->data_uint, sizeof(double));
+        memcpy(&o->data_double[i], &data->data_double, sizeof(double));
         break;
     }
 
@@ -231,7 +230,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
         break;
       case OBJ_TYPE_BYTE:
         if (o->data_byte != NULL)
-          free(o->data_byte);
+          free(o->data_byte); 
         break;
       case OBJ_TYPE_FLOAT:
         if (o->data_float != NULL)
@@ -284,13 +283,14 @@ void ex_octree_inside(ex_octree_t *o, ex_rect_t *bounds)
   if (o == NULL)
     return;
 
-  if (ex_aabb_aabb(o->region, *bounds))
+  // if (ex_aabb_aabb(o->region, *bounds))
     o->player_inside = 1;
-  else
-    o->player_inside = 0;
+  // else
+    // o->player_inside = 0;
 
   for (int i=0; i<8; i++)
-    ex_octree_inside(o->children[i], bounds);
+    if (o->children[i] != NULL)
+      ex_octree_inside(o->children[i], bounds);
 }
 
 void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int index)
@@ -311,6 +311,7 @@ void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t
 
   // recurse adding data to the list
   for (int i=0; i<8; i++)
+    if (o->children[i] != NULL)
       ex_octree_get_colliding(o->children[i], bounds, data_list, index);
 }
 
@@ -369,9 +370,10 @@ void ex_octree_render(ex_octree_t *o)
     glBindVertexArray(o->vao);
     glLineWidth(0.5f);
     glDrawElements(GL_LINES, EX_INDICES_CUBE_LEN, GL_UNSIGNED_INT, 0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glBindVertexArray(0);
   }
+ 
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glBindVertexArray(0);
 }

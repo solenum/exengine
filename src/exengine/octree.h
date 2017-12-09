@@ -107,6 +107,9 @@ static inline void* ex_octree_data_ptr(ex_octree_t *o) {
       if (o->data_double != NULL)
         return o->data_double;
       break;
+    default:
+      return NULL;
+      break;
   }
 }
 
@@ -150,12 +153,10 @@ static inline int ex_aabb_inside(ex_rect_t outer, ex_rect_t inner) {
 static inline ex_rect_t ex_rect_from_triangle(vec3 tri[3]) {
   ex_rect_t box;
 
-  memcpy(box.min, tri[0], sizeof(vec3));
-  vec3_min(box.min, box.min, tri[1]);
+  vec3_min(box.min, tri[0], tri[1]);
   vec3_min(box.min, box.min, tri[2]);
 
-  memcpy(box.max, tri[0], sizeof(vec3));
-  vec3_max(box.max, box.max, tri[1]);
+  vec3_max(box.max, tri[0], tri[1]);
   vec3_max(box.max, box.max, tri[2]);
 
   return box;
