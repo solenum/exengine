@@ -132,12 +132,10 @@ void ex_entity_check_collision(ex_entity_t *entity)
 {
   ex_rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
+  vec3_sub(r.min, r.min, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
-  // vec3_add(r.min, entity->position, entity->scene->coll_tree->region.min);
-  // vec3_add(r.max, entity->position, entity->scene->coll_tree->region.max);
-
-  ex_octree_inside(entity->scene->coll_tree, &r);
-  
+  vec3_add(r.max, r.max, entity->radius);
+ 
   int count = 0;
   ex_octree_get_colliding_count(entity->scene->coll_tree, &r, &count);
 
@@ -152,7 +150,8 @@ void ex_entity_check_collision(ex_entity_t *entity)
     data[i].len  = 0;
   }
 
-  ex_octree_get_colliding(entity->scene->coll_tree, &r, data, 0);
+  int index = 0;
+  ex_octree_get_colliding(entity->scene->coll_tree, &r, data, &index);
 
   vec3 *vertices = entity->scene->coll_vertices;
   for (int i=0; i<count; i++) {
@@ -175,7 +174,7 @@ void ex_entity_check_collision(ex_entity_t *entity)
 
 void ex_entity_check_grounded(ex_entity_t *entity, double dt)
 {
-  vec3 vel = {0.0f, -(entity->radius[1]+0.1f), 0.0f};
+  vec3 vel = {0.0f, -(entity->radius[1]+0.25f), 0.0f};
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
   memcpy(entity->packet.r3_velocity, vel, sizeof(vec3));
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
@@ -211,8 +210,8 @@ void ex_entity_check_grounded(ex_entity_t *entity, double dt)
       entity->grounded = 1;
 
       // snap to surface (also stepup)
-      // vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
-      // entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
+      vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
+      entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
     } else {
       entity->grounded = 0;
     }

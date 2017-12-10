@@ -79,9 +79,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o);
 
 void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count);
 
-void ex_octree_inside(ex_octree_t *o, ex_rect_t *bounds); 
-
-void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int index);
+void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int *index);
 
 void ex_octree_render(ex_octree_t *o);
 
