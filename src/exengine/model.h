@@ -17,7 +17,8 @@ typedef struct {
 } ex_bone_t;
 
 typedef struct {
-  uint32_t name, first, last;
+  char *name;
+  uint32_t first, last;
   float rate;
   uint8_t loop;
 } ex_anim_t;
@@ -77,9 +78,9 @@ void ex_model_set_pose(ex_model_t *m, ex_frame_t frame);
 /**
  * [ex_model_set_anim sets anim for given index]
  * @param m     [ex_model_t pointer]
- * @param index [animation index]
+ * @param id [animation id]
  */
-void ex_model_set_anim(ex_model_t *m, size_t index);
+void ex_model_set_anim(ex_model_t *m, char *id);
 
 void ex_model_get_ex_bone_transform(ex_model_t *m, const char *name, mat4x4 transform);
 

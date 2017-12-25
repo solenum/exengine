@@ -1,5 +1,5 @@
-#include <string.h>
 #include "model.h"
+#include <string.h>
 
 ex_model_t* ex_model_new()
 {
@@ -199,14 +199,17 @@ void ex_model_set_pose(ex_model_t *m, ex_frame_t frame)
   }
 }
 
-void ex_model_set_anim(ex_model_t *m, size_t index)
+void ex_model_set_anim(ex_model_t *m, char *id)
 {
-  if (index > m->anims_len) {
-    m->current_anim = NULL;
-    return;
-  }
+  for (int i = 0; i < m->anims_len; i++)
+    if(!strcmp(m->anims[i].name, id)) {
+      m->current_anim = &m->anims[i];
+      break;
+    }
 
-  m->current_anim  = &m->anims[index];
+    if(m->current_anim == NULL)
+      return;
+
   m->current_time  = 0;
   m->current_frame = m->current_anim->first;
 }

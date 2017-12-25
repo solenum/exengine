@@ -119,7 +119,16 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
     anims = malloc(sizeof(ex_anim_t)*header.num_anims);
     for (int i=0; i<header.num_anims; i++) {
       ex_iqmex_anim_t *a    = &animdata[i];
-      anims[i].name   = a->name;
+
+      /* get anim name */
+      uint32_t ofs_name = a->name;
+      char *name = &file_text[ofs_name]; 
+      uint8_t len = strlen(name); 
+      anims[i].name   = malloc(sizeof(char) * (len+1));
+
+      strcpy(anims[i].name, name);
+      anims[i].name[len+1] = '\0';
+
       anims[i].first  = a->first_frame;
       anims[i].last   = a->num_frames;
       anims[i].rate   = a->framerate;
