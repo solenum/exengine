@@ -62,7 +62,7 @@ void game_run()
 
   ex_model_t *d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
   list_add(scene->model_list, d);
-  ex_model_set_anim(d, 0);
+  ex_model_set_anim(d, "Walk");
 
   // ex_model_t *g = ex_iqm_load_model(scene, "data/gun.iqm", 0);
   // list_add(scene->model_list, g);
@@ -173,9 +173,9 @@ void game_run()
       }
 
       if (ex_keys_down[GLFW_KEY_1])
-        ex_model_set_anim(d, 0);
+        ex_model_set_anim(d, "Walk");
       if (ex_keys_down[GLFW_KEY_2])
-        ex_model_set_anim(d, 1);
+        ex_model_set_anim(d, "Run");
 
       if (ex_keys_down[GLFW_KEY_F]) {
         float r = (float)rand()/(float)(RAND_MAX/1.0f);
