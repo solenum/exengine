@@ -1,5 +1,6 @@
 # -- Dirs -- #
 CC 			=gcc
+CPP     =g++
 EDIR    =exengine
 LDIR		=lib
 BDIR		=build
@@ -9,9 +10,20 @@ _IDIRS  =lib inc
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	= -g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS)
+FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
+CPPFLAGS=
+
+# -- Windows -- #
+ifeq ($(OS),Windows_NT)
+CC 			=x86_64-w64-mingw32-gcc
+CPP     =x86_64-w64-mingw32-g++
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -DGLEW_NO_GLU -I. $(IDIRS) 
+CFLAGS  =$(FLAGS)
+CFLAGS +=-std=c99
+CPPFLAGS=-lstdc++
+endif
 
 # -- Files -- #
 # engine deps
@@ -48,11 +60,11 @@ $(ODIR)/%.o: $(EDIR)/%.c $(EDEPS)
 
 # cimgui srcs
 $(ODIR)/%.o: $(LDIR)/cimgui/%.cpp 
-	g++ -c -o $@ $< $(FLAGS)
+	$(CPP) -c -o $@ $< $(CPPFLAGS) $(FLAGS)
 
 # imgui srcs
 $(ODIR)/%.o: $(LDIR)/imgui/%.cpp
-	g++ -c -o $@ $< $(FLAGS)
+	$(CPP) -c -o $@ $< $(CPPFLAGS) $(FLAGS)
 
 uzm: $(OBJ)
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
@@ -62,6 +74,9 @@ files:
 	mkdir -p $(ODIR)
 	mkdir -p build
 	cp -RTv data build/data/
+ifeq ($(OS),Windows_NT)
+	cp lib/win/dll/* build
+endif
 
 .PHONY: clean
 
