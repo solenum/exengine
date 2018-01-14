@@ -1,7 +1,7 @@
 # exengine, a C 3D game engine.
 **WARNING! Test repo, likely unstable and messy.**
 
-**An official release repo will come in the *near* future.  Please see the [TODO](TODO.md) list.**
+**An official release repo will come in the *near* future.  Please see the [TODO](TODO.md) list and [Milestones](https://github.com/exezin/exengine-testing/milestones).**
 
 ### What exactly is exengine?
 Began as an experiment, evolved into something feasible for actually making games.  exengine takes a slightly
