@@ -10,7 +10,7 @@
 #include "exe_io.h"
 
 /**
- * [ex_shader_compile loads and compiles a vertex fragment shader]
+ * [ex_shader_compile loads, attaches and links shaders into a shader program]
  * @param  vertex_path   [vertex shader file path]
  * @param  fragment_path [fragment shader file path]
  * @return               [the shader program GLuint]
