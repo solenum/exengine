@@ -55,9 +55,9 @@ void game_run()
   // scene->skybox = s;
 
   ex_entity_t *e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 1.1f;
-  e->position[0] = 1.1f; 
-  e->position[2] = -50.0f;
+  e->position[1] = 0.0f;
+  e->position[0] = 0.0f; 
+  e->position[2] = 0.0f;
   float move_speed = 1.5f;
 
   ex_model_t *d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
@@ -88,7 +88,7 @@ void game_run()
 
   ex_model_t *box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
   // box->is_shadow = 0;
-  list_add(scene->model_list, box);
+  // list_add(scene->model_list, box);
   ex_entity_t *cube = ex_entity_new(scene, (vec3){0.95f, 0.95f, 0.95f});
   cube->position[1] = 2.5f;
 

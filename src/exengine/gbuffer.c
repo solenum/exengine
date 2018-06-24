@@ -2,10 +2,11 @@
 #include "window.h"
 #include "shader.h"
 #include "exe_conf.h"
+#include "ssao.h"
 
 extern conf_t conf;
 
-GLuint gbuffer, gpositon, gnormal, gcolorspec, grenderbuffer;
+GLuint gbuffer, gposition, gnormal, gcolorspec, grenderbuffer;
 GLuint gvao, gvbo;
 GLuint ex_gshader, ex_gmainshader;
 int width, height;
@@ -19,12 +20,12 @@ void ex_gbuffer_init()
   height = conf_get_int(&conf, "render_height");
 
   // position buffer
-  glGenTextures(1, &gpositon);
-  glBindTexture(GL_TEXTURE_2D, gpositon);
+  glGenTextures(1, &gposition);
+  glBindTexture(GL_TEXTURE_2D, gposition);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gpositon, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gposition, 0);
 
   // normal buffer
   glGenTextures(1, &gnormal);
@@ -112,11 +113,12 @@ void ex_gbuffer_render(GLuint shader)
   glUniform1i(glGetUniformLocation(shader, "u_norm"), 1);
   glUniform1i(glGetUniformLocation(shader, "u_colorspec"), 2);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, gpositon);
+  glBindTexture(GL_TEXTURE_2D, gposition);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, gnormal);
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, gcolorspec);
+  ssao_bind_texture(shader);
 
   glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 4);
 
@@ -130,7 +132,7 @@ void ex_gbuffer_destroy()
 {
   glDeleteRenderbuffers(1, &grenderbuffer);
   glDeleteFramebuffers(1, &gbuffer);
-  glDeleteTextures(1, &gpositon);
+  glDeleteTextures(1, &gposition);
   glDeleteTextures(1, &gnormal);
   glDeleteTextures(1, &gcolorspec);
 }

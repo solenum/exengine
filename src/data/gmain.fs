@@ -7,6 +7,10 @@ out vec4 color;
 uniform sampler2D u_position;
 uniform sampler2D u_norm;
 uniform sampler2D u_colorspec;
+uniform sampler2D u_ssao;
+
+uniform mat4 u_projection;
+uniform mat4 u_view;
 
 uniform vec3 u_view_position;
 uniform bool u_ambient_pass;
@@ -117,13 +121,16 @@ vec3 calc_spot_light(spot_light l)
 
 vec3 calc_point_light(point_light l)
 {
+  l.position = vec3(u_view * vec4(l.position, 1.0));
+  // vec3 view_position = vec3(u_view * vec4(u_view_position, 1.0));
+
   // point light
   vec3 fragpos = texture(u_position, uv).rgb;
   vec3 normals = texture(u_norm, uv).rgb;
   vec3 diff    = texture(u_colorspec, uv).rgb;
   float spec   = texture(u_colorspec, uv).a*1.5f;
 
-  vec3 view_dir  = normalize(u_view_position - fragpos);
+  vec3 view_dir  = normalize(-fragpos);
   float distance = length(l.position - fragpos);
   vec3 light_dir = normalize(l.position - fragpos);
   
@@ -147,9 +154,9 @@ vec3 calc_point_light(point_light l)
   bias           = clamp(bias, 0.1, 0.2);
   float shadow = 0.0f;
   if (l.is_shadow) {
-    vec3 frag_to_light  = fragpos - l.position;
+    vec3 frag_to_light  = mat3(inverse(u_view)) * (fragpos - l.position);
     float current_depth = length(frag_to_light);
-    float view_dist     = length(u_view_position - fragpos);
+    float view_dist     = length(-fragpos);
 
     // PCF smoothing
     float radius = (1.0 + (view_dist / l.far)) / l.far;
@@ -229,7 +236,13 @@ void main()
   vec3 diffuse = vec3(0.0f);
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb*0.01f;
+    float ao = texture(u_ssao, uv).r;
+
+    diffuse += texture(u_colorspec, uv).rgb;
+    diffuse = vec3(0.05 * diffuse * ao);
+    if (ao < 1.0) {
+      // diffuse = vec3(0.0);
+    }
 
     /* volumetric fog shiz
     vec3 frag   = texture(u_position, uv).rgb;

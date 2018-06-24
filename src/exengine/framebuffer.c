@@ -95,7 +95,7 @@ void ex_framebuffer_render_quad()
 {
   // second render pass
   glViewport(0, 0, conf_get_int(&conf, "window_width"), conf_get_int(&conf, "window_height"));
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);

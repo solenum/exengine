@@ -8,6 +8,7 @@
 #include "gbuffer.h"
 #include "window.h"
 #include "dbgui.h"
+#include "ssao.h"
 
 ex_scene_t* scene_new()
 {
@@ -59,6 +60,9 @@ ex_scene_t* scene_new()
 
   // primitive debug shader
   s->primshader = ex_shader_compile("data/primshader.vs", "data/primshader.fs", NULL);
+
+  // init ssao stuffs
+  ssao_init();
 
   return s;
 }
@@ -238,6 +242,9 @@ void ex_scene_draw(ex_scene_t *s)
   ex_fps_camera_draw(s->fps_camera, ex_gshader);
   ex_scene_render_models(s, ex_gshader, 0);
 
+  // render ssao
+  ssao_render(s->fps_camera->projection, s->fps_camera->view);
+
   ex_framebuffer_first();
 
   // render skybox (FIX THIS!)
@@ -372,6 +379,7 @@ void ex_scene_draw(ex_scene_t *s)
     ex_octree_render(s->coll_tree);
 
   // render screen quad
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   ex_framebuffer_render_quad();
 
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();

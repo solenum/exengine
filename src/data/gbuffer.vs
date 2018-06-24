@@ -16,7 +16,7 @@ out vec4 frag_light_pos;
 out float fog;
 out mat3 TBN;
 
-uniform mat4 u_model;
+uniform mat4 u_model; 
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
@@ -38,32 +38,18 @@ void main()
     transform = u_model * skeleton;
   }
 
-  mat4 mvp = u_projection * u_view * transform;
-
-  vec4 v = mvp*vec4(in_position, 1.0);
-  vec4 vv = v;
-  vv.xyz = v.xyz / v.w;
-  vv.x = floor(240 * vv.x) / 240;
-  vv.y = floor(117 *  vv.y) / 117;
-  vv.xyz *= v.w;
-
-  float dist = length(v);
-
-  float fog_end   = 128.0f;
-  float fog_start = 100.0f;
-  float fog_dens  = (fog_end - dist) / (fog_end - fog_start);
-  fog = clamp(fog_dens, 0.0, 1.0);
+  vec4 v = u_projection * u_view * transform * vec4(in_position, 1.0);
 
   gl_Position    = v;
-  normal         = mat3(transpose(inverse(transform))) * in_normals;
-  frag           = vec3(u_model * vec4(in_position, 1.0f));
+  normal         = mat3(transpose(inverse(u_view * transform))) * in_normals;
+  frag           = vec3(u_view * u_model * vec4(in_position, 1.0f));
   uv             = in_uv;
   color          = in_color;
   frag_light_pos = u_light_transform * vec4(frag, 1.0);
 
   // calculate tbn matrix for normal mapping
-  vec3 T = normalize(vec3(transform * vec4(in_tangents.xyz, 0.0)));
-  vec3 B = normalize(vec3(transform * in_tangents));
-  vec3 N = normalize(vec3(transform * vec4(in_normals, 0.0)));
+  vec3 T = normalize(vec3(u_view * transform * vec4(in_tangents.xyz, 0.0)));
+  vec3 B = normalize(vec3(u_view * transform * in_tangents));
+  vec3 N = normalize(vec3(u_view * transform * vec4(in_normals, 0.0)));
   TBN    = mat3(T, B, N);
 }

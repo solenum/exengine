@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 extern GLuint ex_gshader, ex_gmainshader;
+extern GLuint gposition, gnormal;
 
 void ex_gbuffer_init();
 
