@@ -45,7 +45,7 @@ void ex_framebuffer_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // load the fbo shader
-  ex_fbo_shader = ex_shader_compile("data/fboshader.vs", "data/fboshader.fs", NULL);
+  ex_fbo_shader = ex_shader_compile("fboshader.vs", "fboshader.fs", NULL);
   /* ------------------------- */
 
   /* -- screen quad -- */

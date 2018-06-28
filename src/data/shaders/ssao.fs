@@ -50,5 +50,5 @@ void main()
     occlusion += (sampledepth >= sample.z + bias ? 1.0 : 0.0) * rangecheck;
   }
   occlusion = 1.0 - (occlusion / kernel_size);
-  frag_color = occlusion;
+  frag_color = pow(occlusion, 4.0);
 }

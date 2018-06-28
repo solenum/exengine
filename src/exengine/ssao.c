@@ -86,7 +86,7 @@ void ssao_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // load and init the shaders
-  ssao_shader = ex_shader_compile("data/ssao.vs", "data/ssao.fs", NULL);
+  ssao_shader = ex_shader_compile("ssao.vs", "ssao.fs", NULL);
 }
 
 void ssao_render(mat4x4 projection, mat4x4 view)

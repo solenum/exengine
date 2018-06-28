@@ -1,6 +1,8 @@
 #ifndef EX_SHADER_H
 #define EX_SHADER_H
 
+#define EX_SHADER_LOC "data/shaders/"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,12 +19,17 @@
  */
 static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_path, const char *geometry_path)
 {
-	printf("Loading shader files %s, %s and %s\n", vertex_path, fragment_path, geometry_path);
+  char vpath[256], fpath[256], gpath[256];
+  io_prefix_str(vpath, vertex_path, EX_SHADER_LOC);
+  io_prefix_str(fpath, fragment_path, EX_SHADER_LOC);
+  io_prefix_str(gpath, geometry_path, EX_SHADER_LOC);
+
+	printf("Loading shader files %s, %s and %s\n", vpath, fpath, gpath);
 
 	// load shader files
 	char *vertex_source = NULL, *fragment_source = NULL, *geometry_source = NULL;
-	vertex_source = io_read_file(vertex_path, "r");
-  fragment_source = io_read_file(fragment_path, "r");
+	vertex_source = io_read_file(vpath, "r");
+  fragment_source = io_read_file(fpath, "r");
   if (vertex_source == NULL || fragment_source == NULL) {
     printf("Failed creating shader\n");
     
@@ -35,8 +42,8 @@ static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_pa
     return 0;
   }
 
-  if (geometry_path != NULL) {
-    geometry_source = io_read_file(geometry_path, "r");
+  if (strlen(gpath) > 0) {
+    geometry_source = io_read_file(gpath, "r");
 
     if (geometry_source == NULL) {
       printf("Failed creating geometry shader\n");

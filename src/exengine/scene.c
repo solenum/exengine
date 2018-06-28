@@ -59,7 +59,7 @@ ex_scene_t* scene_new()
   s->modelc     = 0;
 
   // primitive debug shader
-  s->primshader = ex_shader_compile("data/primshader.vs", "data/primshader.fs", NULL);
+  s->primshader = ex_shader_compile("primshader.vs", "primshader.fs", NULL);
 
   // init ssao stuffs
   ssao_init();

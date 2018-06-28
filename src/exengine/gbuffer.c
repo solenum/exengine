@@ -59,8 +59,8 @@ void ex_gbuffer_init()
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // compile shaders
-  ex_gshader     = ex_shader_compile("data/gbuffer.vs", "data/gbuffer.fs", NULL);
-  ex_gmainshader = ex_shader_compile("data/gmain.vs", "data/gmain.fs", NULL);
+  ex_gshader     = ex_shader_compile("gbuffer.vs", "gbuffer.fs", NULL);
+  ex_gmainshader = ex_shader_compile("gmain.vs", "gmain.fs", NULL);
 
   /* -- screen quad -- */
   GLfloat vertices[] = {   

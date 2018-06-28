@@ -29,7 +29,7 @@ void game_init()
   height = conf_get_int(&conf, "window_height");
   
   // init the window and gl
-  if (!ex_window_init(width, height, "Underwater Zombie Maniac")) {
+  if (!ex_window_init(width, height, "exengine-testing")) {
     game_exit();
     return;
   }
@@ -88,7 +88,7 @@ void game_run()
 
   ex_model_t *box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
   // box->is_shadow = 0;
-  // list_add(scene->model_list, box);
+  list_add(scene->model_list, box);
   ex_entity_t *cube = ex_entity_new(scene, (vec3){0.95f, 0.95f, 0.95f});
   cube->position[1] = 2.5f;
 
@@ -112,7 +112,7 @@ void game_run()
       glfwPollEvents();
       
       ex_entity_update(e, phys_delta_time);
-      // ex_entity_update(cube, phys_delta_time);
+      ex_entity_update(cube, phys_delta_time);
 
       memcpy(camera->position, e->position, sizeof(vec3));
       camera->position[1] += e->radius[1];
