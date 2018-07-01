@@ -12,17 +12,20 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-extern double delta_time;
-
 /**
  * [game_init init everything]
  */
 void game_init();
 
 /**
- * [game_run the main game loop]
+ * [game_update the main game loop]
  */
-void game_run();
+void game_update(double dt);
+
+/**
+ * [game_draw]
+ */
+void game_draw();
 
 /**
  * [game_exit cleans up any malloc'd data etc]

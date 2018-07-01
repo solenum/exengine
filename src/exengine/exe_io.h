@@ -30,7 +30,7 @@ static char* io_read_file(const char *path, const char *mode)
   char *buff = malloc(size+1);
 
   // read file contents into buffer
-  fread(buff, size, 1, file);
+  size_t r = fread(buff, size, 1, file);
 
   // null-terminate the buffer
   buff[size] = '\0';

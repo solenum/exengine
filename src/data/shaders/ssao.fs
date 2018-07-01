@@ -8,14 +8,14 @@ uniform sampler2D u_gposition;
 uniform sampler2D u_gnormal;
 uniform sampler2D u_noise;
 
-uniform vec3 u_samples[64];
+uniform vec3 u_samples[16];
 uniform mat4 u_projection;
 uniform mat4 u_view;
 uniform vec2 u_screensize;
 
-int kernel_size = 64;
+int kernel_size = 16;
 float radius = 0.5;
-float bias = 0.1;
+float bias = 0.15;
 
 void main()
 {
@@ -50,5 +50,5 @@ void main()
     occlusion += (sampledepth >= sample.z + bias ? 1.0 : 0.0) * rangecheck;
   }
   occlusion = 1.0 - (occlusion / kernel_size);
-  frag_color = pow(occlusion, 4.0);
+  frag_color = pow(occlusion, 16.0);
 }

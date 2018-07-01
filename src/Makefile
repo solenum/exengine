@@ -12,7 +12,7 @@ IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 # -- Flags -- #
 FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
-CFLAGS +=-std=c99
+CFLAGS +=-std=c99 -O2
 CPPFLAGS=
 
 # -- Windows -- #
@@ -30,7 +30,7 @@ endif
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
 model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
-gbuffer.h spotlight.h vertices.h ssao.h
+gbuffer.h spotlight.h vertices.h ssao.h engine.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 # user deps
@@ -44,7 +44,8 @@ imgui_demo.o imgui_dock.o
 # all srcs
 _OBJ		=main.o game.o window.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
-collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o ssao.o
+collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
+ssao.o engine.o
 _OBJ   +=$(LOBJ)
 OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
 

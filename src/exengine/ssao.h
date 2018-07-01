@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define SSAO_NUM_SAMPLES 64
+#define SSAO_NUM_SAMPLES 16
 
 void ssao_init();
 

@@ -57,7 +57,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
   // check for collision
   vec3 temp;
 
-  for (int i=0; i<3; ++i) {
+  for (int i=0; i<2; ++i) {
     // setup coll packet
     vec3_norm(temp, e_velocity);
     memcpy(entity->packet.e_norm_velocity, temp, sizeof(vec3));
