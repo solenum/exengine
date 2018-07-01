@@ -119,8 +119,9 @@ vec3 calc_spot_light(spot_light l)
   return vec3((1.0 - shadow) * (diffuse + specular));
 }
 
-vec3 calc_point_light(point_light l)
+vec3 calc_point_light(point_light light)
 {
+  point_light l = light;
   l.position = vec3(u_view * vec4(l.position, 1.0));
   // vec3 view_position = vec3(u_view * vec4(u_view_position, 1.0));
 
@@ -257,22 +258,12 @@ void main()
     // shadow casters
     if (u_point_active && u_point_count <= 0)
       diffuse += calc_point_light(u_point_light);
-
-    if (u_dir_active)
-      diffuse += calc_dir_light(u_dir_light);
-
-    if (u_spot_active)
-      diffuse += calc_spot_light(u_spot_light);
   }
     
   // non shadow casters
   if (u_point_count > 0)
     for (int i=0; i<u_point_count; i++)
       diffuse += calc_point_light(u_point_lights[i]);
-
-  if (u_spot_count > 0)
-    for (int i=0; i<u_spot_count; i++)
-      diffuse += calc_spot_light(u_spot_lights[i]);
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
