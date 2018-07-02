@@ -129,7 +129,7 @@ vec3 calc_point_light(point_light light)
   vec3 fragpos = texture(u_position, uv).rgb;
   vec3 normals = texture(u_norm, uv).rgb;
   vec3 diff    = texture(u_colorspec, uv).rgb;
-  float spec   = texture(u_colorspec, uv).a*1.5f;
+  float spec   = texture(u_colorspec, uv).a*2.0f;
 
   vec3 view_dir  = normalize(-fragpos);
   vec3 light_dir = l.position - fragpos;
@@ -141,7 +141,7 @@ vec3 calc_point_light(point_light light)
 
   // specular
   vec3 halfwayd  = normalize(light_dir + view_dir);
-  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0f) * 4.0;
+  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0f);
   vec3 specular = l.color * specs * spec;
 
   // attenuation
@@ -254,5 +254,6 @@ void main()
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
-  color = vec4(diffuse * ao, 1.0f);
+  color *= ao;
+  // color = vec4(diffuse * ao, 1.0f);
 }
