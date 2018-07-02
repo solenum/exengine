@@ -16,7 +16,7 @@ ex_scene_t *scene;
 ex_model_t *m6, *d, *box;
 ex_entity_t *cube, *e;
 ex_point_light_t *l, *pl;
-float move_speed = 1.5f; 
+float move_speed = 1.5f;
 
 void game_init()
 {
@@ -36,9 +36,9 @@ void game_init()
   e->position[0] = 0.0f; 
   e->position[2] = 0.0f;
 
-  d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
-  list_add(scene->model_list, d);
-  ex_model_set_anim(d, "Runs");
+  // d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
+  // list_add(scene->model_list, d);
+  // ex_model_set_anim(d, "Run");
 
   l = ex_point_light_new((vec3){0.0f, 5.0f, -50.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
   ex_scene_add_pointlight(scene, l);
@@ -100,7 +100,7 @@ void game_update(double dt)
     }
 
     if (f > 1.0f)
-      f *= f;;
+      f *= f;
 
     vec3_norm(p, p);
     vec3_scale(p, p, f*35.0f);

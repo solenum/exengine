@@ -11,6 +11,7 @@ uniform sampler2D u_ssao;
 
 uniform mat4 u_projection;
 uniform mat4 u_view;
+uniform mat4 u_inverse_view;
 
 uniform vec3 u_view_position;
 uniform bool u_ambient_pass;
@@ -123,7 +124,6 @@ vec3 calc_point_light(point_light light)
 {
   point_light l = light;
   l.position = vec3(u_view * vec4(l.position, 1.0));
-  // vec3 view_position = vec3(u_view * vec4(u_view_position, 1.0));
 
   // point light
   vec3 fragpos = texture(u_position, uv).rgb;
@@ -132,15 +132,16 @@ vec3 calc_point_light(point_light light)
   float spec   = texture(u_colorspec, uv).a*1.5f;
 
   vec3 view_dir  = normalize(-fragpos);
-  float distance = length(l.position - fragpos);
-  vec3 light_dir = normalize(l.position - fragpos);
+  vec3 light_dir = l.position - fragpos;
+  float distance = length(light_dir);
+  light_dir = normalize(light_dir);
   
   // diffuse
   vec3 diffuse   = max(dot(light_dir, normals), 0.0) * diff * l.color;
 
   // specular
   vec3 halfwayd  = normalize(light_dir + view_dir);
-  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0f);
+  float specs    = pow(max(dot(normals, halfwayd), 0.0), 64.0f) * 4.0;
   vec3 specular = l.color * specs * spec;
 
   // attenuation
@@ -155,7 +156,7 @@ vec3 calc_point_light(point_light light)
   bias           = clamp(bias, 0.1, 0.2);
   float shadow = 0.0f;
   if (l.is_shadow) {
-    vec3 frag_to_light  = mat3(inverse(u_view)) * (fragpos - l.position);
+    vec3 frag_to_light  = mat3(u_inverse_view) * (fragpos - l.position);
     float current_depth = length(frag_to_light);
     float view_dist     = length(-fragpos);
 
@@ -235,25 +236,11 @@ const vec3 u_white_point = vec3(0.75, 0.75, 0.75);
 void main()
 {
   vec3 diffuse = vec3(0.0f);
+  float ao = texture(u_ssao, uv).r;
 
   if (u_ambient_pass) {
-    float ao = texture(u_ssao, uv).r;
 
-    diffuse += texture(u_colorspec, uv).rgb;
-    diffuse = vec3(0.05 * diffuse * ao);
-    if (ao < 1.0) {
-      // diffuse = vec3(0.0);
-    }
-
-    /* volumetric fog shiz
-    vec3 frag   = texture(u_position, uv).rgb;
-    vec3 viewpos = u_view_position;
-    vec3 viewdir = normalize(viewpos - frag);
-    viewpos.y = -10.1f;
-    float vdist = length(u_view_position - frag);
-    float vmount = exp(viewpos.y) * (1.0 - exp(-vdist*viewdir.y)) / viewdir.y;
-    vec3 fog    = vec3(0.1, 0.1, 0.1);
-    diffuse = mix(diffuse, fog, vmount);*/
+    diffuse += texture(u_colorspec, uv).rgb * 0.05;
   } else {
     // shadow casters
     if (u_point_active && u_point_count <= 0)
@@ -267,5 +254,5 @@ void main()
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
-  color = vec4(diffuse, 1.0f);
+  color = vec4(diffuse * ao, 1.0f);
 }

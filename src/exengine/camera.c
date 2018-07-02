@@ -85,6 +85,7 @@ void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
   vec3 center;
   vec3_add(center, cam->position, cam->front);
   mat4x4_look_at(cam->view, cam->position, center, cam->up);
+  mat4x4_invert(cam->inverse_view, cam->view);
 
   // update view model
   if (cam->view_model != NULL) {
@@ -107,4 +108,6 @@ void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program)
   glUniformMatrix4fv(view_location, 1, GL_FALSE, cam->view[0]);
   GLuint viewp_location = glGetUniformLocation(shader_program, "u_view_position");
   glUniform3fv(viewp_location, 1, &cam->position[0]);
+  GLuint invview_location = glGetUniformLocation(shader_program, "u_inverse_view");
+  glUniformMatrix4fv(invview_location, 1, GL_FALSE, cam->inverse_view[0]);
 }

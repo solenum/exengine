@@ -14,11 +14,17 @@ extern GLuint fbo_vao;
 vec3 ssao_samples[SSAO_NUM_SAMPLES];
 vec3 ssao_noise[16];
 
+// ssao geometry pass
 GLuint ssao_noise_texture, ssao_fbo, ssao_color_buffer;
 GLuint ssao_shader;
 GLuint sample_loc = 0, projection_loc = 0, view_loc = 0, screensize_loc = 0;
 GLuint gposition_loc = 0, gnormal_loc = 0, noise_loc = 0;
 GLuint ssao_loc = 0;
+
+// ssao blur pass
+GLuint ssao_blur_fbo, ssao_color_blur_buffer;
+GLuint ssao_blur_shader;
+GLuint ssao_blur_loc = 0;
 
 void ssao_init()
 {
@@ -85,8 +91,26 @@ void ssao_init()
     printf("Error! SSAO Framebuffer is not complete\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  // generate the ssao blur framebuffer
+  glGenFramebuffers(1, &ssao_blur_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+
+  // generate ssao blur color buffer
+  glGenTextures(1, &ssao_color_blur_buffer);
+  glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_color_blur_buffer, 0);
+
+  // test blur framebuffer
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    printf("Error! SSAO Blur Framebuffer is not complete\n");
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
   // load and init the shaders
   ssao_shader = ex_shader_compile("ssao.vs", "ssao.fs", NULL);
+  ssao_blur_shader = ex_shader_compile("ssao.vs", "ssaoblur.fs", NULL);
 }
 
 void ssao_render(mat4x4 projection, mat4x4 view)
@@ -94,14 +118,14 @@ void ssao_render(mat4x4 projection, mat4x4 view)
   glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
   glClear(GL_COLOR_BUFFER_BIT);
 
+  glUseProgram(ssao_shader);
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, gposition);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, gnormal);
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, ssao_noise_texture);
-
-  glUseProgram(ssao_shader);
 
   if (!sample_loc)
     sample_loc = glGetUniformLocation(ssao_shader, "u_samples");
@@ -133,6 +157,22 @@ void ssao_render(mat4x4 projection, mat4x4 view)
   // render screen quad
   glBindVertexArray(fbo_vao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  // do blur pass
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glUseProgram(ssao_blur_shader);
+
+  // send the ssao color texture
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, ssao_color_buffer);
+  if (!ssao_blur_loc)
+    ssao_blur_loc = glGetUniformLocation(ssao_blur_shader, "u_ssao");
+  glUniform1i(ssao_blur_loc, 0);
+
+  glBindVertexArray(fbo_vao);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
   
   glBindVertexArray(0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -141,7 +181,7 @@ void ssao_render(mat4x4 projection, mat4x4 view)
 void ssao_bind_texture(GLuint shader)
 {
   glActiveTexture(GL_TEXTURE3);
-  glBindTexture(GL_TEXTURE_2D, ssao_color_buffer);
+  glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
   if (!ssao_loc)
     ssao_loc = glGetUniformLocation(shader, "u_ssao");
   glUniform1i(ssao_loc, 3);
