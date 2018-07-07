@@ -29,7 +29,7 @@ void main()
     norm = normalize(TBN * norm);
   }
 
-  Normal = norm;
+  Normal = norm * 0.5 + 0.5;
   
   Colorspec.rgb = texture(u_texture, uv).rgb;
   Colorspec.a = texture(u_spec, uv).r;

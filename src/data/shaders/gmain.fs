@@ -134,13 +134,13 @@ vec3 calc_point_light(point_light light)
 
   // point light
   vec3 fragpos = texture(u_position, uv).rgb;
-  vec3 normals = texture(u_norm, uv).rgb;
+  vec3 normals = texture(u_norm, uv).rgb * 2.0 - 1.0;
   vec3 diff    = texture(u_colorspec, uv).rgb;
   float spec   = texture(u_colorspec, uv).a*2.0f;
 
   vec3 view_dir  = normalize(-fragpos);
   vec3 light_dir = l.position - fragpos;
-  float distance = length(light_dir);
+  float dist = length(light_dir);
   light_dir = normalize(light_dir);
   
   // diffuse
@@ -153,7 +153,8 @@ vec3 calc_point_light(point_light light)
 
   // attenuation
   // float attenuation = 1.0f / (1.0f + 0.1f * (distance * distance));
-  float attenuation = 1.0f / distance;
+  float attenuation = 1.0f / dist;
+  // float attenuation = max(0.0, 4.0 - pow(dist, 1.0/2.0));
   diffuse  *= attenuation;
   specular *= attenuation;
 
@@ -274,6 +275,6 @@ void main()
 
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
-  color *= ao;
+  // color *= ao;
   color = vec4(diffuse * ao, 1.0f);
 }

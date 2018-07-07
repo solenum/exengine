@@ -32,7 +32,5 @@ inline GLint ex_uniform(GLuint shader, const char *str)
   ex_uniform_map[shader][i] = key;
   ex_uniform_locations[shader][i] = value;
 
-  printf("Caching new uniform location for shader %i\n", shader);
-
   return value;
 }
