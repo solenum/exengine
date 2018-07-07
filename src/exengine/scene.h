@@ -10,6 +10,7 @@
 #include "dirlight.h"
 #include "spotlight.h"
 #include "octree.h"
+#include "reflectionprobe.h"
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -17,6 +18,7 @@
 
 #define EX_MAX_POINT_LIGHTS 500
 #define EX_MAX_SPOT_LIGHTS 128
+#define EX_MAX_REFLECTIONS 50
 
 // this should be the value of the biggest define above
 #define EX_SCENE_BIGGEST_LIGHT 500
@@ -30,6 +32,7 @@ typedef struct {
   ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
   ex_spot_light_t *spot_lights[EX_MAX_SPOT_LIGHTS];
   ex_dir_light_t *dir_light;
+  ex_reflection_t *reflection_probes[EX_MAX_REFLECTIONS];
   
   ex_octree_t *coll_tree;
   int collision_built;
@@ -49,6 +52,8 @@ void ex_scene_build_collision(ex_scene_t *s);
 void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl);
 
 void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *pl);
+
+void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r);
 
 void ex_scene_update(ex_scene_t *s, float delta_time);
 

@@ -105,7 +105,7 @@ void ex_framebuffer_render_quad()
   glUseProgram(ex_fbo_shader);
   glBindVertexArray(fbo_vao);
   glActiveTexture(GL_TEXTURE0);
-  glUniform1i(glGetUniformLocation(ex_fbo_shader, "u_texture"), 0);
+  glUniform1i(ex_uniform(ex_fbo_shader, "u_texture"), 0);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);

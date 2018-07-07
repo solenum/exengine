@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "window.h"
+#include "shader.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -102,12 +103,9 @@ void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
 void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program)
 {
   // send vars to shader
-  GLuint projection_location = glGetUniformLocation(shader_program, "u_projection");
-  glUniformMatrix4fv(projection_location, 1, GL_FALSE, cam->projection[0]);
-  GLuint view_location = glGetUniformLocation(shader_program, "u_view");
-  glUniformMatrix4fv(view_location, 1, GL_FALSE, cam->view[0]);
-  GLuint viewp_location = glGetUniformLocation(shader_program, "u_view_position");
-  glUniform3fv(viewp_location, 1, &cam->position[0]);
-  GLuint invview_location = glGetUniformLocation(shader_program, "u_inverse_view");
-  glUniformMatrix4fv(invview_location, 1, GL_FALSE, cam->inverse_view[0]);
+  glUniformMatrix4fv(ex_uniform(shader_program, "u_projection"), 1, GL_FALSE, cam->projection[0]);
+  glUniformMatrix4fv(ex_uniform(shader_program, "u_view"), 1, GL_FALSE, cam->view[0]);
+  glUniform3fv(ex_uniform(shader_program, "u_view_position"), 1, &cam->position[0]);
+  glUniformMatrix4fv(ex_uniform(shader_program, "u_inverse_view"), 1, GL_FALSE, cam->inverse_view[0]);
+  glUniform3fv(ex_uniform(shader_program, "u_eye_dir"), 1, &cam->front[0]);
 }

@@ -12,6 +12,17 @@
 #include "exe_io.h"
 
 /**
+ * [ex_uniform cache and return shader uniform locations]
+ * @param  shader [shader to be used]
+ * @param  str    [uniform string]
+ * @return        [uniform location]
+ *
+ * hashes a string key using djb2
+ * www.cse.yorku.ca/~oz/hash.html
+ */
+GLint ex_uniform(GLuint shader, const char *str);
+
+/**
  * [ex_shader_compile loads, attaches and links shaders into a shader program]
  * @param  vertex_path   [vertex shader file path]
  * @param  fragment_path [fragment shader file path]

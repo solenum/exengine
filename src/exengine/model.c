@@ -1,4 +1,5 @@
 #include "model.h"
+#include "shader.h"
 #include <string.h>
 
 ex_model_t* ex_model_new()
@@ -88,14 +89,12 @@ void ex_model_update(ex_model_t *m, float delta_time)
 void ex_model_draw(ex_model_t *m, GLuint shader)
 {
   // pass bone data
-  GLuint has_skeleton_loc = glGetUniformLocation(shader, "u_has_skeleton");
+  GLuint has_skeleton_loc = ex_uniform(shader, "u_has_skeleton");
   glUniform1i(has_skeleton_loc, 0);
 
   if (m->bones != NULL && m->current_anim != NULL) {
     glUniform1i(has_skeleton_loc, 1);
-    
-    GLuint bone_loc = glGetUniformLocation(shader, "u_bone_matrix");
-    glUniformMatrix4fv(bone_loc, m->bones_len, GL_TRUE, &m->skeleton[0][0][0]);
+    glUniformMatrix4fv(ex_uniform(shader, "u_bone_matrix"), m->bones_len, GL_TRUE, &m->skeleton[0][0][0]);
   }
 
   // render meshes

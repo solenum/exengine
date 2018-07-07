@@ -12,9 +12,12 @@ uniform sampler2D u_ssao;
 uniform mat4 u_projection;
 uniform mat4 u_view;
 uniform mat4 u_inverse_view;
+uniform vec3 u_eye_dir;
 
 uniform vec3 u_view_position;
 uniform bool u_ambient_pass;
+
+uniform samplerCube u_reflection;
 
 /* spot lights */
 const int MAX_SL = 32;
@@ -75,21 +78,25 @@ vec3 pcf_offset[20] = vec3[]
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-vec3 calc_spot_light(spot_light l)
+vec3 calc_spot_light(spot_light light)
 {
+  spot_light l = light;
+  l.position = vec3(u_view * vec4(l.position, 1.0));
+
   // point light
   vec3 fragpos = texture(u_position, uv).rgb;
   vec3 normals = texture(u_norm, uv).rgb;
   vec3 diff    = texture(u_colorspec, uv).rgb;
-  float spec   = texture(u_colorspec, uv).a*1.5f;
+  float spec   = texture(u_colorspec, uv).a*2.0f;
 
-  vec3 light_dir = normalize(l.position - fragpos);
-  vec3 view_dir  = normalize(u_view_position - fragpos);
+  vec3 view_dir  = normalize(-fragpos);
+  vec3 light_dir = l.position - fragpos;
+  float distance = length(light_dir);
+  light_dir = normalize(light_dir);
 
   vec3 diffuse  = vec3(0.0f);
   vec3 specular = vec3(0.0f);
 
-  float distance = length(l.position - fragpos);
   float attenuation = 1.0f / distance;
   
   float theta   = dot(light_dir, normalize(-l.direction));
@@ -236,15 +243,28 @@ const vec3 u_white_point = vec3(0.75, 0.75, 0.75);
 void main()
 {
   vec3 diffuse = vec3(0.0f);
+  vec3 reflection = vec3(0.0f);
   float ao = texture(u_ssao, uv).r;
 
   if (u_ambient_pass) {
+    diffuse += texture(u_colorspec, uv).rgb * 0.01;
 
-    diffuse += texture(u_colorspec, uv).rgb * 0.05;
+    // vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
+    // vec3 fragpos = mat3(u_inverse_view) * texture(u_position, uv).rgb;
+    // float spec   = texture(u_colorspec, uv).a;
+    // vec3 eye = normalize(u_eye_dir);
+    // eye = normalize(fragpos);
+    // eye.y = -eye.y;
+    // vec3 reflected = normalize(reflect(eye, normals));
+    // reflection = texture(u_reflection, reflected).rgb * 5.5;
+    // diffuse *= reflection * spec;
   } else {
     // shadow casters
     if (u_point_active && u_point_count <= 0)
       diffuse += calc_point_light(u_point_light);
+
+    // if (u_spot_active && u_spot_count <= 0)
+      // diffuse += calc_spot_light(u_spot_light);
   }
     
   // non shadow casters
@@ -255,5 +275,5 @@ void main()
   vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
   color *= ao;
-  // color = vec4(diffuse * ao, 1.0f);
+  color = vec4(diffuse * ao, 1.0f);
 }

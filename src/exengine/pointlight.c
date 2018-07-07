@@ -97,45 +97,45 @@ void ex_point_light_begin(ex_point_light_t *l)
   glUseProgram(l->shader);
 
   // pass transform matrices to shader
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[0]"), 1, GL_FALSE, *l->transform[0]);
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[1]"), 1, GL_FALSE, *l->transform[1]);
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[2]"), 1, GL_FALSE, *l->transform[2]);
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[3]"), 1, GL_FALSE, *l->transform[3]);
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[4]"), 1, GL_FALSE, *l->transform[4]);
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_shadow_matrices[5]"), 1, GL_FALSE, *l->transform[5]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[0]"), 1, GL_FALSE, *l->transform[0]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[1]"), 1, GL_FALSE, *l->transform[1]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[2]"), 1, GL_FALSE, *l->transform[2]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[3]"), 1, GL_FALSE, *l->transform[3]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[4]"), 1, GL_FALSE, *l->transform[4]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_shadow_matrices[5]"), 1, GL_FALSE, *l->transform[5]);
 
-  glUniform1f(glGetUniformLocation(l->shader, "u_far_plane"), EX_POINT_FAR_PLANE);
-  glUniform3fv(glGetUniformLocation(l->shader, "u_light_pos"), 1, l->position);
+  glUniform1f(ex_uniform(l->shader, "u_far_plane"), EX_POINT_FAR_PLANE);
+  glUniform3fv(ex_uniform(l->shader, "u_light_pos"), 1, l->position);
 }
 
 void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix)
 {
   if (l->is_shadow) {
-    glUniform1i(glGetUniformLocation(shader, "u_point_light.is_shadow"), 1);
+    glUniform1i(ex_uniform(shader, "u_point_light.is_shadow"), 1);
     
-    glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 4);
+    glUniform1i(ex_uniform(shader, "u_point_depth"), 4);
     
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
   } else if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.is_shadow", prefix);
-    glUniform1i(glGetUniformLocation(shader, buff), 0);
+    glUniform1i(ex_uniform(shader, buff), 0);
   }
 
   if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.far", prefix);
-    glUniform1f(glGetUniformLocation(shader,  buff), EX_POINT_FAR_PLANE);
+    glUniform1f(ex_uniform(shader,  buff), EX_POINT_FAR_PLANE);
     sprintf(buff, "%s.position", prefix);
-    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
+    glUniform3fv(ex_uniform(shader, buff), 1, l->position);
     sprintf(buff, "%s.color", prefix);
-    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
+    glUniform3fv(ex_uniform(shader, buff), 1, l->color);
   } else {
-    glUniform1i(glGetUniformLocation(shader,  "u_point_active"), 1);
-    glUniform1f(glGetUniformLocation(shader,  "u_point_light.far"), EX_POINT_FAR_PLANE);
-    glUniform3fv(glGetUniformLocation(shader, "u_point_light.position"), 1, l->position);
-    glUniform3fv(glGetUniformLocation(shader, "u_point_light.color"), 1, l->color);
+    glUniform1i(ex_uniform(shader,  "u_point_active"), 1);
+    glUniform1f(ex_uniform(shader,  "u_point_light.far"), EX_POINT_FAR_PLANE);
+    glUniform3fv(ex_uniform(shader, "u_point_light.position"), 1, l->position);
+    glUniform3fv(ex_uniform(shader, "u_point_light.color"), 1, l->color);
   }
 }
 

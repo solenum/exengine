@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "shader.h"
 
 ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture)
 {
@@ -82,16 +83,15 @@ void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program)
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
-  glUniform1i(glGetUniformLocation(shader_program, "u_texture"), 4);
-  glUniform1i(glGetUniformLocation(shader_program, "u_spec"), 5);
-  glUniform1i(glGetUniformLocation(shader_program, "u_norm"), 6);
+  glUniform1i(ex_uniform(shader_program, "u_texture"), 4);
+  glUniform1i(ex_uniform(shader_program, "u_spec"), 5);
+  glUniform1i(ex_uniform(shader_program, "u_norm"), 6);
   
-  GLuint is_lit_loc = glGetUniformLocation(shader_program, "u_is_lit");
-  glUniform1i(is_lit_loc, m->is_lit);
+  glUniform1i(ex_uniform(shader_program, "u_is_lit"), m->is_lit);
 
-  GLuint is_texture_loc = glGetUniformLocation(shader_program, "u_is_textured");
-  GLuint is_spec_loc = glGetUniformLocation(shader_program, "u_is_spec");
-  GLuint is_norm_loc = glGetUniformLocation(shader_program, "u_is_norm");
+  GLuint is_texture_loc = ex_uniform(shader_program, "u_is_textured");
+  GLuint is_spec_loc = ex_uniform(shader_program, "u_is_spec");
+  GLuint is_norm_loc = ex_uniform(shader_program, "u_is_norm");
   
   if (m->texture < 1) {
     glUniform1i(is_texture_loc, 0);
@@ -118,8 +118,7 @@ void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program)
   }
 
   // pass transform matrix to shader
-  GLuint transform_loc = glGetUniformLocation(shader_program, "u_model");
-  glUniformMatrix4fv(transform_loc, 1, GL_FALSE, m->transform[0]);
+  glUniformMatrix4fv(ex_uniform(shader_program, "u_model"), 1, GL_FALSE, m->transform[0]);
 
   // draw mesh
   glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_INT, 0);

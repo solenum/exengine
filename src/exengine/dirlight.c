@@ -73,22 +73,22 @@ void ex_dir_light_begin(ex_dir_light_t *l)
   glEnable(GL_DEPTH_TEST);
   glUseProgram(l->shader);
 
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
 }
 
 void ex_dir_light_draw(ex_dir_light_t *l, GLuint shader)
 {
   glActiveTexture(GL_TEXTURE4);
   glBindTexture(GL_TEXTURE_2D, l->depth_map);
-  glUniform1i(glGetUniformLocation(shader, "u_dir_depth"), 4);
+  glUniform1i(ex_uniform(shader, "u_dir_depth"), 4);
 
   vec3 temp;
   vec3_add(temp, l->cposition, l->position);
-  glUniformMatrix4fv(glGetUniformLocation(shader, "u_dir_transform"), 1, GL_FALSE, &l->transform[0][0]);
-  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.position"), 1, temp);
-  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.target"), 1, l->target);
-  glUniform3fv(glGetUniformLocation(shader, "u_dir_light.color"), 1, l->color);
-  glUniform1f(glGetUniformLocation(shader, "u_dir_light.far"), DIR_FAR_PLANE);
+  glUniformMatrix4fv(ex_uniform(shader, "u_dir_transform"), 1, GL_FALSE, &l->transform[0][0]);
+  glUniform3fv(ex_uniform(shader, "u_dir_light.position"), 1, temp);
+  glUniform3fv(ex_uniform(shader, "u_dir_light.target"), 1, l->target);
+  glUniform3fv(ex_uniform(shader, "u_dir_light.color"), 1, l->color);
+  glUniform1f(ex_uniform(shader, "u_dir_light.far"), DIR_FAR_PLANE);
 }
 
 void ex_dir_light_destroy(ex_dir_light_t *l)

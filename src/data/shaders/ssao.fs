@@ -14,7 +14,7 @@ uniform mat4 u_view;
 uniform vec2 u_screensize;
 
 int kernel_size = 32;
-float radius = 0.5;
+float radius = 0.8;
 float bias = 0.2;
 
 void main()

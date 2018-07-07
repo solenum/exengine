@@ -86,7 +86,7 @@ void ex_skybox_draw(ex_skybox_t *s)
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_CUBE_MAP, s->texture);
   glCullFace(GL_NONE);
-  glUniform1i(glGetUniformLocation(s->shader, "u_skybox"), 3);
+  glUniform1i(ex_uniform(s->shader, "u_skybox"), 3);
   glDrawArrays(GL_TRIANGLES, 0, 36);
 
   glBindVertexArray(0);

@@ -128,19 +128,19 @@ void ssao_render(mat4x4 projection, mat4x4 view)
   glBindTexture(GL_TEXTURE_2D, ssao_noise_texture);
 
   if (!sample_loc)
-    sample_loc = glGetUniformLocation(ssao_shader, "u_samples");
+    sample_loc = ex_uniform(ssao_shader, "u_samples");
   if (!projection_loc)
-    projection_loc = glGetUniformLocation(ssao_shader, "u_projection");
+    projection_loc = ex_uniform(ssao_shader, "u_projection");
   if (!view_loc)
-    view_loc = glGetUniformLocation(ssao_shader, "u_view");
+    view_loc = ex_uniform(ssao_shader, "u_view");
   if (!screensize_loc)
-    screensize_loc = glGetUniformLocation(ssao_shader, "u_screensize");
+    screensize_loc = ex_uniform(ssao_shader, "u_screensize");
   if (!gposition_loc)
-    gposition_loc = glGetUniformLocation(ssao_shader, "u_gposition");
+    gposition_loc = ex_uniform(ssao_shader, "u_gposition");
   if (!gnormal_loc)
-    gnormal_loc = glGetUniformLocation(ssao_shader, "u_gnormal");
+    gnormal_loc = ex_uniform(ssao_shader, "u_gnormal");
   if (!noise_loc)
-    noise_loc = glGetUniformLocation(ssao_shader, "u_noise");
+    noise_loc = ex_uniform(ssao_shader, "u_noise");
 
   int width = conf_get_int(&conf, "window_width");
   int height = conf_get_int(&conf, "window_height");
@@ -168,7 +168,7 @@ void ssao_render(mat4x4 projection, mat4x4 view)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, ssao_color_buffer);
   if (!ssao_blur_loc)
-    ssao_blur_loc = glGetUniformLocation(ssao_blur_shader, "u_ssao");
+    ssao_blur_loc = ex_uniform(ssao_blur_shader, "u_ssao");
   glUniform1i(ssao_blur_loc, 0);
 
   glBindVertexArray(fbo_vao);
@@ -183,6 +183,6 @@ void ssao_bind_texture(GLuint shader)
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
   if (!ssao_loc)
-    ssao_loc = glGetUniformLocation(shader, "u_ssao");
+    ssao_loc = ex_uniform(shader, "u_ssao");
   glUniform1i(ssao_loc, 3);
 }

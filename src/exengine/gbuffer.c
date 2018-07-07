@@ -113,9 +113,9 @@ void ex_gbuffer_first()
 void ex_gbuffer_render(GLuint shader)
 {
   // bind textures
-  glUniform1i(glGetUniformLocation(shader, "u_position"), 0);
-  glUniform1i(glGetUniformLocation(shader, "u_norm"), 1);
-  glUniform1i(glGetUniformLocation(shader, "u_colorspec"), 2);
+  glUniform1i(ex_uniform(shader, "u_position"), 0);
+  glUniform1i(ex_uniform(shader, "u_norm"), 1);
+  glUniform1i(ex_uniform(shader, "u_colorspec"), 2);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, gposition);
   glActiveTexture(GL_TEXTURE1);
@@ -124,7 +124,7 @@ void ex_gbuffer_render(GLuint shader)
   glBindTexture(GL_TEXTURE_2D, gcolorspec);
   ssao_bind_texture(shader);
 
-  glUniform1i(glGetUniformLocation(shader, "u_point_depth"), 4);
+  glUniform1i(ex_uniform(shader, "u_point_depth"), 4);
 
   // draw quad
   glBindVertexArray(gvao);

@@ -33,6 +33,11 @@ ex_scene_t* scene_new()
     s->point_lights[i] = NULL;
   for (int i=0; i<EX_MAX_SPOT_LIGHTS; i++)
     s->spot_lights[i] = NULL;
+  
+  ex_reflection_init();
+  for (int i=0; i<EX_MAX_REFLECTIONS; i++)
+    s->reflection_probes[i] = NULL;
+
 
   // init skybox
   s->skybox = NULL;
@@ -162,6 +167,16 @@ void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *sl)
   }
 }
 
+void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r)
+{
+  for (int i=0; i<EX_MAX_REFLECTIONS; i++) {
+    if (s->reflection_probes[i] == NULL) {
+      s->reflection_probes[i] = r;
+      return;
+    }
+  } 
+}
+
 void ex_scene_update(ex_scene_t *s, float delta_time)
 {
   ex_dbgprofiler.begin[ex_dbgprofiler_update] = glfwGetTime();
@@ -226,6 +241,16 @@ void ex_scene_draw(ex_scene_t *s)
   }
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
 
+  // render reflection maps
+  /*glCullFace(GL_BACK);
+  for (int i=0; i<EX_MAX_REFLECTIONS; i++) {
+    ex_reflection_t *r = s->reflection_probes[i];
+    if (r != NULL) {
+      ex_reflection_begin(r);
+      ex_scene_render_models(s, r->shader, 1);
+    }
+  }*/
+
   ex_fps_camera_update(s->fps_camera, ex_gshader);
 
   // first geometry render pass
@@ -234,9 +259,9 @@ void ex_scene_draw(ex_scene_t *s)
   
   // debug poooo
   if (ex_keys_down[GLFW_KEY_E])
-    glUniform1i(glGetUniformLocation(ex_gshader, "u_dont_norm"), 0);
+    glUniform1i(ex_uniform(ex_gshader, "u_dont_norm"), 0);
   if (ex_keys_down[GLFW_KEY_R])
-    glUniform1i(glGetUniformLocation(ex_gshader, "u_dont_norm"), 1);
+    glUniform1i(ex_uniform(ex_gshader, "u_dont_norm"), 1);
 
   // render scene to gbuffer
   ex_fps_camera_draw(s->fps_camera, ex_gshader);
@@ -274,10 +299,11 @@ void ex_scene_draw(ex_scene_t *s)
   glDisable(GL_BLEND);
   glCullFace(GL_BACK);
 
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_ambient_pass"), 1);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_active"), 0);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_dir_active"), 0);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_active"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_ambient_pass"), 1);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 0);
+  // ex_reflection_draw(s->reflection_probes[0], ex_gmainshader);
   ex_gbuffer_render(ex_gmainshader);
 
   // enable blending for second pass onwards
@@ -317,16 +343,16 @@ void ex_scene_draw(ex_scene_t *s)
 
   if (s->dir_light != NULL) {
     ex_dir_light_draw(s->dir_light, ex_gmainshader);
-    glUniform1i(glGetUniformLocation(ex_gmainshader, "u_dir_active"), 1);
+    glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 1);
   }
 
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_count"), pcount);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_count"), scount);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_ambient_pass"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), pcount);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), scount);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_ambient_pass"), 0);
   ex_gbuffer_render(ex_gmainshader);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_count"), 0);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_count"), 0);
-  glUniform1i(glGetUniformLocation(ex_gmainshader, "u_dir_active"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), 0);
+  glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
 
   // enable blending for second pass onwards
   glEnable(GL_BLEND);
@@ -344,20 +370,20 @@ void ex_scene_draw(ex_scene_t *s)
     // point light
     if (pl != NULL) {
       if (pl->is_shadow && pl->distance_to_cam <= EX_POINT_SHADOW_DIST && pl->is_visible) {
-        glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_active"), 1);
+        glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 1);
         ex_point_light_draw(pl, ex_gmainshader, NULL);
       } else {
-        glUniform1i(glGetUniformLocation(ex_gmainshader, "u_point_active"), 0);
+        glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 0);
       } 
     }
 
     // spot light
     if (sl != NULL) {
       if (sl->is_shadow && sl->distance_to_cam <= EX_SPOT_SHADOW_DIST && sl->is_visible) {
-        glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_active"), 1);
+        glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 1);
         ex_spot_light_draw(sl, ex_gmainshader, NULL);
       } else {
-        glUniform1i(glGetUniformLocation(ex_gmainshader, "u_spot_active"), 0);
+        glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 0);
       } 
     }
 

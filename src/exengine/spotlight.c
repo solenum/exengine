@@ -1,5 +1,6 @@
 #include "spotlight.h"
 #include "dirlight.h"
+#include "shader.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -76,40 +77,40 @@ void ex_spot_light_begin(ex_spot_light_t *l)
   glEnable(GL_DEPTH_TEST);
   glUseProgram(l->shader);
 
-  glUniformMatrix4fv(glGetUniformLocation(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
+  glUniformMatrix4fv(ex_uniform(l->shader, "u_light_transform"), 1, GL_FALSE, &l->transform[0][0]);
 }
 
 void ex_spot_light_draw(ex_spot_light_t *l, GLuint shader, const char *prefix)
 {
   if (l->is_shadow) {
-    glUniform1i(glGetUniformLocation(shader, "u_spot_light.is_shadow"), 1);
+    glUniform1i(ex_uniform(shader, "u_spot_light.is_shadow"), 1);
     
-    glUniform1i(glGetUniformLocation(shader, "u_spot_depth"), 5);
+    glUniform1i(ex_uniform(shader, "u_spot_depth"), 5);
     
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, l->depth_map);
   } else if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.is_shadow", prefix);
-    glUniform1i(glGetUniformLocation(shader, buff), 0);
+    glUniform1i(ex_uniform(shader, buff), 0);
   }
 
   if (prefix != NULL) {
     char buff[64];
     sprintf(buff, "%s.far", prefix);
-    glUniform1f(glGetUniformLocation(shader,  buff), EX_SPOT_FAR_PLANE);
+    glUniform1f(ex_uniform(shader,  buff), EX_SPOT_FAR_PLANE);
     sprintf(buff, "%s.position", prefix);
-    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->position);
+    glUniform3fv(ex_uniform(shader, buff), 1, l->position);
     sprintf(buff, "%s.color", prefix);
-    glUniform3fv(glGetUniformLocation(shader, buff), 1, l->color);
+    glUniform3fv(ex_uniform(shader, buff), 1, l->color);
   } else {
-    glUniform1i(glGetUniformLocation(shader,  "u_spot_active"), 1);
-    glUniform1f(glGetUniformLocation(shader,  "u_spot_light.far"), EX_SPOT_FAR_PLANE);
-    glUniform3fv(glGetUniformLocation(shader, "u_spot_light.position"), 1, l->position);
-    glUniform3fv(glGetUniformLocation(shader, "u_spot_light.direction"), 1, l->direction);
-    glUniform3fv(glGetUniformLocation(shader, "u_spot_light.color"), 1, l->color);
-    glUniform1f(glGetUniformLocation(shader,  "u_spot_light.inner"), l->inner);
-    glUniform1f(glGetUniformLocation(shader,  "u_spot_light.outer"), l->outer);
+    glUniform1i(ex_uniform(shader,  "u_spot_active"), 1);
+    glUniform1f(ex_uniform(shader,  "u_spot_light.far"), EX_SPOT_FAR_PLANE);
+    glUniform3fv(ex_uniform(shader, "u_spot_light.position"), 1, l->position);
+    glUniform3fv(ex_uniform(shader, "u_spot_light.direction"), 1, l->direction);
+    glUniform3fv(ex_uniform(shader, "u_spot_light.color"), 1, l->color);
+    glUniform1f(ex_uniform(shader,  "u_spot_light.inner"), l->inner);
+    glUniform1f(ex_uniform(shader,  "u_spot_light.outer"), l->outer);
   }
 }
 

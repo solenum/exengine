@@ -8,6 +8,7 @@
 #include "exengine/skybox.h"
 #include "exengine/entity.h"
 #include "exengine/glimgui.h"
+#include "exengine/reflectionprobe.h"
 #include "exengine/dbgui.h"
 #include "inc/game.h"
 
@@ -33,14 +34,14 @@ void game_init()
 
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 0.0f;
-  e->position[0] = 0.0f; 
+  e->position[0] = 0.0f;
   e->position[2] = 0.0f;
 
   // d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
   // list_add(scene->model_list, d);
   // ex_model_set_anim(d, "Run");
 
-  l = ex_point_light_new((vec3){0.0f, 5.0f, -50.0f}, (vec3){0.5f, 0.5f, 0.5f}, 1);
+  l = ex_point_light_new((vec3){-20.0f, 0.0f, 15.0f}, (vec3){0.2f, 0.2f, 0.4f}, 1);
   ex_scene_add_pointlight(scene, l);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.25f, 0.25f, 0.25f}, 0);
@@ -50,8 +51,9 @@ void game_init()
 
   box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
   list_add(scene->model_list, box);
-  cube = ex_entity_new(scene, (vec3){0.95f, 0.95f, 0.95f});
+  cube = ex_entity_new(scene, (vec3){0.95f, 0.99f, 0.95f});
   cube->position[1] = 2.5f;
+  cube->position[0] = -10.0f;
 }
 
 void game_update(double dt)
@@ -64,18 +66,19 @@ void game_update(double dt)
   memcpy(pl->position, camera->position, sizeof(vec3));
 
   memcpy(box->position, cube->position, sizeof(vec3));
+  memcpy(l->position, box->position, sizeof(vec3));
 
   vec3 temp;
   vec3_sub(temp, cube->position, e->position);
   float len = vec3_len(temp);
   if (len <= cube->radius[1]/2 + e->radius[1]) {
     vec3_norm(temp, temp);
-    vec3_scale(temp, temp, len);
+    vec3_scale(temp, temp, vec3_len(e->velocity));
     vec3_add(cube->velocity, cube->velocity, temp);
     vec3_sub(e->velocity, e->velocity, temp);
   }
 
-  vec3_scale(temp, cube->velocity, 5.0f * dt);
+  vec3_scale(temp, cube->velocity, 1.0f * dt);
   temp[1] = 0.0f;
   if (cube->grounded == 1)
     vec3_sub(cube->velocity, cube->velocity, temp);
