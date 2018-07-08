@@ -9,7 +9,7 @@ int main(int argc, char **argv)
   ex_draw_ptr = game_draw;
   ex_exit_ptr = game_exit;
 
-  exengine();
+  exengine(argv);
 
   return EXIT_SUCCESS;
 }

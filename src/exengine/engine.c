@@ -19,9 +19,13 @@ void (*ex_exit_ptr)(void);
 
 conf_t conf;
 
-void exengine()
+void exengine(char **argv)
 {
   /* -- INIT ENGINE -- */
+  // init physfs filesystem
+  PHYSFS_init(argv[0]);
+  PHYSFS_mount(EX_DATA_FILE, NULL, 1);
+
   // delta time vars
   const double phys_delta_time = 1.0 / 60.0;
   const double slowest_frame = 1.0 / 15.0;
@@ -88,6 +92,7 @@ void exengine()
   glimgui_shutdown();
   conf_free(&conf);
   ex_window_destroy();
+  PHYSFS_deinit();
 
   // user exit callback
   ex_exit_ptr();

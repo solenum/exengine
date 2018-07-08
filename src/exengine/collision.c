@@ -4,9 +4,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-// use signbit(a) instead?
-// #define in(a) *((uint32_t*) &a)
-
 ex_plane_t ex_plane_new(const vec3 a, const vec3 b)
 {
   ex_plane_t plane;
@@ -60,21 +57,6 @@ int ex_is_front_facing(ex_plane_t *plane, const vec3 direction)
 
 int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, const vec3 p3)
 {
-  /*vec3 e10, e20;
-  vec3_sub(e10, p2, p1);
-  vec3_sub(e20, p3, p1);
-  float a = vec3_mul_inner(e10, e10);
-  float b = vec3_mul_inner(e10, e20);
-  float c = vec3_mul_inner(e20, e20);
-  float ac_bb = (a * c) - (b * b);
-  vec3 vp = {point[0] - p1[0], point[1] - p1[1], point[2] - p1[2]};
-  float d = vec3_mul_inner(vp, e10);
-  float e = vec3_mul_inner(vp, e20);
-  float x = (d * c) - (e * b);
-  float y = (e * a) - (d * b);
-  float z = x + y - ac_bb;
-  return (( signbit(z)& ~(signbit(x)|signbit(y)) ) & 0x80000000);*/
-
   vec3 u, v, w, vw, vu, uw, uv;
   vec3_sub(u, p2, p1);
   vec3_sub(v, p3, p1);

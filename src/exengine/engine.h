@@ -1,12 +1,15 @@
 #ifndef EX_ENGINE_H
 #define EX_ENGINE_H
 
+#define EX_DATA_FILE "data.ex"
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <physfs.h>
 
 #include "exe_conf.h"
 #include "exengine/window.h"
@@ -18,6 +21,6 @@ extern void (*ex_draw_ptr)(void);
 extern void (*ex_exit_ptr)(void);
 
 // where the magic happens
-void exengine();
+void exengine(char **argv);
 
 #endif

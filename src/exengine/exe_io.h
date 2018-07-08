@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <physfs.h>
 
 /**
  * [io_read_file reads a file into a char array]
@@ -13,29 +14,28 @@
  */
 static char* io_read_file(const char *path, const char *mode)
 {
-  // load the file
-  FILE *file;
-  file = fopen(path, mode);
-  if (file == NULL) {
+  if (!PHYSFS_exists(path)) {
     printf("could not load file %s\n", path);
     return NULL;
   }
 
+  // load the file
+  PHYSFS_file *file;
+  file = PHYSFS_openRead(path);
+
   // get file length
-  fseek(file, 0, SEEK_END);
-  size_t size = ftell(file);
-  rewind(file);
+  size_t size = PHYSFS_fileLength(file);
 
   // allocate space for file data
   char *buff = malloc(size+1);
 
   // read file contents into buffer
-  size_t r = fread(buff, size, 1, file);
+  PHYSFS_readBytes(file, buff, size);
 
   // null-terminate the buffer
   buff[size] = '\0';
 
-  fclose(file);
+  PHYSFS_close(file);
 
   return buff;
 }

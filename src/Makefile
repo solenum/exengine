@@ -10,7 +10,7 @@ _IDIRS  =lib inc
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS)
+FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lphysfs -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -49,7 +49,7 @@ ssao.o engine.o reflectionprobe.o shader.o
 _OBJ   +=$(LOBJ)
 OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: files uzm
+all: files game
 
 # user srcs
 $(ODIR)/%.o: %.c $(DEPS)
@@ -67,19 +67,27 @@ $(ODIR)/%.o: $(LDIR)/cimgui/%.cpp
 $(ODIR)/%.o: $(LDIR)/imgui/%.cpp
 	$(CPP) -c -o $@ $< $(CPPFLAGS) $(FLAGS)
 
-uzm: $(OBJ)
+game: $(OBJ)
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
 	@echo "**success**"
 
 files:
 	mkdir -p $(ODIR)
 	mkdir -p build
-	cp -RTv data build/data/
+	zip -r -FS build/data.ex data/
 ifeq ($(OS),Windows_NT)
 	cp lib/win/dll/* build
 endif
 
-.PHONY: clean
+#release:
+#ifeq ($(OS),Windows_NT)
+#	copy /b $(BDIR)/game.exe+$(BDIR)/data.exe $(BDIR)/release.exe
+#else
+#	cat $(BDIR)/game $(BDIR)/data.ex > $(BDIR)/release
+#	chmod +x $(BDIR)/release
+#endif
+
+.PHONY: clean release
 
 clean:
 	rm -f $(ODIR)/*.o
