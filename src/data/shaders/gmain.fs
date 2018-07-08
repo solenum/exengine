@@ -152,8 +152,9 @@ vec3 calc_point_light(point_light light)
   vec3 specular = l.color * specs * spec;
 
   // attenuation
-  // float attenuation = 1.0f / (1.0f + 0.1f * (distance * distance));
-  float attenuation = 1.0f / dist;
+  // float attenuation = 1.0f / (1.0f + 0.1f * (dist * dist));
+  float attenuation = 1.0f / (1.0f + 0.22f * dist + 0.20f * (dist * dist));
+  // float attenuation = 1.0f / (1.0f + dist);
   // float attenuation = max(0.0, 4.0 - pow(dist, 1.0/2.0));
   diffuse  *= attenuation;
   specular *= attenuation;
@@ -239,8 +240,6 @@ vec3 aces_tonemap(vec3 x) {
   return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
 }
 
-const vec3 u_white_point = vec3(0.75, 0.75, 0.75);
-
 void main()
 {
   vec3 diffuse = vec3(0.0f);
@@ -248,7 +247,7 @@ void main()
   float ao = texture(u_ssao, uv).r;
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb * 0.01;
+    diffuse += texture(u_colorspec, uv).rgb * 0.015;
 
     // vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
     // vec3 fragpos = mat3(u_inverse_view) * texture(u_position, uv).rgb;
@@ -273,8 +272,8 @@ void main()
     for (int i=0; i<u_point_count; i++)
       diffuse += calc_point_light(u_point_lights[i]);
 
-  vec3 tex_color = vec3(1.0) - exp(-diffuse / u_white_point);
-  color = vec4(aces_tonemap(tex_color), 1.0);
-  // color *= ao;
-  color = vec4(diffuse * ao, 1.0f);
+  vec3 tex_color = vec3(1.0) - exp(-diffuse * 1.0);
+  color = vec4(aces_tonemap(tex_color), 2.5);
+  color *= ao;
+  // color = vec4(diffuse * ao, 1.0f);
 }
