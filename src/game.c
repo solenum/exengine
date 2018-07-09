@@ -46,7 +46,7 @@ void game_init()
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.25f, 0.25f, 0.25f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  ex_scene_add_pointlight(scene, pl);
+  // ex_scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   box = ex_iqm_load_model(scene, "data/cube.iqm", 0);

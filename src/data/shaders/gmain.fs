@@ -153,7 +153,7 @@ vec3 calc_point_light(point_light light)
 
   // attenuation
   // float attenuation = 1.0f / (1.0f + 0.1f * (dist * dist));
-  float attenuation = 1.0f / (1.0f + 0.22f * dist + 0.20f * (dist * dist));
+  float attenuation = 1.0f / (1.0f + 0.14f * dist + 0.07f * (dist * dist));
   // float attenuation = 1.0f / (1.0f + dist);
   // float attenuation = max(0.0, 4.0 - pow(dist, 1.0/2.0));
   diffuse  *= attenuation;
