@@ -247,7 +247,7 @@ void main()
   float ao = texture(u_ssao, uv).r;
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb * 0.04
+    diffuse += texture(u_colorspec, uv).rgb * 0.04;
 
     // vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
     // vec3 fragpos = mat3(u_inverse_view) * texture(u_position, uv).rgb;

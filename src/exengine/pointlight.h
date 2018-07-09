@@ -6,7 +6,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#define EX_POINT_FAR_PLANE 75
+#define EX_POINT_FAR_PLANE 60
 #define EX_POINT_SHADOW_DIST 150
 
 typedef struct {

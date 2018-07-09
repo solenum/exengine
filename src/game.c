@@ -33,9 +33,9 @@ void game_init()
   list_add(scene->model_list, m6);
 
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 0.0f;
-  e->position[0] = 0.0f;
-  e->position[2] = 0.0f;
+  e->position[1] = 15.0f;
+  e->position[0] = 15.0f;
+  e->position[2] = 15.0f;
 
   // d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
   // list_add(scene->model_list, d);
@@ -44,9 +44,9 @@ void game_init()
   l = ex_point_light_new((vec3){-20.0f, 0.0f, 15.0f}, (vec3){0.2f, 0.2f, 0.4f}, 1);
   // ex_scene_add_pointlight(scene, l);
 
-  pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.25f, 0.25f, 0.25f}, 0);
+  pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.1f, 0.1f, 0.1f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
-  // ex_scene_add_pointlight(scene, pl);
+  ex_scene_add_pointlight(scene, pl);
   pl->is_shadow = 0;
 
   box = ex_iqm_load_model(scene, "data/cube.iqm", 0);

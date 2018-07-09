@@ -437,7 +437,8 @@ void ex_scene_manage_lights(ex_scene_t *s)
     float f = vec3_mul_inner(thisfront, thatpos);
 
     // check if its behind us and far away
-    if (f <= -0.5f && pl->distance_to_cam > EX_POINT_FAR_PLANE)
+    float offset = fmax(fmax(pl->color[0], pl->color[1]), pl->color[2]);
+    if (f < 0.1f-(offset*0.5) && pl->distance_to_cam > EX_POINT_FAR_PLANE*offset)
       pl->is_visible = 0;
     else
       pl->is_visible = 1;
