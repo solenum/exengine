@@ -49,7 +49,7 @@ void ex_framebuffer_init()
   /* ------------------------- */
 
   /* -- screen quad -- */
-  GLfloat vertices[] = {   
+  GLfloat vertices[] = {
     // pos         // uv
     -1.0f,  1.0f,  0.0f, 1.0f,
     -1.0f, -1.0f,  0.0f, 0.0f,

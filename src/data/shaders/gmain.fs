@@ -247,7 +247,7 @@ void main()
   float ao = texture(u_ssao, uv).r;
 
   if (u_ambient_pass) {
-    diffuse += texture(u_colorspec, uv).rgb * 0.015;
+    diffuse += texture(u_colorspec, uv).rgb * 0.04
 
     // vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
     // vec3 fragpos = mat3(u_inverse_view) * texture(u_position, uv).rgb;
@@ -275,5 +275,6 @@ void main()
   vec3 tex_color = vec3(1.0) - exp(-diffuse * 1.0);
   color = vec4(aces_tonemap(tex_color), 2.5);
   color *= ao;
+  color *= min(100.0 / length(texture(u_position, uv).rgb), 1.0);
   // color = vec4(diffuse * ao, 1.0f);
 }

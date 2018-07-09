@@ -42,7 +42,7 @@ void game_init()
   // ex_model_set_anim(d, "Run");
 
   l = ex_point_light_new((vec3){-20.0f, 0.0f, 15.0f}, (vec3){0.2f, 0.2f, 0.4f}, 1);
-  ex_scene_add_pointlight(scene, l);
+  // ex_scene_add_pointlight(scene, l);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.25f, 0.25f, 0.25f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -50,10 +50,13 @@ void game_init()
   pl->is_shadow = 0;
 
   box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
+  box->is_lit = 0;
+  box->is_shadow = 0;
   list_add(scene->model_list, box);
   cube = ex_entity_new(scene, (vec3){0.95f, 0.99f, 0.95f});
-  cube->position[1] = 2.5f;
-  cube->position[0] = -10.0f;
+  cube->position[2] = 15.0f;
+  cube->position[1] = 15.0f;
+  cube->position[0] = 10.0f;
 }
 
 void game_update(double dt)
@@ -128,7 +131,7 @@ ctrl_end:
     float r = (float)rand()/(float)(RAND_MAX/1.0f);
     float g = (float)rand()/(float)(RAND_MAX/1.0f);
     float b = (float)rand()/(float)(RAND_MAX/1.0f);
-    ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 1);
+    ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
     memcpy(l->position, camera->position, sizeof(vec3));
     ex_scene_add_pointlight(scene, l);
     l->is_shadow = 1;
