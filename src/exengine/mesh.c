@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "shader.h"
+#include "defaults.h"
 
 ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture)
 {
@@ -89,33 +90,26 @@ void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program)
   
   glUniform1i(ex_uniform(shader_program, "u_is_lit"), m->is_lit);
 
-  GLuint is_texture_loc = ex_uniform(shader_program, "u_is_textured");
-  GLuint is_spec_loc = ex_uniform(shader_program, "u_is_spec");
-  GLuint is_norm_loc = ex_uniform(shader_program, "u_is_norm");
-  
-  if (m->texture < 1) {
-    glUniform1i(is_texture_loc, 0);
-  } else { 
-    glUniform1i(is_texture_loc, 1);
-    glActiveTexture(GL_TEXTURE4);
+  // diffuse  
+  glActiveTexture(GL_TEXTURE4);
+  if (m->texture < 1)
+    glBindTexture(GL_TEXTURE_2D, default_texture_diffuse);
+  else
     glBindTexture(GL_TEXTURE_2D, m->texture);
-  }
 
-  if (m->texture_spec < 1) {
-    glUniform1i(is_spec_loc, 0);
-  } else {
-    glUniform1i(is_spec_loc, 1);
-    glActiveTexture(GL_TEXTURE5);
+  // specular
+  glActiveTexture(GL_TEXTURE5);
+  if (m->texture_spec < 1)
+    glBindTexture(GL_TEXTURE_2D, default_texture_specular);
+  else
     glBindTexture(GL_TEXTURE_2D, m->texture_spec);
-  }
 
-  if (m->texture_norm < 1) {
-    glUniform1i(is_norm_loc, 0);
-  } else {
-    glUniform1i(is_norm_loc, 1);
-    glActiveTexture(GL_TEXTURE6);
+  // normal
+  glActiveTexture(GL_TEXTURE6);
+  if (m->texture_norm < 1)
+    glBindTexture(GL_TEXTURE_2D, default_texture_normal);
+  else
     glBindTexture(GL_TEXTURE_2D, m->texture_norm);
-  }
 
   // pass transform matrix to shader
   glUniformMatrix4fv(ex_uniform(shader_program, "u_model"), 1, GL_FALSE, m->transform[0]);

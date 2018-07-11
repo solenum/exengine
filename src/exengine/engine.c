@@ -9,6 +9,7 @@
 #include "skybox.h"
 #include "entity.h"
 #include "glimgui.h"
+#include "defaults.h"
 #include "dbgui.h"
 
 // user defined function callback pointers
@@ -44,6 +45,9 @@ void exengine(char **argv)
     ex_exit_ptr();
     return;
   }
+
+  // init defaults
+  ex_defaults_textures();
   
   // user init callback
   ex_init_ptr();
