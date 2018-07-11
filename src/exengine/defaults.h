@@ -7,6 +7,7 @@
 extern GLuint default_texture_diffuse;
 extern GLuint default_texture_normal;
 extern GLuint default_texture_specular;
+extern GLuint default_texture_ssao;
 
 void ex_defaults_textures();
 

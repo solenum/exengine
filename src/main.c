@@ -9,6 +9,9 @@ int main(int argc, char **argv)
   ex_draw_ptr = game_draw;
   ex_exit_ptr = game_exit;
 
+  // set to 0 to disable ssao
+  ex_enable_ssao = 1;
+
   exengine(argv);
 
   return EXIT_SUCCESS;

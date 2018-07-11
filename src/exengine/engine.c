@@ -12,6 +12,9 @@
 #include "defaults.h"
 #include "dbgui.h"
 
+// renderer feature toggles
+int ex_enable_ssao = 1;
+
 // user defined function callback pointers
 void (*ex_init_ptr)(void);
 void (*ex_update_ptr)(double);

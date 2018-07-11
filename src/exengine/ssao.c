@@ -6,6 +6,8 @@
 #include "exe_conf.h"
 #include "shader.h"
 #include "framebuffer.h"
+#include "engine.h"
+#include "defaults.h"
 
 extern conf_t conf;
 extern GLuint gposition, gnormal;
@@ -19,7 +21,6 @@ GLuint ssao_noise_texture, ssao_fbo, ssao_color_buffer;
 GLuint ssao_shader;
 GLuint sample_loc = 0, projection_loc = 0, view_loc = 0, screensize_loc = 0;
 GLuint gposition_loc = 0, gnormal_loc = 0, noise_loc = 0;
-GLuint ssao_loc = 0;
 
 // ssao blur pass
 GLuint ssao_blur_fbo, ssao_color_blur_buffer;
@@ -115,6 +116,9 @@ void ssao_init()
 
 void ssao_render(mat4x4 projection, mat4x4 view)
 {
+  if (!ex_enable_ssao)
+    return;
+
   glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -181,8 +185,9 @@ void ssao_render(mat4x4 projection, mat4x4 view)
 void ssao_bind_texture(GLuint shader)
 {
   glActiveTexture(GL_TEXTURE3);
-  glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
-  if (!ssao_loc)
-    ssao_loc = ex_uniform(shader, "u_ssao");
-  glUniform1i(ssao_loc, 3);
+  glUniform1i(ex_uniform(shader, "u_ssao"), 3);
+  if (ex_enable_ssao)
+    glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
+  else
+    glBindTexture(GL_TEXTURE_2D, default_texture_ssao);
 }
