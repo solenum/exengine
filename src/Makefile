@@ -6,7 +6,7 @@ LDIR		=lib
 BDIR		=build
 ODIR 		=obj
 IDIR    =inc
-_IDIRS  =lib inc
+_IDIRS  =lib inc lib/physfs 
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
@@ -95,7 +95,6 @@ release-linux:
 	mkdir -p $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libglew | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
-	cp $$(ldd $(BDIR)/game | grep -i libphysfs | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 
 #release:
 #ifeq ($(OS),Windows_NT)
