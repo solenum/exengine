@@ -256,12 +256,6 @@ void ex_scene_draw(ex_scene_t *s)
   // first geometry render pass
   ex_gbuffer_first();
   glUseProgram(ex_gshader);
-  
-  // debug poooo
-  if (ex_keys_down[GLFW_KEY_E])
-    glUniform1i(ex_uniform(ex_gshader, "u_dont_norm"), 0);
-  if (ex_keys_down[GLFW_KEY_R])
-    glUniform1i(ex_uniform(ex_gshader, "u_dont_norm"), 1);
 
   // render scene to gbuffer
   ex_fps_camera_draw(s->fps_camera, ex_gshader);

@@ -10,7 +10,7 @@ _IDIRS  =lib inc
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lphysfs -I. $(IDIRS)
+FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lphysfs -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -73,11 +73,18 @@ game: $(OBJ)
 
 files:
 	mkdir -p $(ODIR)
-	mkdir -p build
+	mkdir -p $(BDIR)/licence
+	cp licence/* $(BDIR)/licence/
 	zip -r -FS build/data.ex data/
 ifeq ($(OS),Windows_NT)
 	cp lib/win/dll/* build
 endif
+
+release-linux:
+	mkdir -p $(BDIR)/lib
+	cp $$(ldd $(BDIR)/game | grep -i libglew | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
+	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
+	cp $$(ldd $(BDIR)/game | grep -i libphysfs | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 
 #release:
 #ifeq ($(OS),Windows_NT)
@@ -87,7 +94,7 @@ endif
 #	chmod +x $(BDIR)/release
 #endif
 
-.PHONY: clean release
+.PHONY: clean release-linux
 
 clean:
 	rm -f $(ODIR)/*.o

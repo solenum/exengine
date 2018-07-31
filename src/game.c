@@ -10,6 +10,7 @@
 #include "exengine/glimgui.h"
 #include "exengine/reflectionprobe.h"
 #include "exengine/dbgui.h"
+#include "exengine/engine.h"
 #include "inc/game.h"
 
 ex_fps_camera_t *camera = NULL;
@@ -61,6 +62,11 @@ void game_init()
 
 void game_update(double dt)
 {
+  if (ex_keys_down[GLFW_KEY_E]) {
+    ex_keys_down[GLFW_KEY_E] = 0;
+    ex_enable_ssao = !ex_enable_ssao;
+  }
+
   ex_entity_update(e, dt);
   ex_entity_update(cube, dt);
 

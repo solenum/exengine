@@ -16,8 +16,8 @@ void ex_gbuffer_init()
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
 
-  width = conf_get_int(&conf, "render_width");
-  height = conf_get_int(&conf, "render_height");
+  width = conf_get_int(&conf, "window_width");
+  height = conf_get_int(&conf, "window_height");
 
   // position buffer
   glGenTextures(1, &gposition);

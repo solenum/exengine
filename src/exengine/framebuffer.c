@@ -16,8 +16,8 @@ void ex_framebuffer_init()
 
   // color buffer
   glfwGetFramebufferSize(display.window, &width, &height);
-  width = conf_get_int(&conf, "render_width");
-  height = conf_get_int(&conf, "render_height");
+  width = conf_get_int(&conf, "window_width");
+  height = conf_get_int(&conf, "window_height");
   glGenTextures(1, &colorbuffer);
   glBindTexture(GL_TEXTURE_2D, colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -93,8 +93,8 @@ void ex_framebuffer_first()
 
 void ex_framebuffer_render_quad()
 {
-  // second render pass
-  glViewport(0, 0, conf_get_int(&conf, "window_width"), conf_get_int(&conf, "window_height"));
+  // second render pass 
+  glViewport(0, 0, width, height);
   // glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);

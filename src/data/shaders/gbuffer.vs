@@ -11,9 +11,6 @@ layout (location = 6) in vec4 in_boneweights;
 out vec3 frag;
 out vec3 normal;
 out vec2 uv;
-out vec4 color;
-out vec4 frag_light_pos;
-out float fog;
 out mat3 TBN;
 
 uniform mat4 u_model; 
@@ -21,8 +18,6 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
 uniform bool u_has_skeleton;
-uniform bool u_is_viewmodel;
-uniform mat4 u_light_transform;
 
 void main()
 {
@@ -44,8 +39,6 @@ void main()
   normal         = mat3(transpose(inverse(u_view * transform))) * in_normals;
   frag           = vec3(u_view * u_model * vec4(in_position, 1.0f));
   uv             = in_uv;
-  color          = in_color;
-  frag_light_pos = u_light_transform * vec4(frag, 1.0);
 
   // calculate tbn matrix for normal mapping
   vec3 T = normalize(vec3(u_view * transform * vec4(in_tangents.xyz, 0.0)));
