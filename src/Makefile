@@ -10,7 +10,7 @@ _IDIRS  =lib inc
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lphysfs -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -19,7 +19,7 @@ CPPFLAGS=
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
 CPP     =x86_64-w64-mingw32-g++
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -DGLEW_NO_GLU -I. $(IDIRS) 
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -DGLEW_NO_GLU -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
 CPPFLAGS=-lstdc++
@@ -38,8 +38,15 @@ _DEPS		=game.h
 DEPS		=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # lib srcs
+_PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h  physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
+PHYSFS_DEPS  =$(patsubst %,$(LDIR)/physfs/%,$(_PHYSFS_DEPS))
 LOBJ		=cimgui.o fontAtlas.o drawList.o listClipper.o imgui.o imgui_draw.o \
-imgui_demo.o imgui_dock.o
+imgui_demo.o imgui_dock.o \
+physfs_archiver_7z.o physfs_archiver_mvl.o physfs_archiver_wad.o physfs_platform_posix.o \
+physfs_archiver_dir.o physfs_archiver_qpak.o physfs_archiver_zip.o physfs_platform_qnx.o \
+physfs_archiver_grp.o physfs_archiver_slb.o physfs_byteorder.o physfs_platform_unix.o \
+physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o physfs_platform_windows.o \
+physfs_archiver_iso9660.o physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
 
 # all srcs
 _OBJ		=main.o game.o window.o mesh.o camera.o texture.o iqm.o \
@@ -51,12 +58,16 @@ OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: files game
 
-# user srcs
+# user src
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # engine srcs
 $(ODIR)/%.o: $(EDIR)/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+# physfs src
+$(ODIR)/%.o: $(LDIR)/physfs/%.c $(PHYSFS_DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # cimgui srcs
