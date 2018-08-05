@@ -8,6 +8,7 @@ int main(int argc, char **argv)
   ex_update_ptr = game_update;
   ex_draw_ptr = game_draw;
   ex_exit_ptr = game_exit;
+  ex_keypressed_ptr = game_keypressed;
 
   // set to 0 to disable ssao
   ex_enable_ssao = 1;

@@ -20,6 +20,11 @@ void (*ex_init_ptr)(void);
 void (*ex_update_ptr)(double);
 void (*ex_draw_ptr)(void);
 void (*ex_exit_ptr)(void);
+// non-essential user callbacks
+void (*ex_keypressed_ptr)(int, int, int, int);
+void (*ex_mousepressed_ptr)(int, int, int);
+void (*ex_keyinput_ptr)(unsigned int);
+void (*ex_mousescroll_ptr)(double, double);
 
 conf_t conf;
 

@@ -39,8 +39,8 @@ static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_pa
 
 	// load shader files
 	char *vertex_source = NULL, *fragment_source = NULL, *geometry_source = NULL;
-	vertex_source = io_read_file(vpath, "r");
-  fragment_source = io_read_file(fpath, "r");
+	vertex_source = io_read_file(vpath, "r", NULL);
+  fragment_source = io_read_file(fpath, "r", NULL);
   if (vertex_source == NULL || fragment_source == NULL) {
     printf("Failed creating shader\n");
     
@@ -54,7 +54,7 @@ static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_pa
   }
 
   if (strlen(gpath) > 0) {
-    geometry_source = io_read_file(gpath, "r");
+    geometry_source = io_read_file(gpath, "r", NULL);
 
     if (geometry_source == NULL) {
       printf("Failed creating geometry shader\n");

@@ -1,9 +1,8 @@
 #include "window.h"
+#include "input.h"
 #include <stdio.h>
 
 ex_window_t display;
-uint8_t ex_keys_down[GLFW_KEY_LAST];
-uint8_t ex_buttons_down[GLFW_KEY_LAST];
 
 bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 {
@@ -54,6 +53,7 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 
   glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSwapInterval(0);
+  glfwSetInputMode(display.window, GLFW_STICKY_KEYS, 1);
 
   // setup imgui debug gui
   glimgui_init(display.window);
@@ -84,52 +84,4 @@ void ex_window_destroy()
 void ex_resize_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
-}
-
-void ex_mouse_callback(GLFWwindow* window, double x, double y)
-{
-  if (!glimgui_focus) {
-    display.mouse_x = x;
-    display.mouse_y = y;
-  }
-}
-
-void ex_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
-{
-  if (!glimgui_focus) {
-    if (action == GLFW_PRESS)
-      ex_keys_down[key] = 1;
-    if (action == GLFW_RELEASE)
-      ex_keys_down[key] = 0;
-  } else {
-    // pass to imgui
-    glimgui_keyinput(key, action);
-  }
-}
-
-void ex_button_callback(GLFWwindow *window, int button, int action, int mods)
-{
-  if (!glimgui_focus) {
-    if (action == GLFW_PRESS)
-      ex_buttons_down[button] = 1;
-    if (action == GLFW_RELEASE)
-      ex_buttons_down[button] = 0;
-  } else {
-    // pass to imgui
-    glimgui_mousebuttoninput(button, action);
-  }
-}
-
-void ex_char_callback(GLFWwindow *window, unsigned int c)
-{
-  // pass to imgui
-  if (glimgui_focus)
-    glimgui_charinput(c);
-}
-
-void ex_scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
-{
-  // pass to imgui
-  if (glimgui_focus)
-    glimgui_mousescrollinput(yoffset);
 }

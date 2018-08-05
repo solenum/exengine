@@ -32,4 +32,6 @@ void game_draw();
  */
 void game_exit();
 
+void game_keypressed(int key, int scancode, int action, int mode);
+
 #endif // GAME_H

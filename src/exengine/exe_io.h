@@ -12,7 +12,7 @@
  * @param  mode [access mode]
  * @return      [malloc'd char array, remember to free]
  */
-static char* io_read_file(const char *path, const char *mode)
+static char* io_read_file(const char *path, const char *mode, size_t *len)
 {
   if (!PHYSFS_exists(path)) {
     printf("could not load file %s\n", path);
@@ -25,6 +25,8 @@ static char* io_read_file(const char *path, const char *mode)
 
   // get file length
   size_t size = PHYSFS_fileLength(file);
+  if (len)
+    *len = size;
 
   // allocate space for file data
   char *buff = malloc(size+1);

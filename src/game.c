@@ -11,6 +11,8 @@
 #include "exengine/reflectionprobe.h"
 #include "exengine/dbgui.h"
 #include "exengine/engine.h"
+#include "exengine/input.h"
+#include "exengine/sound.h"
 #include "inc/game.h"
 
 ex_fps_camera_t *camera = NULL;
@@ -18,6 +20,7 @@ ex_scene_t *scene;
 ex_model_t *m6, *d, *box;
 ex_entity_t *cube, *e;
 ex_point_light_t *l, *pl;
+ex_source_t *sound;
 float move_speed = 1.5f;
 
 void game_init()
@@ -32,11 +35,15 @@ void game_init()
 
   m6 = ex_iqm_load_model(scene, "data/level.iqm", 1);
   list_add(scene->model_list, m6);
-
+ 
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 15.0f;
   e->position[0] = 15.0f;
   e->position[2] = 15.0f;
+
+  // load a sound
+  sound = ex_sound_load_source("data/sound.ogg", EX_SOUND_OGG, 0);
+  ex_sound_master_volume(0.5f);
 
   // d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
   // list_add(scene->model_list, d);
@@ -62,8 +69,8 @@ void game_init()
 
 void game_update(double dt)
 {
-  if (ex_keys_down[GLFW_KEY_E]) {
-    ex_keys_down[GLFW_KEY_E] = 0;
+  if (ex_keys_down[EX_KEY_E]) {
+    ex_keys_down[EX_KEY_E] = 0;
     ex_enable_ssao = !ex_enable_ssao;
   }
 
@@ -97,7 +104,7 @@ void game_update(double dt)
   if (cube->velocity[1] <= 0.0f && cube->grounded)
     cube->velocity[1] = 0.0f;
 
-  if (ex_keys_down[GLFW_KEY_LEFT_CONTROL]) {
+  if (ex_keys_down[EX_KEY_LEFT_CONTROL]) {
     vec3 p;
     vec3_scale(p, camera->front, 2.5f);
     vec3_add(p, p, e->position);
@@ -107,7 +114,7 @@ void game_update(double dt)
 
     float f = vec3_len(p);
     if (f > 1.5f) {
-      ex_keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+      ex_keys_down[EX_KEY_LEFT_CONTROL] = 0;
       goto ctrl_end;
     }
 
@@ -123,17 +130,17 @@ void game_update(double dt)
     if (ex_buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
       vec3_scale(temp, camera->front, 40.0f);
       vec3_add(cube->velocity, cube->velocity, temp);
-      ex_keys_down[GLFW_KEY_LEFT_CONTROL] = 0;
+      ex_keys_down[EX_KEY_LEFT_CONTROL] = 0;
     }
   }
 ctrl_end:
 
-  if (ex_keys_down[GLFW_KEY_1])
+  if (ex_keys_down[EX_KEY_1])
     ex_model_set_anim(d, "Walk");
-  if (ex_keys_down[GLFW_KEY_2])
+  if (ex_keys_down[EX_KEY_2])
     ex_model_set_anim(d, "Run");
 
-  if (ex_keys_down[GLFW_KEY_F]) {
+  if (ex_keys_down[EX_KEY_F]) {
     float r = (float)rand()/(float)(RAND_MAX/1.0f);
     float g = (float)rand()/(float)(RAND_MAX/1.0f);
     float b = (float)rand()/(float)(RAND_MAX/1.0f);
@@ -141,7 +148,7 @@ ctrl_end:
     memcpy(l->position, camera->position, sizeof(vec3));
     ex_scene_add_pointlight(scene, l);
     l->is_shadow = 1;
-    ex_keys_down[GLFW_KEY_F] = 0;
+    ex_keys_down[EX_KEY_F] = 0;
   }
 
   /* debug entity movement */
@@ -157,54 +164,57 @@ ctrl_end:
   if (e->velocity[1] <= 0.0f && e->grounded)
     e->velocity[1] = 0.0f;
 
-  if (ex_keys_down[GLFW_KEY_C])
+  if (ex_keys_down[EX_KEY_C])
     glfwSwapInterval(1);
-  if (ex_keys_down[GLFW_KEY_V])
+  if (ex_keys_down[EX_KEY_V])
     glfwSwapInterval(0);
 
   vec3 speed, side;
-  if (ex_keys_down[GLFW_KEY_W]) {
+  if (ex_keys_down[EX_KEY_W]) {
     vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
     vec3_scale(speed, speed, move_speed * dt);
     speed[1] = 0.0f;
     vec3_add(e->velocity, e->velocity, speed);
   }
-  if (ex_keys_down[GLFW_KEY_S]) {
+  if (ex_keys_down[EX_KEY_S]) {
     vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
     vec3_scale(speed, speed, move_speed * dt);
     speed[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, speed);
   }
-  if (ex_keys_down[GLFW_KEY_A]) {
+  if (ex_keys_down[EX_KEY_A]) {
     vec3_mul_cross(side, camera->front, camera->up);
     vec3_norm(side, side);
     vec3_scale(side, side, (move_speed*0.9f) * dt);
     side[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, side);
   }
-  if (ex_keys_down[GLFW_KEY_D]) {
+  if (ex_keys_down[EX_KEY_D]) {
     vec3_mul_cross(side, camera->front, camera->up);
     vec3_norm(side, side);
     vec3_scale(side, side, (move_speed*0.9f) * dt);
     side[1] = 0.0f;
     vec3_add(e->velocity, e->velocity, side);
   }
-  if (ex_keys_down[GLFW_KEY_Q])
+  if (ex_keys_down[EX_KEY_Q])
     e->velocity[1] = 50.0f;
-  if (ex_keys_down[GLFW_KEY_Z])
+  if (ex_keys_down[EX_KEY_Z])
     e->velocity[1] = -50.0f;
-  if (ex_keys_down[GLFW_KEY_SPACE] && e->grounded == 1) {
+  if (ex_keys_down[EX_KEY_SPACE] && e->grounded == 1) {
     e->velocity[1] = 20.0f;
+    if (e->grounded && !ex_sound_playing(sound)) {
+      alSourcePlay(sound->id);
+    }
   }
   move_speed = 200.0f;
-  if (ex_keys_down[GLFW_KEY_G] || glimgui_ex_keys_down[GLFW_KEY_G]) {
-    ex_keys_down[GLFW_KEY_G] = 0;
-    glimgui_ex_keys_down[GLFW_KEY_G] = 0;
+  if (ex_keys_down[EX_KEY_G] || glimgui_ex_keys_down[EX_KEY_G]) {
+    ex_keys_down[EX_KEY_G] = 0;
+    glimgui_ex_keys_down[EX_KEY_G] = 0;
     glimgui_focus = !glimgui_focus;
   }
-  if (ex_keys_down[GLFW_KEY_X]) {
+  if (ex_keys_down[EX_KEY_X]) {
     ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
-    ex_keys_down[GLFW_KEY_X] = 0;
+    ex_keys_down[EX_KEY_X] = 0;
   }
 
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -217,7 +227,7 @@ void game_draw()
   ex_scene_draw(scene);
   ex_scene_dbgui(scene);
 
-  igShowTestWindow(NULL);
+  // igShowTestWindow(NULL);
   ex_dbgui_render_profiler();
 }
 
@@ -225,4 +235,9 @@ void game_exit()
 {
   ex_scene_destroy(scene);
   printf("Exiting\n");
+}
+
+void game_keypressed(int key, int scancode, int action, int mode)
+{
+
 }

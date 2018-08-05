@@ -57,7 +57,7 @@ static int conf_load(conf_t *conf, const char *path)
   printf("Loading config file %s\n", path);
 
   // read config file contents
-  char *buff = io_read_file(path, "r");
+  char *buff = io_read_file(path, "r", NULL);
   if (buff == NULL)
     return 0;
 

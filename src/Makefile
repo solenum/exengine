@@ -10,7 +10,7 @@ _IDIRS  =lib inc lib/physfs
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -30,12 +30,9 @@ endif
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
 model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
-gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h
+gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h input.h \
+sound.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
-
-# user deps
-_DEPS		=game.h
-DEPS		=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # lib srcs
 _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h  physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
@@ -48,13 +45,21 @@ physfs_archiver_grp.o physfs_archiver_slb.o physfs_byteorder.o physfs_platform_u
 physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o physfs_platform_windows.o \
 physfs_archiver_iso9660.o physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
 
-# all srcs
-_OBJ		=main.o game.o window.o mesh.o camera.o texture.o iqm.o \
+# engine srcs
+ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
 collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
-ssao.o engine.o reflectionprobe.o shader.o defaults.o
+ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o
+
+# usr srcs (add yours here)
+_OBJ		=main.o game.o
 _OBJ   +=$(LOBJ)
+_OBJ   +=$(ENGINEOBJ)
 OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
+
+# user deps
+_DEPS		=game.h
+DEPS		=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
 all: files game
 
@@ -93,8 +98,10 @@ endif
 
 release-linux:
 	mkdir -p $(BDIR)/lib
+	rm $(BDIR)/lib/*
 	cp $$(ldd $(BDIR)/game | grep -i libglew | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
+	cp $$(ldd $(BDIR)/game | grep -i libopenal | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 
 #release:
 #ifeq ($(OS),Windows_NT)

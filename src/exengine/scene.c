@@ -8,6 +8,7 @@
 #include "gbuffer.h"
 #include "window.h"
 #include "dbgui.h"
+#include "sound.h"
 #include "ssao.h"
 
 ex_scene_t* scene_new()
@@ -68,6 +69,9 @@ ex_scene_t* scene_new()
 
   // init ssao stuffs
   ssao_init();
+
+  // init the sound system (move elsewhere?)
+  ex_sound_init();
 
   return s;
 }

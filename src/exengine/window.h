@@ -15,18 +15,6 @@ typedef struct {
 } ex_window_t;
 
 extern ex_window_t display;
-extern uint8_t ex_keys_down[GLFW_KEY_LAST];
-extern uint8_t ex_buttons_down[GLFW_KEY_LAST];
-
-void ex_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
-
-void ex_button_callback(GLFWwindow *window, int button, int action, int mods);
-
-void ex_char_callback(GLFWwindow *window, unsigned int c);
-
-void ex_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
-void ex_mouse_callback(GLFWwindow* window, double x, double y);
 
 void ex_resize_callback(GLFWwindow* window, int width, int height);
 
