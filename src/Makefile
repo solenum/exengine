@@ -19,7 +19,7 @@ CPPFLAGS=
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
 CPP     =x86_64-w64-mingw32-g++
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -lopenal -DGLEW_NO_GLU -I. $(IDIRS)
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -lopenal32 -DGLEW_NO_GLU -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
 CPPFLAGS=-lstdc++
