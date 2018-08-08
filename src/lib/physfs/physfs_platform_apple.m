@@ -12,6 +12,9 @@
 #ifdef PHYSFS_PLATFORM_APPLE
 
 #include <Foundation/Foundation.h>
+#include <IOKit/storage/IOMedia.h>
+#include <IOKit/storage/IOCDMedia.h>
+#include <IOKit/storage/IODVDMedia.h>
 
 #include "physfs_internal.h"
 

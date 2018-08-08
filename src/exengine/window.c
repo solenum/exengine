@@ -13,7 +13,8 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
-  
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
   // create glfw window
   display.window = glfwCreateWindow(width, height, title, NULL, NULL);
   if (display.window == NULL) {

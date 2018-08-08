@@ -25,6 +25,14 @@ CFLAGS +=-std=c99
 CPPFLAGS=-lstdc++
 endif
 
+# -- MacOS -- #
+UNAME = $(shell uname -s)
+ifeq ($(UNAME),Darwin)
+FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lglew -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
+CFLAGS  =$(FLAGS)
+CFLAGS +=-std=c99 -O2
+endif
+
 # -- Files -- #
 # engine deps
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
@@ -44,6 +52,10 @@ physfs_archiver_dir.o physfs_archiver_qpak.o physfs_archiver_zip.o physfs_platfo
 physfs_archiver_grp.o physfs_archiver_slb.o physfs_byteorder.o physfs_platform_unix.o \
 physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o physfs_platform_windows.o \
 physfs_archiver_iso9660.o physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
+
+ifeq ($(UNAME),Darwin)
+LOBJ += physfs_platform_apple.o
+endif
 
 # engine srcs
 ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
@@ -74,6 +86,11 @@ $(ODIR)/%.o: $(EDIR)/%.c $(EDEPS)
 # physfs src
 $(ODIR)/%.o: $(LDIR)/physfs/%.c $(PHYSFS_DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
+
+ifeq ($(UNAME),Darwin)
+$(ODIR)/%.o: $(LDIR)/physfs/%.m $(PHYSFS_DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+endif
 
 # cimgui srcs
 $(ODIR)/%.o: $(LDIR)/cimgui/%.cpp 
