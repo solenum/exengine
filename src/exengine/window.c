@@ -59,6 +59,9 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   // setup imgui debug gui
   glimgui_init(display.window);
 
+  display.width = width;
+  display.height = height;
+
   return 1;
 }
 
@@ -85,4 +88,6 @@ void ex_window_destroy()
 void ex_resize_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
+  display.width = width;
+  display.height = height;
 }

@@ -203,7 +203,7 @@ void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const 
     float velocity_sqrt_length = vec3_len2(velocity);
     float a,b,c;
     float new_t;
-  
+
     // equation is a*t^2 + b*t + c = 0
     // check against points
     a = velocity_sqrt_length;

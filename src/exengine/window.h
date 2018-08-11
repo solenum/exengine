@@ -11,6 +11,7 @@
 
 typedef struct {
 	GLFWwindow *window;
+  int width, height;
   float mouse_x, mouse_y;
 } ex_window_t;
 

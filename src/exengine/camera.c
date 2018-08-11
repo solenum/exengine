@@ -42,8 +42,12 @@ ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity,
 
 void ex_fps_camera_resize(ex_fps_camera_t *cam)
 {
+  GLint viewport[4];
+  glGetIntegerv(GL_VIEWPORT, viewport);
+
   int width, height;
-  glfwGetFramebufferSize(display.window, &width, &height);
+  width = viewport[2];
+  height = viewport[3];
   
   if (cam->width != width || cam->height != height) {
     mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.01f, 1000.0f);

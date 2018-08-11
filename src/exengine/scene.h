@@ -57,7 +57,7 @@ void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r);
 
 void ex_scene_update(ex_scene_t *s, float delta_time);
 
-void ex_scene_draw(ex_scene_t *s);
+void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height);
 
 void ex_scene_manage_lights(ex_scene_t *s);
 

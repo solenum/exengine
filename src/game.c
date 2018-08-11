@@ -224,7 +224,7 @@ ctrl_end:
 
 void game_draw()
 {
-  ex_scene_draw(scene);
+  ex_scene_draw(scene, 0, 0, 0, 0);
   ex_scene_dbgui(scene);
 
   // igShowTestWindow(NULL);

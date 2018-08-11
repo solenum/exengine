@@ -20,7 +20,7 @@ void ex_framebuffer_first();
 /**
  * [ex_framebuffer_render_quad renders the screen quad]
  */
-void ex_framebuffer_render_quad();
+void ex_framebuffer_render_quad(int x, int y, int width, int height);
 
 void ex_framebuffer_destroy();
 

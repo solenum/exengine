@@ -205,8 +205,13 @@ void ex_scene_update(ex_scene_t *s, float delta_time)
   ex_dbgprofiler.end[ex_dbgprofiler_update] = glfwGetTime();
 }
 
-void ex_scene_draw(ex_scene_t *s)
+void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height)
 {
+  if (!view_width)
+    view_width = display.width;
+  if (!view_height)
+    view_height = display.height;
+
   // begin profiler
   ex_dbgprofiler.end[ex_dbgprofiler_other] = glfwGetTime();
   ex_dbgui_end_profiler();
@@ -404,7 +409,8 @@ void ex_scene_draw(ex_scene_t *s)
 
   // render screen quad
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  ex_framebuffer_render_quad();
+
+  ex_framebuffer_render_quad(view_x, (display.height-view_y-view_height), view_width, view_height);
 
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
