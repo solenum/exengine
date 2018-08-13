@@ -7,21 +7,23 @@
 
 extern GLuint ex_fbo_shader;
 
-/**
- * [ex_framebuffer_init setup framebuffers and screen quad]
- */
+typedef struct {
+  GLuint fbo, rbo, colorbuffer;
+  int width, height;
+} ex_framebuffer_t;
+
 void ex_framebuffer_init();
 
-/**
- * [ex_framebuffer_first call before first rendering pass]
- */
-void ex_framebuffer_first();
+ex_framebuffer_t* ex_framebuffer_new(int width, int height);
 
-/**
- * [ex_framebuffer_render_quad renders the screen quad]
- */
-void ex_framebuffer_render_quad(int x, int y, int width, int height);
+void ex_framebuffer_bind(ex_framebuffer_t *fb);
 
-void ex_framebuffer_destroy();
+void ex_framebuffer_draw(ex_framebuffer_t *fb, int x, int y, int width, int height);
+
+ex_framebuffer_t* ex_framebuffer_resize(ex_framebuffer_t *fb, int width, int height);
+
+void ex_framebuffer_destroy(ex_framebuffer_t *fb);
+
+void ex_framebuffer_cleanup();
 
 #endif // EX_FRAMEBUFFER_H

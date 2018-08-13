@@ -9,6 +9,7 @@
 #include "skybox.h"
 #include "entity.h"
 #include "glimgui.h"
+#include "framebuffer.h"
 #include "defaults.h"
 #include "cache.h"
 #include "dbgui.h"
@@ -58,8 +59,9 @@ void exengine(char **argv)
     return;
   }
 
-  // init defaults
+  // init rendering modules
   ex_defaults_textures();
+  ex_framebuffer_init();
   
   // user init callback
   ex_init_ptr();
@@ -110,6 +112,7 @@ void exengine(char **argv)
   ex_window_destroy();
   PHYSFS_deinit();
   ex_cache_flush();
+  ex_framebuffer_cleanup();
 
   // user exit callback
   ex_exit_ptr();

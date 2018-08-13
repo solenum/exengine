@@ -6,43 +6,10 @@
 
 extern conf_t conf;
 
-GLuint fbo, rbo, colorbuffer, ex_fbo_shader, fbo_vao, fbo_vbo;
-int width, height;
+GLuint ex_fbo_shader, fbo_vao, fbo_vbo;
 
 void ex_framebuffer_init()
 {
-  glGenFramebuffers(1, &fbo);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-  // color buffer
-  width = display.width;
-  height = display.height;
-  glGenTextures(1, &colorbuffer);
-  glBindTexture(GL_TEXTURE_2D, colorbuffer);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-  GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
-  glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, border);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorbuffer, 0);
-
-  // depth buffer
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-  glBindRenderbuffer(GL_RENDERBUFFER, 0);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-  // test framebuffer
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    printf("Error! Framebuffer is not complete\n");
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
   // load the fbo shader
   ex_fbo_shader = ex_shader_compile("fboshader.vs", "fboshader.fs", NULL);
   /* ------------------------- */
@@ -78,11 +45,54 @@ void ex_framebuffer_init()
   /* ----------------- */
 }
 
-void ex_framebuffer_first()
+ex_framebuffer_t* ex_framebuffer_new(int width, int height)
+{
+  ex_framebuffer_t *fb = malloc(sizeof(ex_framebuffer_t));
+
+  glGenFramebuffers(1, &fb->fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
+
+  fb->width  = width;
+  fb->height = height;
+  if (!width)
+    fb->width = display.width;
+  if (!height)
+    fb->height = display.height;
+  
+  glGenTextures(1, &fb->colorbuffer);
+  glBindTexture(GL_TEXTURE_2D, fb->colorbuffer);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, fb->width, fb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
+  glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, border);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb->colorbuffer, 0);
+
+  // depth buffer
+  glGenRenderbuffers(1, &fb->rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, fb->rbo);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, fb->width, fb->height);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb->rbo);
+
+  // test framebuffer
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    printf("Error! Framebuffer is not complete\n");
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  return fb;
+}
+
+void ex_framebuffer_bind(ex_framebuffer_t *fb)
 {
   // first render pass
-  glViewport(0, 0, width, height);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glViewport(0, 0, fb->width, fb->height);
+  glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
@@ -90,7 +100,7 @@ void ex_framebuffer_first()
   glCullFace(GL_BACK);
 }
 
-void ex_framebuffer_render_quad(int x, int y, int width, int height)
+void ex_framebuffer_draw(ex_framebuffer_t *fb, int x, int y, int width, int height)
 {
   // second render pass 
   glViewport(x, y, width, height);
@@ -102,17 +112,28 @@ void ex_framebuffer_render_quad(int x, int y, int width, int height)
   glBindVertexArray(fbo_vao);
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(ex_uniform(ex_fbo_shader, "u_texture"), 0);
-  glBindTexture(GL_TEXTURE_2D, colorbuffer);
+  glBindTexture(GL_TEXTURE_2D, fb->colorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void ex_framebuffer_destroy()
+ex_framebuffer_t* ex_framebuffer_resize(ex_framebuffer_t *fb, int width, int height)
+{
+  ex_framebuffer_destroy(fb);
+  return ex_framebuffer_new(width, height);
+}
+
+void ex_framebuffer_destroy(ex_framebuffer_t *fb)
+{
+  glDeleteRenderbuffers(1, &fb->rbo);
+  glDeleteFramebuffers(1, &fb->fbo);
+  glDeleteTextures(1, &fb->colorbuffer);
+  free(fb);
+}
+
+void ex_framebuffer_cleanup()
 {
   glDeleteBuffers(1, &fbo_vbo);
   glDeleteVertexArrays(1, &fbo_vao);
-  glDeleteRenderbuffers(1, &rbo);
-  glDeleteFramebuffers(1, &fbo);
-  glDeleteTextures(1, &colorbuffer);
 }

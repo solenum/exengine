@@ -39,7 +39,7 @@ void game_init()
   list_add(scene->model_list, m6);
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 15.0f;
+  e->position[1] = 15.0f; 
   e->position[0] = 15.0f;
   e->position[2] = 15.0f;
 

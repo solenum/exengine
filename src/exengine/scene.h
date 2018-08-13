@@ -11,6 +11,7 @@
 #include "spotlight.h"
 #include "octree.h"
 #include "reflectionprobe.h"
+#include "framebuffer.h"
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -41,6 +42,7 @@ typedef struct {
 
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
+  ex_framebuffer_t *framebuffer;
 } ex_scene_t;
 
 ex_scene_t* ex_scene_new();

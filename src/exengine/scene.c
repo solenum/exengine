@@ -4,7 +4,6 @@
 #include "model.h"
 #include "pointlight.h"
 #include "dirlight.h"
-#include "framebuffer.h"
 #include "gbuffer.h"
 #include "window.h"
 #include "dbgui.h"
@@ -21,7 +20,7 @@ ex_scene_t* ex_scene_new()
   s->fps_camera = NULL;
 
   // init framebuffers etc
-  ex_framebuffer_init();
+  s->framebuffer = ex_framebuffer_new(0, 0);
   ex_gbuffer_init();
 
   // init lights
@@ -269,7 +268,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   // render ssao
   ssao_render(s->fps_camera->projection, s->fps_camera->view);
 
-  ex_framebuffer_first();
+  ex_framebuffer_bind(s->framebuffer);
 
   // render skybox (FIX THIS!)
   /*if (s->skybox != NULL) {
@@ -406,7 +405,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   // render screen quad
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  ex_framebuffer_render_quad(view_x, (display.height-view_y-view_height), view_width, view_height);
+  ex_framebuffer_draw(s->framebuffer, view_x, (display.height-view_y-view_height), view_width, view_height);
 
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
@@ -561,5 +560,5 @@ void ex_scene_destroy(ex_scene_t *s)
   }
 
   // cleanup framebuffers
-  ex_framebuffer_destroy();
+  ex_framebuffer_destroy(s->framebuffer);
 }
