@@ -25,6 +25,8 @@ float move_speed = 1.5f;
 
 void game_init()
 {
+  ex_sound_init();
+
   // init the scene
   scene = ex_scene_new();
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
@@ -242,6 +244,7 @@ void game_draw()
 void game_exit()
 {
   ex_scene_destroy(scene);
+  ex_sound_exit();
   printf("Exiting\n");
 }
 

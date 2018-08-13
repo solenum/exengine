@@ -69,9 +69,6 @@ ex_scene_t* ex_scene_new()
   // init ssao stuffs
   ssao_init();
 
-  // init the sound system (move elsewhere?)
-  ex_sound_init();
-
   return s;
 }
 
@@ -543,20 +540,6 @@ void ex_scene_destroy(ex_scene_t *s)
 {
   printf("Cleaning up scene\n");
 
-  // cleanup models
-  list_node_t *n = s->model_list;
-  while (n->data != NULL) {
-    ex_model_destroy(n->data);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
-
-  // free model list
-  list_destroy(s->model_list);
-
   // cleanup point lights
   for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
     if (s->point_lights[i] != NULL) {
@@ -579,7 +562,4 @@ void ex_scene_destroy(ex_scene_t *s)
 
   // cleanup framebuffers
   ex_framebuffer_destroy();
-
-  // cleanup openal
-  ex_sound_exit();
 }

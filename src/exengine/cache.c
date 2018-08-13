@@ -94,6 +94,20 @@ void ex_cache_flush()
   // free texture list
   list_destroy(texture_list);
 
+  // cleanup models
+  n = model_list;
+  while (n->data != NULL) {
+    ex_model_destroy(n->data);
+
+    if (n->next != NULL)
+      n = n->next;
+    else
+      break;
+  }
+
+  // free model list
+  list_destroy(model_list);
+
   // re-init the cache
   ex_cache_init();
 }
