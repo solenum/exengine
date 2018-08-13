@@ -6,7 +6,6 @@ GLint ex_uniform_locations[256][256] = {0};
 
 inline GLint ex_uniform(GLuint shader, const char *str)
 {
-
   const char *string = str;
   uint32_t key = 5381;
   int c;

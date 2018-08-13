@@ -19,13 +19,7 @@ typedef struct {
 typedef struct {
   GLuint VAO, VBO, EBO, vcount, icount;
   GLuint texture, texture_spec, texture_norm;
-  mat4x4 transform;
   uint32_t current_frame;
-  int use_transform;
-
-  vec3 position, rotation;
-  float scale;
-  uint8_t is_lit;
 } ex_mesh_t;
 
 /**
@@ -44,7 +38,7 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t *vertices, size_t vcount, GLuint *indices, si
  * @param m              [ex_mesh_t pointer]
  * @param shader_program [shader program to use]
  */
-void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program);
+void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, mat4x4 transform);
 
 /**
  * [ex_mesh_destroy free any malloc'd data]

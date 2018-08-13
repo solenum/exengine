@@ -11,13 +11,12 @@
 #include "sound.h"
 #include "ssao.h"
 
-ex_scene_t* scene_new()
+ex_scene_t* ex_scene_new()
 {
   ex_scene_t *s = malloc(sizeof(ex_scene_t));
 
   // init lists
-  s->model_list       = list_new();
-  s->texture_list     = list_new();
+  s->model_list       = list_new(); 
 
   s->fps_camera = NULL;
 
@@ -540,36 +539,6 @@ void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-GLuint ex_scene_add_texture(ex_scene_t *s, const char *file)
-{  
-  // check if texture already exists
-  list_node_t *n = s->texture_list;
-  while (n->data != NULL) {
-    ex_texture_t *t = n->data;
-
-    // compare file names
-    if (strcmp(file, t->name) == 0) {
-      // yep, return that one
-      return t->id;
-    }
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
-
-  // doesnt exist, create texture
-  ex_texture_t *t = ex_texture_load(file, 0);
-  if (t != NULL) {
-    // store it in the list
-    list_add(s->texture_list, (void*)t);
-    return t->id;
-  }
-
-  return 0;
-}
-
 void ex_scene_destroy(ex_scene_t *s)
 {
   printf("Cleaning up scene\n");
@@ -599,24 +568,6 @@ void ex_scene_destroy(ex_scene_t *s)
   if (s->dir_light != NULL)
     ex_dir_light_destroy(s->dir_light);
 
-  // cleanup textures
-  n = s->texture_list;
-  while (n->data != NULL) {
-    ex_texture_t *t = n->data;
-    
-    // free texture data
-    glDeleteTextures(1, &t->id);
-    free(t);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
-
-  // free texture list
-  list_destroy(s->texture_list);
-
   // cleanup cameras
   if (s->fps_camera != NULL)
     free(s->fps_camera);
@@ -628,4 +579,7 @@ void ex_scene_destroy(ex_scene_t *s)
 
   // cleanup framebuffers
   ex_framebuffer_destroy();
+
+  // cleanup openal
+  ex_sound_exit();
 }

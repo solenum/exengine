@@ -26,7 +26,7 @@ float move_speed = 1.5f;
 void game_init()
 {
   // init the scene
-  scene = scene_new();
+  scene = ex_scene_new();
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
@@ -65,6 +65,12 @@ void game_init()
   cube->position[2] = 15.0f;
   cube->position[1] = 15.0f;
   cube->position[0] = 10.0f;
+
+  ex_model_t *box2 = ex_iqm_load_model(scene, "data/cube.iqm", 0);
+  box2->position[2] = 15.0f;
+  box2->position[1] = 15.0f;
+  box2->position[0] = 10.0f;
+  list_add(scene->model_list, box2);
 }
 
 void game_update(double dt)
@@ -73,6 +79,8 @@ void game_update(double dt)
     ex_keys_down[EX_KEY_E] = 0;
     ex_enable_ssao = !ex_enable_ssao;
   }
+
+  ex_fps_camera_resize(camera);
 
   ex_entity_update(e, dt);
   ex_entity_update(cube, dt);

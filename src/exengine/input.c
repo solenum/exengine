@@ -6,10 +6,10 @@ uint8_t ex_buttons_down[EX_MOUSE_BUTTON_LAST];
 
 void ex_mouse_callback(GLFWwindow* window, double x, double y)
 {
-  if (!glimgui_focus) {
+  // if (!glimgui_focus) {
     display.mouse_x = x;
     display.mouse_y = y;
-  }
+  // }
 }
 
 void ex_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)

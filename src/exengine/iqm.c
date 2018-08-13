@@ -1,10 +1,15 @@
 #include "iqm.h"
 #include "exe_io.h"
-#include "pointlight.h"
+#include "cache.h"
 #include <string.h>
 
 ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vertices)
 {
+  // check if its already in the cache
+  ex_model_t *m_cache = ex_cache_get_model(path);
+  if (m_cache != NULL)
+    return m_cache;
+
   printf("Loading IQM model file %s\n", path);
 
   // read in the file data
@@ -243,56 +248,39 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
     char *tex_name = &file_text[meshes[i].material];
     char *is_file = strpbrk(tex_name, ".");
     
-    // handle entity spawns
-    if (tex_name[0] == 'e' && tex_name[1] == '.') {
-      char *arg_start = strpbrk(&tex_name[2], "!");
+    // create mesh
+    ex_mesh_t *m = ex_mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
-      if (arg_start == NULL)
-        continue;
-
-      size_t name_len = strlen(&tex_name[2]) - strlen(arg_start);
-      vec4 args;
-
-      if (strncmp(&tex_name[2], "pointlight", name_len) == 0) {
-        ex_iqm_get_args(&arg_start[1], args);
-        ex_point_light_t *l = ex_point_light_new(vert[0].position, (vec3){args[0], args[1], args[2]}, (int)args[3]);
-        ex_scene_add_pointlight(scene, l);
-      }
-    } else {
-      // create mesh
-      ex_mesh_t *m = ex_mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
-
-      // store vertices
-      if (keep_vertices) {
-        size_t size = meshes[i].num_triangles*3;
-        for (int j=0; j<size; j++)
-          memcpy(&vis_vertices[vis_len+j], vert[ind[j]].position, sizeof(vec3));
-        
-        vis_len += size;
-      }
-
-      // load textures
-      char *tex_types[] = {"spec_", "norm_"};
-      if (is_file != NULL) {
-        // diffuse
-        m->texture = ex_scene_add_texture(scene, tex_name);
+    // store vertices
+    if (keep_vertices) {
+      size_t size = meshes[i].num_triangles*3;
+      for (int j=0; j<size; j++)
+        memcpy(&vis_vertices[vis_len+j], vert[ind[j]].position, sizeof(vec3));
       
-        // spec
-        char spec[strlen(tex_name)+strlen(tex_types[0])];
-        strcpy(spec, tex_types[0]);
-        strcpy(&spec[strlen(tex_types[0])], tex_name);
-        m->texture_spec = ex_scene_add_texture(scene, spec);
-
-        // norm
-        char norm[strlen(tex_name)+strlen(tex_types[1])];
-        strcpy(norm, tex_types[1]);
-        strcpy(&norm[strlen(tex_types[1])], tex_name);
-        m->texture_norm = ex_scene_add_texture(scene, norm);
-      }
-
-      // push mesh into mesh list
-      list_add(model->mesh_list, m);
+      vis_len += size;
     }
+
+    // load textures
+    char *tex_types[] = {"spec_", "norm_"};
+    if (is_file != NULL) {
+      // diffuse
+      m->texture = ex_cache_texture(tex_name);
+    
+      // spec
+      char spec[strlen(tex_name)+strlen(tex_types[0])];
+      strcpy(spec, tex_types[0]);
+      strcpy(&spec[strlen(tex_types[0])], tex_name);
+      m->texture_spec = ex_cache_texture(spec);
+
+      // norm
+      char norm[strlen(tex_name)+strlen(tex_types[1])];
+      strcpy(norm, tex_types[1]);
+      strcpy(&norm[strlen(tex_types[1])], tex_name);
+      m->texture_norm = ex_cache_texture(norm);
+    }
+
+    // push mesh into mesh list
+    list_add(model->mesh_list, m);
   }
 
   // store vertices
@@ -301,11 +289,19 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
     model->num_vertices = vis_len;
     memcpy(model->vertices, vis_vertices, vis_len*sizeof(vec3));
     ex_scene_add_collision(scene, model);
+    free(model->vertices);
   }
 
+  // store the path for caching purposes
+  strcpy(model->path, path);
+
+  // cleanup data
   printf("Finished loading IQM model %s\n", path);
   free(vertices);
   free(indices);
   free(data);
-  return model;
+
+  // store the model in the cache and return an instance of it
+  ex_cache_model(model);
+  return ex_cache_get_model(path);
 }

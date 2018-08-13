@@ -24,28 +24,17 @@ ex_model_t* ex_model_new()
   return m;
 }
 
+ex_model_t* ex_model_copy(ex_model_t *model)
+{
+  // copy the mesh directly
+  // keeping the pointers the same
+  ex_model_t *m = malloc(sizeof(ex_model_t));
+  memcpy(m, model, sizeof(ex_model_t));
+  return m;
+}
+
 void ex_model_update(ex_model_t *m, float delta_time)
 {
-  // update mesh transform
-  list_node_t *n = m->mesh_list;
-  while (n->data != NULL) {
-    // update attributes 
-    ex_mesh_t *mesh = n->data;
-    memcpy(mesh->position, m->position, sizeof(vec3));
-    memcpy(mesh->rotation, m->rotation, sizeof(vec3));
-    mesh->scale  = m->scale;
-    mesh->is_lit = m->is_lit;
-
-    mesh->use_transform = m->use_transform;
-    if (m->use_transform)
-      mat4x4_dup(mesh->transform, m->transform);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
-  }
-
   // handle animations
   ex_anim_t *anim = m->current_anim;
 
@@ -88,6 +77,16 @@ void ex_model_update(ex_model_t *m, float delta_time)
 
 void ex_model_draw(ex_model_t *m, GLuint shader)
 {
+  // handle transformations
+  if (!m->use_transform) {
+    mat4x4_identity(m->transform);
+    mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
+    mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
+    mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
+    mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
+    mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
+  }
+
   // pass bone data
   GLuint has_skeleton_loc = ex_uniform(shader, "u_has_skeleton");
   glUniform1i(has_skeleton_loc, 0);
@@ -100,7 +99,7 @@ void ex_model_draw(ex_model_t *m, GLuint shader)
   // render meshes
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
-    ex_mesh_draw(n->data, shader);
+    ex_mesh_draw(n->data, shader, m->transform);
 
     if (n->next != NULL)
       n = n->next;

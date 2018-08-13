@@ -62,4 +62,16 @@ static inline void io_prefix_str(char *dest, const char *src, const char *prefix
   strcpy(&dest[len], src);
 }
 
+static inline void io_get_extension(char *dest, const char *src)
+{
+  dest[0] = '\0';
+
+  if (src == NULL)
+    return;
+
+  char *extension = strrchr(src, '.');
+  if (extension != NULL)
+    strcpy(dest, extension);
+}
+
 #endif // EXE_IO_H

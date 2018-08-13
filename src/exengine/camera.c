@@ -30,6 +30,8 @@ ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity,
   c->last_x = 0;
   c->last_y = 0;
 
+  c->update = 1;
+
   mat4x4_identity(c->view);
   mat4x4_identity(c->projection);
 
@@ -58,7 +60,8 @@ void ex_fps_camera_resize(ex_fps_camera_t *cam)
 
 void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
 {
-  ex_fps_camera_resize(cam);
+  if (!cam->update)
+    return;
 
   float x = display.mouse_x;
   float y = display.mouse_y;

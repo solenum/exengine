@@ -3,7 +3,6 @@
 
 static GLFWwindow   *window;
 static double       time = 0.0f;
-static bool         mousepressed[3] = { false, false, false };
 static float        mousewheel = 0.0f;
 static GLuint       fonttexture = 0;
 static int          shader = 0, locationtex = 0, locationproj = 0;
@@ -11,6 +10,7 @@ static int          locationposition = 0, locationUV = 0, locationcolor = 0;
 static GLuint       VBO = 0, VAO = 0, EAO = 0;
 bool glimgui_focus = 0;
 uint8_t glimgui_ex_keys_down[GLFW_KEY_LAST];
+bool         igmousepressed[3] = { false, false, false };
 
 void glimgui_init(GLFWwindow *win)
 {
@@ -260,8 +260,8 @@ void glimgui_newframe()
 
   for (int i=0; i<3; i++) {
     if (glimgui_focus) {
-      io->MouseDown[i] = mousepressed[i] || glfwGetMouseButton(window, i) != 0;
-      mousepressed[i]  = 0;
+      io->MouseDown[i] = igmousepressed[i] || glfwGetMouseButton(window, i) != 0;
+      igmousepressed[i]  = 0;
     }
   }
 
@@ -287,7 +287,7 @@ static void glimgui_setclipboard(void *user_data, const char *text)
 void glimgui_mousebuttoninput(int button, int action)
 {
   if (action == GLFW_PRESS && button >= 0 && button < 23)
-    mousepressed[button] = 1;
+    igmousepressed[button] = 1;
 }
 
 void glimgui_mousescrollinput(double offset)

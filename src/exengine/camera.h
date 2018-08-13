@@ -12,7 +12,7 @@ typedef struct {
   vec3 position, front, up;
   float yaw, pitch, last_x, last_y, fov, sensitivity;
   mat4x4 view, projection, inverse_view;
-  int width, height;
+  int width, height, update;
   ex_model_t *view_model;
   vec3 view_model_offset, view_model_rotate;
 } ex_fps_camera_t;

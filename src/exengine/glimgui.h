@@ -15,6 +15,7 @@ typedef struct ImDrawVert ImDrawVert;
 
 extern bool glimgui_focus;
 extern uint8_t glimgui_ex_keys_down[GLFW_KEY_LAST];
+extern bool igmousepressed[3];
 
 void glimgui_init(GLFWwindow *win);
 

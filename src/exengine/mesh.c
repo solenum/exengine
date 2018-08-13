@@ -14,13 +14,6 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, si
   m->texture_norm = 0;
   m->vcount  = vcount;
   m->icount  = icount;
-  m->is_lit  = 1;
-  m->scale   = 1.0f;
-
-  memset(m->position, 0, sizeof(vec3));
-  memset(m->rotation, 0, sizeof(vec3));
-
-  mat4x4_identity(m->transform);
 
   glGenVertexArrays(1, &m->VAO);
   glGenBuffers(1, &m->VBO);
@@ -69,26 +62,14 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, si
   return m;
 }
 
-void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program)
+void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, mat4x4 transform)
 {
-  // handle transformations
-  if (!m->use_transform) {
-    mat4x4_identity(m->transform);
-    mat4x4_translate_in_place(m->transform, m->position[0], m->position[1], m->position[2]);
-    mat4x4_rotate_Y(m->transform, m->transform, rad(m->rotation[1]));
-    mat4x4_rotate_X(m->transform, m->transform, rad(m->rotation[0]));
-    mat4x4_rotate_Z(m->transform, m->transform, rad(m->rotation[2]));
-    mat4x4_scale_aniso(m->transform, m->transform, m->scale, m->scale, m->scale);
-  }
-
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
   glUniform1i(ex_uniform(shader_program, "u_texture"), 4);
   glUniform1i(ex_uniform(shader_program, "u_spec"), 5);
   glUniform1i(ex_uniform(shader_program, "u_norm"), 6);
-  
-  glUniform1i(ex_uniform(shader_program, "u_is_lit"), m->is_lit);
 
   // diffuse  
   glActiveTexture(GL_TEXTURE4);
@@ -112,7 +93,7 @@ void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program)
     glBindTexture(GL_TEXTURE_2D, m->texture_norm);
 
   // pass transform matrix to shader
-  glUniformMatrix4fv(ex_uniform(shader_program, "u_model"), 1, GL_FALSE, m->transform[0]);
+  glUniformMatrix4fv(ex_uniform(shader_program, "u_model"), 1, GL_FALSE, transform[0]);
 
   // draw mesh
   glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_INT, 0);

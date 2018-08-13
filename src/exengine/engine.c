@@ -10,6 +10,7 @@
 #include "entity.h"
 #include "glimgui.h"
 #include "defaults.h"
+#include "cache.h"
 #include "dbgui.h"
 
 // renderer feature toggles
@@ -34,6 +35,9 @@ void exengine(char **argv)
   // init physfs filesystem
   PHYSFS_init(argv[0]);
   PHYSFS_mount(EX_DATA_FILE, NULL, 1);
+
+  // init engine file data cache
+  ex_cache_init();
 
   // delta time vars
   const double phys_delta_time = 1.0 / 60.0;
@@ -105,6 +109,7 @@ void exengine(char **argv)
   conf_free(&conf);
   ex_window_destroy();
   PHYSFS_deinit();
+  ex_cache_flush();
 
   // user exit callback
   ex_exit_ptr();

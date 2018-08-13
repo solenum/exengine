@@ -25,7 +25,7 @@
 
 typedef struct {
   GLuint shader, primshader;
-  list_t *model_list, *texture_list, *coll_list;
+  list_t *model_list, *coll_list;
   ex_fps_camera_t *fps_camera;
   ex_skybox_t *skybox;
   vec3 gravity;
@@ -43,7 +43,7 @@ typedef struct {
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
 } ex_scene_t;
 
-ex_scene_t* scene_new();
+ex_scene_t* ex_scene_new();
 
 void ex_scene_add_collision(ex_scene_t *s, ex_model_t *m);
 

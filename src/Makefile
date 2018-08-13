@@ -1,3 +1,5 @@
+# Example Makefile
+
 # -- Dirs -- #
 CC 			=gcc
 CPP     =g++
@@ -39,12 +41,20 @@ _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
 model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
 gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h input.h \
-sound.h
+sound.h cache.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
-# lib srcs
+# engine srcs
+ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
+framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
+collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
+ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o cache.o
+
+# lib deps
 _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h  physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
 PHYSFS_DEPS  =$(patsubst %,$(LDIR)/physfs/%,$(_PHYSFS_DEPS))
+
+# lib srcs
 LOBJ		=cimgui.o fontAtlas.o drawList.o listClipper.o imgui.o imgui_draw.o \
 imgui_demo.o imgui_dock.o \
 physfs_archiver_7z.o physfs_archiver_mvl.o physfs_archiver_wad.o physfs_platform_posix.o \
@@ -56,12 +66,6 @@ physfs_archiver_iso9660.o physfs_archiver_vdf.o physfs_platform_os2.o physfs_uni
 ifeq ($(UNAME),Darwin)
 LOBJ += physfs_platform_apple.o
 endif
-
-# engine srcs
-ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
-framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
-collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
-ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o
 
 # usr srcs (add yours here)
 _OBJ		=main.o game.o

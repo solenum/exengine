@@ -37,9 +37,9 @@ typedef struct {
   float scale;
   uint8_t is_lit, is_shadow;
 
-  ex_anim_t   *current_anim;
-  float    current_time;
-  uint32_t current_frame;
+  ex_anim_t *current_anim;
+  float     current_time;
+  uint32_t  current_frame;
 
   mat4x4 transform, *inverse_base, *skeleton;
   ex_bone_t *bones;
@@ -52,9 +52,13 @@ typedef struct {
   size_t num_vertices;
 
   ex_octree_t *octree_data;
+
+  char path[512];
 } ex_model_t;
 
 ex_model_t* ex_model_new();
+
+ex_model_t* ex_model_copy(ex_model_t *model);
 
 void ex_model_update(ex_model_t *m, float delta_time);
 
