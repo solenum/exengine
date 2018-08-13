@@ -122,7 +122,6 @@ void ex_gbuffer_render(GLuint shader)
   glBindTexture(GL_TEXTURE_2D, gnormal);
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, gcolorspec);
-  ssao_bind_texture(shader);
 
   glUniform1i(ex_uniform(shader, "u_point_depth"), 4);
 

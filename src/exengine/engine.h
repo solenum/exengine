@@ -14,9 +14,6 @@
 #include "exe_conf.h"
 #include "exengine/window.h"
 
-// renderer feature toggles
-extern int ex_enable_ssao;
-
 // user defined function callback pointers
 extern void (*ex_init_ptr)(void);
 extern void (*ex_update_ptr)(double);

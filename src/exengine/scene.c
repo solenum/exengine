@@ -10,9 +10,12 @@
 #include "sound.h"
 #include "ssao.h"
 
-ex_scene_t* ex_scene_new()
+ex_scene_t* ex_scene_new(uint8_t flags)
 {
   ex_scene_t *s = malloc(sizeof(ex_scene_t));
+
+  // renderer features
+  s->ssao = 0;
 
   // init lists
   s->model_list       = list_new(); 
@@ -36,7 +39,6 @@ ex_scene_t* ex_scene_new()
   ex_reflection_init();
   for (int i=0; i<EX_MAX_REFLECTIONS; i++)
     s->reflection_probes[i] = NULL;
-
 
   // init skybox
   s->skybox = NULL;
@@ -66,7 +68,10 @@ ex_scene_t* ex_scene_new()
   s->primshader = ex_shader_compile("primshader.vs", "primshader.fs", NULL);
 
   // init ssao stuffs
-  ssao_init();
+  if (flags & EX_SCENE_SSAO) {
+    ssao_init();
+    s->ssao = 1;
+  }
 
   return s;
 }
@@ -245,16 +250,6 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   }
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
 
-  // render reflection maps
-  /*glCullFace(GL_BACK);
-  for (int i=0; i<EX_MAX_REFLECTIONS; i++) {
-    ex_reflection_t *r = s->reflection_probes[i];
-    if (r != NULL) {
-      ex_reflection_begin(r);
-      ex_scene_render_models(s, r->shader, 1);
-    }
-  }*/
-
   ex_fps_camera_update(s->fps_camera, ex_gshader);
 
   // first geometry render pass
@@ -266,23 +261,10 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   ex_scene_render_models(s, ex_gshader, 0);
 
   // render ssao
-  ssao_render(s->fps_camera->projection, s->fps_camera->view);
+  if (s->ssao)
+    ssao_render(s->fps_camera->projection, s->fps_camera->view);
 
   ex_framebuffer_bind(s->framebuffer);
-
-  // render skybox (FIX THIS!)
-  /*if (s->skybox != NULL) {
-    glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(s->skybox->shader);
-
-    if (s->fps_camera != NULL)
-      ex_fps_camera_draw(s->fps_camera, s->skybox->shader);
-    
-    ex_skybox_draw(s->skybox);
-  }*/
 
   // render scene
   glUseProgram(ex_gmainshader);
@@ -301,7 +283,12 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 0);
   glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
   glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 0);
-  // ex_reflection_draw(s->reflection_probes[0], ex_gmainshader);
+
+  if (s->ssao)
+    ssao_bind_texture(ex_gmainshader);
+  else
+    ssao_bind_default(ex_gmainshader);
+  
   ex_gbuffer_render(ex_gmainshader);
 
   // enable blending for second pass onwards
@@ -347,6 +334,10 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), pcount);
   glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), scount);
   glUniform1i(ex_uniform(ex_gmainshader, "u_ambient_pass"), 0);
+  if (s->ssao)
+    ssao_bind_texture(ex_gmainshader);
+  else
+    ssao_bind_default(ex_gmainshader);
   ex_gbuffer_render(ex_gmainshader);
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), 0);
   glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), 0);
@@ -386,8 +377,13 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
     }
 
     // render gbuffer to screen quad
-    if (pl != NULL || sl != NULL)
+    if (pl != NULL || sl != NULL) {
+      if (s->ssao)
+        ssao_bind_texture(ex_gmainshader);
+      else
+        ssao_bind_default(ex_gmainshader);
       ex_gbuffer_render(ex_gmainshader);
+    }
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();

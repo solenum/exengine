@@ -116,9 +116,6 @@ void ssao_init()
 
 void ssao_render(mat4x4 projection, mat4x4 view)
 {
-  if (!ex_enable_ssao)
-    return;
-
   glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -186,8 +183,12 @@ void ssao_bind_texture(GLuint shader)
 {
   glActiveTexture(GL_TEXTURE3);
   glUniform1i(ex_uniform(shader, "u_ssao"), 3);
-  if (ex_enable_ssao)
-    glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
-  else
-    glBindTexture(GL_TEXTURE_2D, default_texture_ssao);
+  glBindTexture(GL_TEXTURE_2D, ssao_color_blur_buffer);
+}
+
+void ssao_bind_default(GLuint shader)
+{
+  glActiveTexture(GL_TEXTURE3);
+  glUniform1i(ex_uniform(shader, "u_ssao"), 3);
+  glBindTexture(GL_TEXTURE_2D, default_texture_ssao); 
 }

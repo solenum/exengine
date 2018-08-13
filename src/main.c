@@ -10,9 +10,6 @@ int main(int argc, char **argv)
   ex_exit_ptr = game_exit;
   ex_keypressed_ptr = game_keypressed;
 
-  // set to 0 to disable ssao
-  ex_enable_ssao = 1;
-
   exengine(argv);
 
   return EXIT_SUCCESS;

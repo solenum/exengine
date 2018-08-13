@@ -28,7 +28,7 @@ void game_init()
   ex_sound_init();
 
   // init the scene
-  scene = ex_scene_new();
+  scene = ex_scene_new(0);
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
@@ -77,11 +77,6 @@ void game_init()
 
 void game_update(double dt)
 {
-  if (ex_keys_down[EX_KEY_E]) {
-    ex_keys_down[EX_KEY_E] = 0;
-    ex_enable_ssao = !ex_enable_ssao;
-  }
-
   ex_fps_camera_resize(camera);
 
   ex_entity_update(e, dt);

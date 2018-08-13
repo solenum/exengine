@@ -24,6 +24,8 @@
 // this should be the value of the biggest define above
 #define EX_SCENE_BIGGEST_LIGHT 500
 
+#define EX_SCENE_SSAO 1
+
 typedef struct {
   GLuint shader, primshader;
   list_t *model_list, *coll_list;
@@ -42,10 +44,14 @@ typedef struct {
 
   /* dbug vars */
   int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
+  
   ex_framebuffer_t *framebuffer;
+
+  /* rendering features */
+  int ssao;
 } ex_scene_t;
 
-ex_scene_t* ex_scene_new();
+ex_scene_t* ex_scene_new(uint8_t flags);
 
 void ex_scene_add_collision(ex_scene_t *s, ex_model_t *m);
 

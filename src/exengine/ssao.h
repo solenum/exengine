@@ -15,4 +15,6 @@ void ssao_render(mat4x4 projection, mat4x4 view);
 
 void ssao_bind_texture(GLuint shader);
 
+void ssao_bind_default(GLuint shader);
+
 #endif // EX_SSAO_H
