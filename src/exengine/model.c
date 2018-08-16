@@ -99,6 +99,7 @@ void ex_model_draw(ex_model_t *m, GLuint shader)
   // render meshes
   list_node_t *n = m->mesh_list;
   while (n->data != NULL) {
+    glUniform1i(ex_uniform(shader, "u_is_lit"), m->is_lit);
     ex_mesh_draw(n->data, shader, m->transform);
 
     if (n->next != NULL)
