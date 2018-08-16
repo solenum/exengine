@@ -36,12 +36,13 @@ void game_init()
   scene->fps_camera = camera;
 
   m6 = ex_iqm_load_model(scene, "data/level.iqm", 1);
+  m6->is_shadow = 1;
   list_add(scene->model_list, m6);
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 15.0f; 
-  e->position[0] = 15.0f;
-  e->position[2] = 15.0f;
+  e->position[1] = 0.0f; 
+  e->position[0] = 0.0f;
+  e->position[2] = 0.0f;
 
   // load a sound
   sound = ex_sound_load_source("data/sound.ogg", EX_SOUND_OGG, 0);
@@ -64,15 +65,9 @@ void game_init()
   box->is_shadow = 0;
   list_add(scene->model_list, box);
   cube = ex_entity_new(scene, (vec3){0.95f, 0.99f, 0.95f});
-  cube->position[2] = 15.0f;
-  cube->position[1] = 15.0f;
-  cube->position[0] = 10.0f;
-
-  ex_model_t *box2 = ex_iqm_load_model(scene, "data/cube.iqm", 0);
-  box2->position[2] = 15.0f;
-  box2->position[1] = 15.0f;
-  box2->position[0] = 10.0f;
-  list_add(scene->model_list, box2);
+  cube->position[2] = 5.0f;
+  cube->position[1] = 0.0f;
+  cube->position[0] = 0.0f;
 }
 
 void game_update(double dt)

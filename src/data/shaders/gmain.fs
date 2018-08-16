@@ -136,7 +136,7 @@ vec3 calc_point_light(point_light light)
   vec3 fragpos = texture(u_position, uv).rgb;
   vec3 normals = texture(u_norm, uv).rgb * 2.0 - 1.0;
   vec3 diff    = texture(u_colorspec, uv).rgb;
-  float spec   = texture(u_colorspec, uv).a*2.0f;
+  float spec   = texture(u_colorspec, uv).a*1.0f;
 
   vec3 view_dir  = normalize(-fragpos);
   vec3 light_dir = l.position - fragpos;
@@ -249,7 +249,7 @@ void main()
   if (u_ambient_pass) {
     diffuse += texture(u_colorspec, uv).rgb * 0.04;
 
-    // vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
+    vec3 normals = normalize(mat3(u_inverse_view) * normalize(texture(u_norm, uv).rgb));
     // vec3 fragpos = mat3(u_inverse_view) * texture(u_position, uv).rgb;
     // float spec   = texture(u_colorspec, uv).a;
     // vec3 eye = normalize(u_eye_dir);
