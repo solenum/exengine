@@ -54,11 +54,14 @@ ex_framebuffer_t* ex_framebuffer_new(int width, int height)
 
   fb->width  = width;
   fb->height = height;
+
+  int vw, vh;
+  glfwGetFramebufferSize(display.window, &vw, &vh);
   if (!width)
-    fb->width = display.width;
+    fb->width = vw;
   if (!height)
-    fb->height = display.height;
-  
+    fb->height = vh;
+     
   glGenTextures(1, &fb->colorbuffer);
   glBindTexture(GL_TEXTURE_2D, fb->colorbuffer);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, fb->width, fb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
