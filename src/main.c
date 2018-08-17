@@ -10,7 +10,7 @@ int main(int argc, char **argv)
   ex_exit_ptr = game_exit;
   ex_keypressed_ptr = game_keypressed;
 
-  exengine(argv);
+  exengine(argv, EX_ENGINE_SOUND);
 
   return EXIT_SUCCESS;
 }

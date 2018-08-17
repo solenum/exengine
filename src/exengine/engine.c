@@ -30,7 +30,7 @@ void (*ex_mousescroll_ptr)(double, double);
 
 conf_t conf;
 
-void exengine(char **argv)
+void exengine(char **argv, uint8_t flags)
 {
   /* -- INIT ENGINE -- */
   // init physfs filesystem
@@ -39,6 +39,10 @@ void exengine(char **argv)
 
   // init engine file data cache
   ex_cache_init();
+
+  // init subsystems
+  if (flags & EX_ENGINE_SOUND)
+    ex_sound_init();
 
   // delta time vars
   const double phys_delta_time = 1.0 / 60.0;
@@ -113,6 +117,8 @@ void exengine(char **argv)
   PHYSFS_deinit();
   ex_cache_flush();
   ex_framebuffer_cleanup();
+  if (flags & EX_ENGINE_SOUND)
+    ex_sound_exit();
 
   // user exit callback
   ex_exit_ptr();

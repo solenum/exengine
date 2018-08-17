@@ -25,14 +25,12 @@ float move_speed = 1.5f;
 
 void game_init()
 {
-  ex_sound_init();
-
   // init the scene
   scene = ex_scene_new(0);
   memcpy(scene->gravity, (vec3){0.0f, -0.1f, 0.0f}, sizeof(vec3));
 
   // init the camera
-  camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 90.0f);
+  camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 70.0f);
   scene->fps_camera = camera;
 
   m6 = ex_iqm_load_model(scene, "data/level.iqm", 1);
@@ -225,16 +223,15 @@ ctrl_end:
 void game_draw()
 {
   ex_scene_draw(scene, 0, 0, 0, 0);
-  ex_scene_dbgui(scene);
+  // ex_scene_dbgui(scene);
 
   // igShowTestWindow(NULL);
-  ex_dbgui_render_profiler();
+  // ex_dbgui_render_profiler();
 }
 
 void game_exit()
 {
   ex_scene_destroy(scene);
-  ex_sound_exit();
   printf("Exiting\n");
 }
 
