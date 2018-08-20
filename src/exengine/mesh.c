@@ -62,7 +62,7 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, si
   return m;
 }
 
-void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, mat4x4 transform)
+void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, int count)
 {
   // bind vao/ebo/tex
   glBindVertexArray(m->VAO);
@@ -92,11 +92,8 @@ void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, mat4x4 transform)
   else
     glBindTexture(GL_TEXTURE_2D, m->texture_norm);
 
-  // pass transform matrix to shader
-  glUniformMatrix4fv(ex_uniform(shader_program, "u_model"), 1, GL_FALSE, transform[0]);
-
   // draw mesh
-  glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_INT, 0);
+  glDrawElementsInstanced(GL_TRIANGLES, m->icount, GL_UNSIGNED_INT, 0, count);
 
   // unbind buffers
   glBindTexture(GL_TEXTURE_2D, 0);

@@ -3,10 +3,10 @@
 #include "cache.h"
 #include <string.h>
 
-ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vertices)
+ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags)
 {
   // check if its already in the cache
-  ex_model_t *m_cache = ex_cache_get_model(path);
+  ex_model_t *m_cache = ex_cache_get_model(path, flags);
   if (m_cache != NULL)
     return m_cache;
 
@@ -252,7 +252,7 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
     ex_mesh_t *m = ex_mesh_new(vert, meshes[i].num_vertexes, ind, meshes[i].num_triangles*3, 0);
 
     // store vertices
-    if (keep_vertices) {
+    if (flags & EX_KEEP_VERTICES) {
       size_t size = meshes[i].num_triangles*3;
       for (int j=0; j<size; j++)
         memcpy(&vis_vertices[vis_len+j], vert[ind[j]].position, sizeof(vec3));
@@ -284,7 +284,7 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
   }
 
   // store vertices
-  if (keep_vertices) {
+  if (flags & EX_KEEP_VERTICES) {
     model->vertices = malloc(vis_len*sizeof(vec3));
     model->num_vertices = vis_len;
     memcpy(model->vertices, vis_vertices, vis_len*sizeof(vec3));
@@ -303,5 +303,5 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vert
 
   // store the model in the cache and return an instance of it
   ex_cache_model(model);
-  return ex_cache_get_model(path);
+  return ex_cache_get_model(path, flags);
 }

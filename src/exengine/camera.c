@@ -100,10 +100,10 @@ void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
     cam->view_model->use_transform= 1;
 
     mat4x4 mat;
-    mat4x4_identity(cam->view_model->transform);
+    mat4x4_identity(cam->view_model->transforms[0]);
     mat4x4_invert(mat, cam->view);
-    mat4x4_mul(cam->view_model->transform, mat, cam->view_model->transform);
-    mat4x4_translate_in_place(cam->view_model->transform, cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
+    mat4x4_mul(cam->view_model->transforms[0], mat, cam->view_model->transforms[0]);
+    mat4x4_translate_in_place(cam->view_model->transforms[0], cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
   }
 }
 

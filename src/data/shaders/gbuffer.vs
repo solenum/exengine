@@ -7,13 +7,13 @@ layout (location = 3) in vec4 in_tangents;
 layout (location = 4) in vec4 in_color;
 layout (location = 5) in vec4 in_boneindex;
 layout (location = 6) in vec4 in_boneweights;
+layout (location = 7) in mat4 in_instancematrix;
 
 out vec3 frag;
 out vec3 normal;
 out vec2 uv;
 out mat3 TBN;
 
-uniform mat4 u_model; 
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_bone_matrix[200];
@@ -21,7 +21,7 @@ uniform bool u_has_skeleton;
 
 void main()
 {
-  mat4 transform = u_model;
+  mat4 transform = in_instancematrix;
   if (u_has_skeleton == true) {
     vec4 boneindex = in_boneindex*255.0;
     vec4 boneweights = in_boneweights*255.0;
@@ -30,14 +30,14 @@ void main()
                     u_bone_matrix[int(boneindex.z)] * boneweights.z +
                     u_bone_matrix[int(boneindex.w)] * boneweights.w;
 
-    transform = u_model * skeleton;
+    transform = transform * skeleton;
   }
 
   vec4 v = u_projection * u_view * transform * vec4(in_position, 1.0);
 
   gl_Position    = v;
   normal         = mat3(transpose(inverse(u_view * transform))) * in_normals;
-  frag           = vec3(u_view * u_model * vec4(in_position, 1.0f));
+  frag           = vec3(u_view * in_instancematrix * vec4(in_position, 1.0f));
   uv             = in_uv;
 
   // calculate tbn matrix for normal mapping

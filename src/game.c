@@ -33,25 +33,30 @@ void game_init()
   camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 70.0f);
   scene->fps_camera = camera;
 
-  m6 = ex_iqm_load_model(scene, "data/level.iqm", 1);
+  m6 = ex_iqm_load_model(scene, "data/level.iqm", EX_KEEP_VERTICES);
   m6->is_shadow = 1;
   list_add(scene->model_list, m6);
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 0.0f; 
-  e->position[0] = 0.0f;
+  e->position[0] = 0.0f; 
   e->position[2] = 0.0f;
 
   // load a sound
   sound = ex_sound_load_source("data/sound.ogg", EX_SOUND_OGG, 0);
   ex_sound_master_volume(0.5f);
 
-  // d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
-  // list_add(scene->model_list, d);
-  // ex_model_set_anim(d, "Run");
-
-  l = ex_point_light_new((vec3){-20.0f, 0.0f, 15.0f}, (vec3){0.2f, 0.2f, 0.4f}, 1);
-  // ex_scene_add_pointlight(scene, l);
+  d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
+  ex_model_set_anim(d, "Run");
+  ex_model_init_instancing(d, 50);
+  int i=0;
+  for (int y=0; y<5; y++) {
+    for (int x=0; x<5; x++) {
+      mat4x4_translate_in_place(d->transforms[i], x, 0.0f, y);
+      i++;
+    }
+  }
+  list_add(scene->model_list, d);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.1f, 0.1f, 0.1f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -59,6 +64,7 @@ void game_init()
   pl->is_shadow = 0;
 
   box = ex_iqm_load_model(scene, "data/cube.iqm", 0);
+
   box->is_lit = 0;
   box->is_shadow = 0;
   list_add(scene->model_list, box);
@@ -74,13 +80,12 @@ void game_update(double dt)
 
   ex_entity_update(e, dt);
   ex_entity_update(cube, dt);
-
+ 
   memcpy(camera->position, e->position, sizeof(vec3));
   camera->position[1] += e->radius[1];
   memcpy(pl->position, camera->position, sizeof(vec3));
 
   memcpy(box->position, cube->position, sizeof(vec3));
-  memcpy(l->position, box->position, sizeof(vec3));
 
   vec3 temp;
   vec3_sub(temp, cube->position, e->position);
@@ -226,7 +231,7 @@ void game_draw()
   // ex_scene_dbgui(scene);
 
   // igShowTestWindow(NULL);
-  // ex_dbgui_render_profiler();
+  ex_dbgui_render_profiler();
 }
 
 void game_exit()

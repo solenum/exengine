@@ -18,7 +18,7 @@ void ex_cache_model(ex_model_t *model)
   list_add(model_list, (void*)model);
 }
 
-ex_model_t* ex_cache_get_model(const char *path)
+ex_model_t* ex_cache_get_model(const char *path, uint8_t flags)
 {
   // check of model already exists
   list_node_t *n = model_list;
@@ -29,7 +29,7 @@ ex_model_t* ex_cache_get_model(const char *path)
     if (strcmp(path, m->path) == 0) {
       // exists, return it
       printf("Returning instance of model from cache for %s\n", path);
-      return ex_model_copy(m);
+      return ex_model_copy(m, flags);
     }
 
     if (n->next != NULL)

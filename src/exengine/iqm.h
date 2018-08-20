@@ -12,6 +12,9 @@
 #define EX_IQM_MAGIC "INTERQUAKEMODEL"
 #define EX_IQM_VERSION 2
 
+#define EX_KEEP_VERTICES   1
+#define EX_MODEL_INSTANCED 2
+
 typedef struct {
   char magic[16];
   uint version;
@@ -94,7 +97,7 @@ typedef struct {
   uint first_triangle, num_triangles;
 } ex_iqmex_mesh_t;
 
-ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, int keep_vertices);
+ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags);
 
 static inline uint ex_get_uint(uint8_t *data) { 
   return (data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24));

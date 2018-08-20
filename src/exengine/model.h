@@ -41,7 +41,7 @@ typedef struct {
   float     current_time;
   uint32_t  current_frame;
 
-  mat4x4 transform, *inverse_base, *skeleton;
+  mat4x4 *inverse_base, *skeleton;
   ex_bone_t *bones;
   ex_anim_t *anims;
   ex_frame_t *frames, bind_pose, pose;
@@ -53,12 +53,18 @@ typedef struct {
 
   ex_octree_t *octree_data;
 
+  mat4x4 *transforms;
+  GLuint instance_vbo;
+  size_t instance_count;
+
   char path[512];
 } ex_model_t;
 
 ex_model_t* ex_model_new();
 
-ex_model_t* ex_model_copy(ex_model_t *model);
+ex_model_t* ex_model_copy(ex_model_t *model, uint8_t flags);
+
+void ex_model_init_instancing(ex_model_t *m, int count);
 
 void ex_model_update(ex_model_t *m, float delta_time);
 

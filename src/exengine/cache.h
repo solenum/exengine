@@ -11,7 +11,7 @@ void ex_cache_init();
 
 void ex_cache_model(ex_model_t *m);
 
-ex_model_t* ex_cache_get_model(const char *path);
+ex_model_t* ex_cache_get_model(const char *path, uint8_t flags);
 
 GLuint ex_cache_texture(const char *file);
 
