@@ -168,7 +168,7 @@ ctrl_end:
   }
   if (ex_keys_down[EX_KEY_S]) {
     vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
-    vec3_scale(speed, speed, move_speed * dt);
+    vec3_scale(speed, speed, move_speed * dt); 
     speed[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, speed);
   }
@@ -217,12 +217,12 @@ void game_draw()
 {
   ex_scene_draw(scene, 0, 0, 0, 0, &camera->matrices);
   ex_fps_camera_resize(camera);
-  // ex_scene_draw(scene, 0, 0, 640, 320, &camera2->matrices);
-  // ex_fps_camera_resize(camera2);
+  ex_scene_draw(scene, 0, 0, 640, 320, &camera2->matrices);
+  ex_fps_camera_resize(camera2);
 
   // ex_scene_dbgui(scene);
   // igShowTestWindow(NULL);
-  // ex_dbgui_render_profiler();
+  ex_dbgui_render_profiler();
 }
 
 void game_exit()

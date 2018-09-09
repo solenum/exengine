@@ -16,8 +16,7 @@ void ex_gbuffer_init()
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
 
-  width = conf_get_int(&conf, "window_width");
-  height = conf_get_int(&conf, "window_height");
+  glfwGetFramebufferSize(display.window, &width, &height);
 
   // position buffer
   glGenTextures(1, &gposition);
@@ -97,10 +96,10 @@ void ex_gbuffer_init()
   /* ----------------- */
 }
 
-void ex_gbuffer_first()
+void ex_gbuffer_first(int x, int y, int vw, int vh)
 {
   glUseProgram(ex_gshader);
-  glViewport(0, 0, width, height);
+  glViewport(x, y, vw, vh);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

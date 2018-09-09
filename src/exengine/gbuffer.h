@@ -10,7 +10,7 @@ extern GLuint gposition, gnormal;
 
 void ex_gbuffer_init();
 
-void ex_gbuffer_first();
+void ex_gbuffer_first(int x, int y, int vw, int vh);
 
 void ex_gbuffer_render(GLuint shader);
 

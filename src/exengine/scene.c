@@ -230,7 +230,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
 
   // first geometry render pass
-  ex_gbuffer_first();
+  ex_gbuffer_first(0, 0, view_width, view_height);
   glUseProgram(ex_gshader);
 
   // render scene to gbuffer
@@ -380,7 +380,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   // render screen quad
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  ex_framebuffer_draw(s->framebuffer, view_x, (vh-view_y-view_height), view_width, view_height);
+  ex_framebuffer_draw(s->framebuffer, view_x, (vh-view_y-view_height), vw, vh);
 
   ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }

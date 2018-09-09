@@ -20,6 +20,8 @@ const vec3 u_white_point = vec3(0.75, 0.75, 0.75);
 void main()
 {
   vec3 tex_color = textureLod(u_texture, uv, 0.0).rgb;
+  if (length(tex_color) <= 0)
+    discard;
   tex_color = vec3(1.0) - exp(-tex_color / u_white_point);
   color = vec4(aces_tonemap(tex_color), 1.0);
 }
