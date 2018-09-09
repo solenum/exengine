@@ -6,15 +6,17 @@
 
 #include "mathlib.h"
 #include "model.h"
-#include <stdbool.h>
+
+typedef struct {
+  mat4x4 view, projection, inverse_view;
+} ex_camera_matrices_t;
 
 typedef struct {
   vec3 position, front, up;
   float yaw, pitch, last_x, last_y, fov, sensitivity;
-  mat4x4 view, projection, inverse_view;
   int width, height, update;
   ex_model_t *view_model;
-  vec3 view_model_offset, view_model_rotate;
+  ex_camera_matrices_t matrices;
 } ex_fps_camera_t;
 
 /**
@@ -36,8 +38,6 @@ void ex_fps_camera_resize(ex_fps_camera_t *cam);
  * @param cam            [ex_fps_camera_t pointer]
  * @param shader_program [shader program to use]
  */
-void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program);
-
-void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program);
+void ex_fps_camera_update(ex_fps_camera_t *cam);
 
 #endif // EX_CAMERA_H

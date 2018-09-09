@@ -8,9 +8,9 @@ ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity,
 {
   ex_fps_camera_t *c = malloc(sizeof(ex_fps_camera_t));
 
-  c->position[0] = 0.0f+x;
-  c->position[1] = 0.0f+y;
-  c->position[2] = 0.0f+z;
+  c->position[0] = x;
+  c->position[1] = y;
+  c->position[2] = z;
   
   c->front[0] = 0.0f;
   c->front[1] = 0.0f;
@@ -32,12 +32,10 @@ ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity,
 
   c->update = 1;
 
-  mat4x4_identity(c->view);
-  mat4x4_identity(c->projection);
+  mat4x4_identity(c->matrices.view);
+  mat4x4_identity(c->matrices.projection);
 
-  c->view_model = NULL;
-  memset(c->view_model_offset, 0, sizeof(vec3));
-  memset(c->view_model_rotate, 0, sizeof(vec3));
+  ex_fps_camera_resize(c);
 
   return c;
 }
@@ -52,13 +50,13 @@ void ex_fps_camera_resize(ex_fps_camera_t *cam)
   height = viewport[3];
   
   if (cam->width != width || cam->height != height) {
-    mat4x4_perspective(cam->projection, rad(cam->fov), (float)width / (float)height, 0.01f, 1000.0f);
+    mat4x4_perspective(cam->matrices.projection, rad(cam->fov), (float)width / (float)height, 0.01f, 1000.0f);
     cam->width  = width;
     cam->height = height;
   }
 }
 
-void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
+void ex_fps_camera_update(ex_fps_camera_t *cam)
 {
   if (!cam->update)
     return;
@@ -92,27 +90,6 @@ void ex_fps_camera_update(ex_fps_camera_t *cam, GLuint shader_program)
 
   vec3 center;
   vec3_add(center, cam->position, cam->front);
-  mat4x4_look_at(cam->view, cam->position, center, cam->up);
-  mat4x4_invert(cam->inverse_view, cam->view);
-
-  // update view model
-  if (cam->view_model != NULL) {
-    cam->view_model->use_transform= 1;
-
-    mat4x4 mat;
-    mat4x4_identity(cam->view_model->transforms[0]);
-    mat4x4_invert(mat, cam->view);
-    mat4x4_mul(cam->view_model->transforms[0], mat, cam->view_model->transforms[0]);
-    mat4x4_translate_in_place(cam->view_model->transforms[0], cam->view_model_offset[0], cam->view_model_offset[1], cam->view_model_offset[2]);
-  }
-}
-
-void ex_fps_camera_draw(ex_fps_camera_t *cam, GLuint shader_program)
-{
-  // send vars to shader
-  glUniformMatrix4fv(ex_uniform(shader_program, "u_projection"), 1, GL_FALSE, cam->projection[0]);
-  glUniformMatrix4fv(ex_uniform(shader_program, "u_view"), 1, GL_FALSE, cam->view[0]);
-  glUniform3fv(ex_uniform(shader_program, "u_view_position"), 1, &cam->position[0]);
-  glUniformMatrix4fv(ex_uniform(shader_program, "u_inverse_view"), 1, GL_FALSE, cam->inverse_view[0]);
-  glUniform3fv(ex_uniform(shader_program, "u_eye_dir"), 1, &cam->front[0]);
+  mat4x4_look_at(cam->matrices.view, cam->position, center, cam->up);
+  mat4x4_invert(cam->matrices.inverse_view, cam->matrices.view);
 }

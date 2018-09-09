@@ -35,6 +35,7 @@ void exengine(char **argv, uint8_t flags)
   /* -- INIT ENGINE -- */
   // init physfs filesystem
   PHYSFS_init(argv[0]);
+  printf("%s\n", argv[0]);
   PHYSFS_mount(EX_DATA_FILE, NULL, 1);
 
   // init engine file data cache

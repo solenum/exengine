@@ -15,7 +15,7 @@
 #include "exengine/sound.h"
 #include "inc/game.h"
 
-ex_fps_camera_t *camera = NULL;
+ex_fps_camera_t *camera, *camera2;
 ex_scene_t *scene;
 ex_model_t *m6, *d, *box;
 ex_entity_t *cube, *e;
@@ -31,7 +31,8 @@ void game_init()
 
   // init the camera
   camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 70.0f);
-  scene->fps_camera = camera;
+  camera2 = ex_fps_camera_new(0.0f, 2.0f, 0.0f, 0.1f, 70.0f);
+  ex_fps_camera_update(camera2);
 
   m6 = ex_iqm_load_model(scene, "data/level.iqm", EX_KEEP_VERTICES);
   m6->is_shadow = 1;
@@ -45,18 +46,6 @@ void game_init()
   // load a sound
   sound = ex_sound_load_source("data/sound.ogg", EX_SOUND_OGG, 0);
   ex_sound_master_volume(0.5f);
-
-  d = ex_iqm_load_model(scene, "data/dude.iqm", 0);
-  ex_model_set_anim(d, "Run");
-  ex_model_init_instancing(d, 50);
-  int i=0;
-  for (int y=0; y<5; y++) {
-    for (int x=0; x<5; x++) {
-      mat4x4_translate_in_place(d->transforms[i], x, 0.0f, y);
-      i++;
-    }
-  }
-  list_add(scene->model_list, d);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.1f, 0.1f, 0.1f}, 0);
   memcpy(pl->position, e->position, sizeof(vec3));
@@ -76,11 +65,9 @@ void game_init()
 
 void game_update(double dt)
 {
-  ex_fps_camera_resize(camera);
-
   ex_entity_update(e, dt);
   ex_entity_update(cube, dt);
- 
+
   memcpy(camera->position, e->position, sizeof(vec3));
   camera->position[1] += e->radius[1];
   memcpy(pl->position, camera->position, sizeof(vec3));
@@ -223,15 +210,19 @@ ctrl_end:
   memcpy(pl->position, e->position, sizeof(vec3));
   pl->position[1] += 1.0f;
   ex_scene_update(scene, dt);
+  ex_fps_camera_update(camera);
 }
 
 void game_draw()
 {
-  ex_scene_draw(scene, 0, 0, 0, 0);
-  // ex_scene_dbgui(scene);
+  ex_scene_draw(scene, 0, 0, 0, 0, &camera->matrices);
+  ex_fps_camera_resize(camera);
+  // ex_scene_draw(scene, 0, 0, 640, 320, &camera2->matrices);
+  // ex_fps_camera_resize(camera2);
 
+  // ex_scene_dbgui(scene);
   // igShowTestWindow(NULL);
-  ex_dbgui_render_profiler();
+  // ex_dbgui_render_profiler();
 }
 
 void game_exit()

@@ -29,7 +29,6 @@
 typedef struct {
   GLuint shader, primshader;
   list_t *model_list, *coll_list;
-  ex_fps_camera_t *fps_camera;
   ex_skybox_t *skybox;
   vec3 gravity;
   ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
@@ -65,7 +64,7 @@ void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r);
 
 void ex_scene_update(ex_scene_t *s, float delta_time);
 
-void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height);
+void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
 
 void ex_scene_manage_lights(ex_scene_t *s);
 

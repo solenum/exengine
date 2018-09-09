@@ -18,9 +18,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   s->ssao = 0;
 
   // init lists
-  s->model_list       = list_new(); 
-
-  s->fps_camera = NULL;
+  s->model_list = list_new(); 
 
   // init framebuffers etc
   s->framebuffer = ex_framebuffer_new(0, 0);
@@ -205,7 +203,7 @@ void ex_scene_update(ex_scene_t *s, float delta_time)
   ex_dbgprofiler.end[ex_dbgprofiler_update] = glfwGetTime();
 }
 
-void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height)
+void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
 {
   int vw, vh;
   glfwGetFramebufferSize(display.window, &vw, &vh);
@@ -229,53 +227,31 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
       ex_scene_render_models(s, l->shader, 1);
     }
   }
-
-  // render spotlight depth maps
-  for (int i=0; i<EX_MAX_SPOT_LIGHTS; i++) {
-    ex_spot_light_t *l = s->spot_lights[i];
-    if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
-      ex_spot_light_begin(l);
-      ex_scene_render_models(s, l->shader, 1);
-    }
-  }
-
-  // render dirlight depth maps
-  glCullFace(GL_BACK);
-  if (s->dir_light != NULL) {
-    ex_dir_light_t *l = s->dir_light;
-    if (s->fps_camera != NULL) {
-      memcpy(l->cposition, s->fps_camera->position, sizeof(vec3));
-      l->cposition[1] = 0.0f;
-    }
-    ex_dir_light_begin(l);
-    ex_scene_render_models(s, l->shader, 1);
-  }
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
-
-  ex_fps_camera_update(s->fps_camera, ex_gshader);
 
   // first geometry render pass
   ex_gbuffer_first();
   glUseProgram(ex_gshader);
 
   // render scene to gbuffer
-  ex_fps_camera_draw(s->fps_camera, ex_gshader);
+  glUniformMatrix4fv(ex_uniform(ex_gshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
+  glUniformMatrix4fv(ex_uniform(ex_gshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
+  glUniformMatrix4fv(ex_uniform(ex_gshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
   ex_scene_render_models(s, ex_gshader, 0);
 
   // render ssao
   if (s->ssao)
-    ssao_render(s->fps_camera->projection, s->fps_camera->view);
+    ssao_render(matrices->projection, matrices->view);
 
   ex_framebuffer_bind(s->framebuffer);
 
   // render scene
   glUseProgram(ex_gmainshader);
 
-  // update camera
-  if (s->fps_camera != NULL) {
-    ex_fps_camera_update(s->fps_camera, ex_gmainshader);
-    ex_fps_camera_draw(s->fps_camera, ex_gmainshader);
-  }
+  // send vars to shader
+  glUniformMatrix4fv(ex_uniform(ex_gmainshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
+  glUniformMatrix4fv(ex_uniform(ex_gmainshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
+  glUniformMatrix4fv(ex_uniform(ex_gmainshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
 
   // first pass is ambient
   glDisable(GL_BLEND);
@@ -393,9 +369,10 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   // render debug primitives
   glUseProgram(s->primshader);
 
-  // update camera
-  if (s->fps_camera != NULL)
-    ex_fps_camera_draw(s->fps_camera, s->primshader);
+  // send vars to shader
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
 
   if (ex_dbgprofiler.render_octree)
     ex_octree_render(s->coll_tree);
@@ -410,12 +387,16 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
 
 void ex_scene_manage_lights(ex_scene_t *s)
 {
+  return;
+
+  // FIX THIS
+
   // set our position and front vector
   vec3 thispos, thisfront;
-  if (s->fps_camera != NULL) {
+  /*if (s->fps_camera != NULL) {
     memcpy(thisfront, s->fps_camera->front, sizeof(vec3));
     memcpy(thispos, s->fps_camera->position, sizeof(vec3));
-  }
+  }*/
 
   // point lights
   for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
@@ -547,10 +528,6 @@ void ex_scene_destroy(ex_scene_t *s)
   // clean up dir lights
   if (s->dir_light != NULL)
     ex_dir_light_destroy(s->dir_light);
-
-  // cleanup cameras
-  if (s->fps_camera != NULL)
-    free(s->fps_camera);
 
   // cleanup skybox
   if (s->skybox != NULL) {
