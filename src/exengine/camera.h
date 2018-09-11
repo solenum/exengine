@@ -1,3 +1,8 @@
+/* camera
+  Handles creating and updating various types
+  of cameras.
+*/
+
 #ifndef EX_CAMERA_H
 #define EX_CAMERA_H
 
@@ -20,7 +25,7 @@ typedef struct {
 } ex_fps_camera_t;
 
 /**
- * [ex_fps_camera_new create a new isometric ortho camera]
+ * [ex_fps_camera_new create a first person camera]
  * @param  x [x position]
  * @param  y [y position]
  * @param  z [z position]
@@ -28,15 +33,14 @@ typedef struct {
 ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity, float fov);
 
 /**
- * [iso_cam_resize reset projections etc]
- * @param cam [ex_fps_camera_t pointer]
+ * [iso_cam_resize adjust the projection matrices, call after scene_draw]
+ * @param cam [camera to resize]
  */
 void ex_fps_camera_resize(ex_fps_camera_t *cam);
 
 /**
- * [ex_fps_camera_update update the cams projections etc]
- * @param cam            [ex_fps_camera_t pointer]
- * @param shader_program [shader program to use]
+ * [ex_fps_camera_update handle input and rotation]
+ * @param cam            [camera to update]
  */
 void ex_fps_camera_update(ex_fps_camera_t *cam);
 

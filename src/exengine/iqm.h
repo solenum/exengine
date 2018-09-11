@@ -1,3 +1,12 @@
+/* iqm
+  Loads IQM files and defines a model
+  from its data.
+
+  This supports all IQM features, including
+  skeleton animation.  It also internally
+  uses the cache system.
+*/
+
 #ifndef EX_IQM_LOADER_H
 #define EX_IQM_LOADER_H
 
@@ -12,8 +21,17 @@
 #define EX_IQM_MAGIC "INTERQUAKEMODEL"
 #define EX_IQM_VERSION 2
 
-#define EX_KEEP_VERTICES   1
-#define EX_MODEL_INSTANCED 2
+/*
+  The loader flags, OR these against
+  eachother in the flags argument to
+  specify what you want the loader
+  to do with the model file.
+
+  if EX_KEEP_VERTICES is defined,
+  the loader will add the model vertices
+  to the scenes collision tree.
+*/
+#define EX_KEEP_VERTICES 1
 
 typedef struct {
   char magic[16];
@@ -97,6 +115,13 @@ typedef struct {
   uint first_triangle, num_triangles;
 } ex_iqmex_mesh_t;
 
+/**
+ * [ex_iqm_load_model loads a given iqm model file]
+ * @param  scene [required if keep vertices is specified in flags]
+ * @param  path  [path to the model file]
+ * @param  flags [see flag defines above]
+ * @return       [an instance of the requested iqm model]
+ */
 ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags);
 
 static inline uint ex_get_uint(uint8_t *data) { 

@@ -1,3 +1,21 @@
+/* scene
+  The scene handler, where the magic happens.
+
+  This contains everything you
+  want to render each frame, as
+  well as your collision vertices
+  which are stored in an internal
+  octree.
+
+  Currently it uses a deferred renderer,
+  and has semi-function light culling.
+
+  The following are features that need implementing:
+  * A Forward renderer for simpler games
+  * Frustrum culling for models, lights etc
+  * Better handling of collision data
+*/
+
 #ifndef EX_SCENE_H
 #define EX_SCENE_H
 
@@ -24,6 +42,12 @@
 // this should be the value of the biggest define above
 #define EX_SCENE_BIGGEST_LIGHT 500
 
+/*
+  The renderer feature flags,
+  OR these together in the flags argument
+  of ex_scene_new to enable the
+  renderer features you want.
+*/
 #define EX_SCENE_SSAO 1
 
 typedef struct {
@@ -50,30 +74,96 @@ typedef struct {
   int ssao;
 } ex_scene_t;
 
+/**
+ * [ex_scene_new defines a new scene]
+ * @param  flags [the features to enable]
+ * @return       [the new scene]
+ */
 ex_scene_t* ex_scene_new(uint8_t flags);
 
+/**
+ * [ex_scene_add_collision add a models vertices to the coll tree]
+ * @param s [the scene to use]
+ * @param m [the model which contains the vertices]
+ *
+ * This could do with being more generic
+ * and being moved away from models.
+ */
 void ex_scene_add_collision(ex_scene_t *s, ex_model_t *m);
 
+/**
+ * [ex_scene_build_collision build the collision tree]
+ * @param s [the scene to use]
+ */
 void ex_scene_build_collision(ex_scene_t *s);
 
+/**
+ * [ex_scene_add_pointlight]
+ * @param s  [the scene to use]
+ * @param pl [the pointlight to add]
+ */
 void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl);
 
+/**
+ * [ex_scene_add_spotlight]
+ * @param s  [the scene to use]
+ * @param pl [the spotlight to add]
+ */
 void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *pl);
 
+/**
+ * [ex_scene_add_reflection]
+ * @param s [the scene to use]
+ * @param r [the relfection probe to add]
+ */
 void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r);
 
+/**
+ * [ex_scene_update builds collision, updates models etc]
+ * @param s          [the scene to use]
+ * @param delta_time []
+ */
 void ex_scene_update(ex_scene_t *s, float delta_time);
 
+/**
+ * [ex_scene_draw render the scene]
+ * @param s        [the scene to use]
+ * @param x        [x offset]
+ * @param y        [y offset]
+ * @param width    [render width]
+ * @param height   [render height]
+ * @param matrices [the camera matrices]
+ */
 void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
 
+/**
+ * [ex_scene_manage_lights cull lights]
+ * @param s [the scene to use]
+ *
+ * Currently broken-ish, isn't very good
+ * anyway.  Needs to be replaced with
+ * generic frustrum culling.
+ */
 void ex_scene_manage_lights(ex_scene_t *s);
 
+/**
+ * [ex_scene_dbgui renders debug gui]
+ * @param s [the scene to use]
+ */
 void ex_scene_dbgui(ex_scene_t *s);
 
+/**
+ * [ex_scene_render_models renders all scene models]
+ * @param s       [the scene to use]
+ * @param shader  [the shader to use]
+ * @param shadows [1 if rendering shadow-casting models only]
+ */
 void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows);
 
-GLuint ex_scene_add_texture(ex_scene_t *s, const char *file);
-
+/**
+ * [ex_scene_destroy cleanup scene data]
+ * @param s [the scene to destroy]
+ */
 void ex_scene_destroy(ex_scene_t *s);
 
 #endif // EX_SCENE_H

@@ -1,3 +1,11 @@
+/* shader
+  Loads and compiles shaders.
+
+  Requires at minimal a vertex and
+  fragment shader, can also compile a
+  geometry shader if specified.
+*/
+
 #ifndef EX_SHADER_H
 #define EX_SHADER_H
 
@@ -27,6 +35,9 @@ GLint ex_uniform(GLuint shader, const char *str);
  * @param  vertex_path   [vertex shader file path]
  * @param  fragment_path [fragment shader file path]
  * @return               [the shader program GLuint]
+ *
+ * Move this to a .c file, it shouldn't be
+ * in the header.
  */
 static GLuint ex_shader_compile(const char *vertex_path, const char *fragment_path, const char *geometry_path)
 {

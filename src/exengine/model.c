@@ -26,7 +26,7 @@ ex_model_t* ex_model_new()
   return m;
 }
 
-ex_model_t* ex_model_copy(ex_model_t *model, uint8_t flags)
+ex_model_t* ex_model_copy(ex_model_t *model)
 {
   // copy the mesh directly
   // keeping the pointers the same
@@ -48,7 +48,6 @@ void ex_model_init_instancing(ex_model_t *m, int count)
 
     glDeleteBuffers(1, &m->instance_vbo);
   }
-
 
   m->transforms = malloc(sizeof(mat4x4) * count);
   for (int i=0; i<count; i++)

@@ -18,7 +18,7 @@ void ex_cache_model(ex_model_t *model)
   list_add(model_list, (void*)model);
 }
 
-ex_model_t* ex_cache_get_model(const char *path, uint8_t flags)
+ex_model_t* ex_cache_get_model(const char *path)
 {
   // check of model already exists
   list_node_t *n = model_list;
@@ -29,7 +29,7 @@ ex_model_t* ex_cache_get_model(const char *path, uint8_t flags)
     if (strcmp(path, m->path) == 0) {
       // exists, return it
       printf("Returning instance of model from cache for %s\n", path);
-      return ex_model_copy(m, flags);
+      return ex_model_copy(m);
     }
 
     if (n->next != NULL)
@@ -42,7 +42,7 @@ ex_model_t* ex_cache_get_model(const char *path, uint8_t flags)
   return NULL;
 }
 
-GLuint ex_cache_texture(const char *file)
+GLuint ex_cache_texture(const char *path)
 {
   // check if texture already exists
   list_node_t *n = texture_list;
@@ -50,7 +50,7 @@ GLuint ex_cache_texture(const char *file)
     ex_texture_t *t = n->data;
 
     // compare file names
-    if (strcmp(file, t->name) == 0) {
+    if (strcmp(path, t->name) == 0) {
       // yep, return that one
       return t->id;
     }
@@ -61,10 +61,10 @@ GLuint ex_cache_texture(const char *file)
       break;
   }
 
-  printf("Caching texture %s\n", file);
+  printf("Caching texture %s\n", path);
 
   // doesnt exist, create texture
-  ex_texture_t *t = ex_texture_load(file, 0);
+  ex_texture_t *t = ex_texture_load(path, 0);
   if (t != NULL) {
     // store it in the list
     list_add(texture_list, (void*)t);

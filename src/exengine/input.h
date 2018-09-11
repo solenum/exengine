@@ -1,3 +1,21 @@
+/* input
+  Handles all user input, such as
+  keyboard, mouse, gamepad, etc.
+
+  Key codes will work for every keyboard
+  layout.  They work by mapping each key
+  of a US keyboard layout to the closest
+  key on whatever layout the user has.
+
+  For example, Q is the top-left character
+  key for all keyboard layouts.
+
+  Don't manually use the callbacks here,
+  instead set the engine function pointers
+  and your functions will be called when
+  an event fires.  See engine.h for details.
+*/
+
 #ifndef EX_INPUT_H
 #define EX_INPUT_H
 
@@ -157,16 +175,53 @@
 extern uint8_t ex_keys_down[EX_KEY_LAST];
 extern uint8_t ex_buttons_down[EX_MOUSE_BUTTON_LAST];
 
+/**
+ * [ex_key_callback handled internally]
+ * @param window   [glfw window]
+ * @param key      []
+ * @param scancode []
+ * @param action   []
+ * @param mode     []
+ */
 void ex_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
+/**
+ * [ex_button_callback handled internally]
+ * @param window []
+ * @param button []
+ * @param action []
+ * @param mods   []
+ */
 void ex_button_callback(GLFWwindow *window, int button, int action, int mods);
 
+/**
+ * [ex_char_callback handled internally]
+ * @param window []
+ * @param c      []
+ */
 void ex_char_callback(GLFWwindow *window, unsigned int c);
 
+/**
+ * [ex_scroll_callback handled internally]
+ * @param window  []
+ * @param xoffset []
+ * @param yoffset []
+ */
 void ex_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
+/**
+ * [ex_mouse_callback handled internally]
+ * @param window []
+ * @param x      []
+ * @param y      []
+ */
 void ex_mouse_callback(GLFWwindow* window, double x, double y);
 
+/**
+ * [ex_get_mouse_pos relative mouse position to window]
+ * @param x [x offset]
+ * @param y [y offset]
+ */
 void ex_get_mouse_pos(double *x, double *y);
 
 #endif // EX_INPUT_H

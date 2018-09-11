@@ -1,3 +1,12 @@
+/* model
+  The model container consists of
+  multiple meshes, one per texture set.
+
+  It handles skeletal animation, as
+  well as the transforms for all of
+  its meshes.
+*/
+
 #ifndef EX_MODEL_H
 #define EX_MODEL_H
 
@@ -60,16 +69,44 @@ typedef struct {
   char path[512];
 } ex_model_t;
 
+/**
+ * [ex_model_new define a new model]
+ * @return [a new, empty model]
+ */
 ex_model_t* ex_model_new();
 
-ex_model_t* ex_model_copy(ex_model_t *model, uint8_t flags);
+/**
+ * [ex_model_copy create a copy that uses on the same data]
+ * @param  model [the model to copy]
+ * @return       [the new instance of the given model]
+ */
+ex_model_t* ex_model_copy(ex_model_t *model);
 
+/**
+ * [ex_model_init_instancing init the intancing transform arrays]
+ * @param m     [the model to instance]
+ * @param count [how many instances you want]
+ */
 void ex_model_init_instancing(ex_model_t *m, int count);
 
+/**
+ * [ex_model_update update the model animations, transforms etc]
+ * @param m          [the model to update]
+ * @param delta_time []
+ */
 void ex_model_update(ex_model_t *m, float delta_time);
 
+/**
+ * [ex_model_draw render the model]
+ * @param m      [the model to render]
+ * @param shader [the shader to use]
+ */
 void ex_model_draw(ex_model_t *m, GLuint shader);
 
+/**
+ * [ex_model_destroy cleanup model data]
+ * @param m [the model to destroy]
+ */
 void ex_model_destroy(ex_model_t *m);
 
 /**
@@ -92,6 +129,14 @@ void ex_model_set_pose(ex_model_t *m, ex_frame_t frame);
  */
 void ex_model_set_anim(ex_model_t *m, char *id);
 
+/**
+ * [ex_model_get_ex_bone_transform get a bones transform for bone attachments]
+ * @param m         [the model]
+ * @param name      [the bone name]
+ * @param transform [the transform to return]
+ *
+ * This is currently broken, don't use this.
+ */
 void ex_model_get_ex_bone_transform(ex_model_t *m, const char *name, mat4x4 transform);
 
 /**

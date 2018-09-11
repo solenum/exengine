@@ -1,3 +1,11 @@
+/* texture
+  Handles loading and converting
+  a texture file to a GL texture.
+
+  Currently uses textures with 4
+  components. (rgba)
+*/
+
 #ifndef EX_TEXTURE_H
 #define EX_TEXTURE_H
 

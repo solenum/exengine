@@ -1,3 +1,10 @@
+/* window
+  The window module, handles
+  opening a window.  As well
+  as window events and input
+  callbacks.
+*/
+
 #ifndef EX_WINDOW_H
 #define EX_WINDOW_H
 

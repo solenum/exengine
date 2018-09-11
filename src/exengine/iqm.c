@@ -6,7 +6,7 @@
 ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags)
 {
   // check if its already in the cache
-  ex_model_t *m_cache = ex_cache_get_model(path, flags);
+  ex_model_t *m_cache = ex_cache_get_model(path);
   if (m_cache != NULL)
     return m_cache;
 
@@ -303,5 +303,5 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags
 
   // store the model in the cache and return an instance of it
   ex_cache_model(model);
-  return ex_cache_get_model(path, flags);
+  return ex_cache_get_model(path);
 }

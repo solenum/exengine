@@ -1,3 +1,21 @@
+/* engine
+  The core of exengine, inits all internal
+  modules, runs the main game loop, and 
+  handles all user callbacks.
+
+  It implements a fixed timestep for physics
+  to keep things consistent regardless of
+  performance and frame rates, while rendering
+  at an uncapped framerate assuming vsync is
+  not present.
+
+  Feel free to tweak 'phys_delta_time' in engine.c
+  to your liking.  Be warned however, physics can
+  act up at certain tick rates.  Best to leave
+  it at the default if you don't know what you are
+  doing.
+*/
+
 #ifndef EX_ENGINE_H
 #define EX_ENGINE_H
 
@@ -16,9 +34,17 @@
 #include "exengine/window.h"
 #include "exengine/sound.h"
 
+/*
+  The module flags, OR these together when
+  calling exengine() to enable the modules
+  you require.
+*/
 #define EX_ENGINE_SOUND 1
 
-// user defined function callback pointers
+/*
+  User defined function callback pointers, you
+  want to set these before you call exengine()
+*/
 extern void (*ex_init_ptr)(void);
 extern void (*ex_update_ptr)(double);
 extern void (*ex_draw_ptr)(void);
@@ -28,7 +54,11 @@ extern void (*ex_mousepressed_ptr)(int, int, int);
 extern void (*ex_keyinput_ptr)(unsigned int);
 extern void (*ex_mousescroll_ptr)(double, double);
 
-// where the magic happens
+/**
+ * [exengine starts the internal engine loop]
+ * @param argv  []
+ * @param flags [defines what modules to enable]
+ */
 void exengine(char **argv, uint8_t flags);
 
 #endif // EX_ENGINE_H

@@ -1,3 +1,8 @@
+/*
+  This isn't complete yet,
+  it doesnt work, turn back!
+*/
+
 #ifndef EX_REFLECTION_H
 #define EX_REFLECTION_H
 

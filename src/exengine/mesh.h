@@ -1,3 +1,16 @@
+/* mesh
+  A generic mesh container.
+  
+  Each mesh has a single set of
+  textures applied to it, models
+  contain a mesh per texture set used.
+
+  This is automatically handled by the IQM
+  loader, only use the following if you
+  want to manually define vertices
+  via code.
+*/
+
 #ifndef EX_MESH_H
 #define EX_MESH_H
 
