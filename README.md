@@ -96,7 +96,7 @@ Alternatively you can drop the exengine/ directory right into your own project a
 
 ### Gallery
 ![scrot](http://i.imgur.com/4NGlapU.png)
-![scrot](http://i.imgur.com/4NGlapU.png)
+![scrot](https://i.imgur.com/vTKB3T8.png)
 ![scrot](http://i.imgur.com/H1pMBXI.png)
 ![scrot](https://i.imgur.com/n6FcPau.png)
 ![scrot](https://i.imgur.com/t7CcuiK.png)
