@@ -33,7 +33,7 @@ typedef struct {
 ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity, float fov);
 
 /**
- * [iso_cam_resize adjust the projection matrices]
+ * [ex_fps_camera_resize adjust the projection matrices]
  * @param cam [camera to resize]
  *
  * To be called right after scene_draw, but only if

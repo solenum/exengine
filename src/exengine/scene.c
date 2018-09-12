@@ -290,27 +290,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
     }
   }
 
-  // render non shadow casting spot lights
-  int scount = 0;
-  for (int i=0; i<EX_MAX_SPOT_LIGHTS; i++) {
-    ex_spot_light_t *sl = s->spot_lights[i];
-    if (sl == NULL || !sl->is_visible)
-      continue;
-
-    if (!sl->is_shadow || sl->distance_to_cam > EX_SPOT_SHADOW_DIST) {
-      sprintf(buff, "u_spot_lights[%d]", scount);
-      ex_spot_light_draw(sl, ex_gmainshader, buff);
-      scount++;
-    }
-  }
-
-  if (s->dir_light != NULL) {
-    ex_dir_light_draw(s->dir_light, ex_gmainshader);
-    glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 1);
-  }
-
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), pcount);
-  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), scount);
   glUniform1i(ex_uniform(ex_gmainshader, "u_ambient_pass"), 0);
   if (s->ssao)
     ssao_bind_texture(ex_gmainshader);
@@ -318,7 +298,6 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
     ssao_bind_default(ex_gmainshader);
   ex_gbuffer_render(ex_gmainshader);
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), 0);
-  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_count"), 0);
   glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
 
   // enable blending for second pass onwards
@@ -329,14 +308,13 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
   for (int i=0; i<EX_SCENE_BIGGEST_LIGHT; i++) {
     ex_point_light_t *pl = i > EX_MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
-    ex_spot_light_t  *sl = i > EX_MAX_SPOT_LIGHTS ? NULL : s->spot_lights[i];
     
-    if (pl == NULL && sl == NULL)
+    if (pl == NULL)
       continue;
 
     // point light
     if (pl != NULL) {
-      if (pl->is_shadow && pl->distance_to_cam <= EX_POINT_SHADOW_DIST && pl->is_visible) {
+      if (pl->is_shadow && pl->is_visible) {
         glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 1);
         ex_point_light_draw(pl, ex_gmainshader, NULL);
       } else {
@@ -344,18 +322,8 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
       } 
     }
 
-    // spot light
-    if (sl != NULL) {
-      if (sl->is_shadow && sl->distance_to_cam <= EX_SPOT_SHADOW_DIST && sl->is_visible) {
-        glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 1);
-        ex_spot_light_draw(sl, ex_gmainshader, NULL);
-      } else {
-        glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 0);
-      } 
-    }
-
     // render gbuffer to screen quad
-    if (pl != NULL || sl != NULL) {
+    if (pl != NULL) {
       if (s->ssao)
         ssao_bind_texture(ex_gmainshader);
       else

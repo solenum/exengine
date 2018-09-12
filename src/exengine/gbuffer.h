@@ -22,8 +22,9 @@ extern GLuint gposition, gnormal;
 
 /**
  * [ex_gbuffer_init init the gbuffer module]
+ * @param reinit [1 if reinitializing an existing gbuffer]
  */
-void ex_gbuffer_init();
+void ex_gbuffer_init(int reinit);
 
 /**
  * [ex_gbuffer_first set as render target]
