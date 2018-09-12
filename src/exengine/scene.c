@@ -22,7 +22,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
 
   // init framebuffers etc
   s->framebuffer = ex_framebuffer_new(0, 0);
-  ex_gbuffer_init();
+  ex_gbuffer_init(0);
 
   // init lights
   ex_point_light_init();
@@ -512,6 +512,12 @@ void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
       break;
   }
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void ex_scene_resize(ex_scene_t *s, int width, int height)
+{
+  s->framebuffer = ex_framebuffer_resize(s->framebuffer, width, height);
+  ex_gbuffer_resize(width, height);
 }
 
 void ex_scene_destroy(ex_scene_t *s)

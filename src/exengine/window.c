@@ -1,5 +1,6 @@
 #include "window.h"
 #include "input.h"
+#include "engine.h"
 #include <stdio.h>
 
 ex_window_t display;
@@ -87,7 +88,5 @@ void ex_window_destroy()
 
 void ex_resize_callback(GLFWwindow* window, int width, int height)
 {
-  glViewport(0, 0, width, height);
-  display.width = width;
-  display.height = height;
+  ex_resize_ptr(width, height);
 }

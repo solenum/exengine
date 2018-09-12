@@ -11,7 +11,7 @@ GLuint gvao, gvbo;
 GLuint ex_gshader, ex_gmainshader;
 int width, height;
 
-void ex_gbuffer_init()
+void ex_gbuffer_init(int reinit)
 {
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
@@ -61,39 +61,41 @@ void ex_gbuffer_init()
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // compile shaders
-  ex_gshader     = ex_shader_compile("gbuffer.vs", "gbuffer.fs", NULL);
-  ex_gmainshader = ex_shader_compile("gmain.vs", "gmain.fs", NULL);
+  if (!reinit) {
+    // compile shaders
+    ex_gshader     = ex_shader_compile("gbuffer.vs", "gbuffer.fs", NULL);
+    ex_gmainshader = ex_shader_compile("gmain.vs", "gmain.fs", NULL);
 
-  /* -- screen quad -- */
-  GLfloat vertices[] = {   
-    // pos         // uv
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f
-  };
+    /* -- screen quad -- */
+    GLfloat vertices[] = {   
+      // pos         // uv
+      -1.0f,  1.0f,  0.0f, 1.0f,
+      -1.0f, -1.0f,  0.0f, 0.0f,
+       1.0f, -1.0f,  1.0f, 0.0f,
+      -1.0f,  1.0f,  0.0f, 1.0f,
+       1.0f, -1.0f,  1.0f, 0.0f,
+       1.0f,  1.0f,  1.0f, 1.0f
+    };
 
-  // vao for framebuffer
-  glGenVertexArrays(1, &gvao);
-  glGenBuffers(1, &gvbo);
-  glBindVertexArray(gvao);
+    // vao for framebuffer
+    glGenVertexArrays(1, &gvao);
+    glGenBuffers(1, &gvbo);
+    glBindVertexArray(gvao);
 
-  // vertices
-  glBindBuffer(GL_ARRAY_BUFFER, gvbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+    // vertices
+    glBindBuffer(GL_ARRAY_BUFFER, gvbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
 
-  // position
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)0);
-  glEnableVertexAttribArray(0);
+    // position
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)0);
+    glEnableVertexAttribArray(0);
 
-  // tex coords
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)(2 * sizeof(GLfloat)));
-  glEnableVertexAttribArray(1);
-  glBindVertexArray(0);
-  /* ----------------- */
+    // tex coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)(2 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);
+    /* ----------------- */
+  }
 }
 
 void ex_gbuffer_first(int x, int y, int vw, int vh)
@@ -128,6 +130,12 @@ void ex_gbuffer_render(GLuint shader)
   glBindVertexArray(gvao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
+}
+
+void ex_gbuffer_resize(int width, int height)
+{
+  ex_gbuffer_destroy();
+  ex_gbuffer_init(1);
 }
 
 void ex_gbuffer_destroy()

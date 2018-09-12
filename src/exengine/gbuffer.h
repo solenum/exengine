@@ -41,6 +41,13 @@ void ex_gbuffer_first(int x, int y, int vw, int vh);
 void ex_gbuffer_render(GLuint shader);
 
 /**
+ * [ex_gbuffer_resize resize internal buffers]
+ * @param width  [new width]
+ * @param height [new height]
+ */
+void ex_gbuffer_resize(int width, int height);
+
+/**
  * [ex_gbuffer_destroy cleanup gbuffer data]
  */
 void ex_gbuffer_destroy();

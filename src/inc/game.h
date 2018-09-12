@@ -34,4 +34,6 @@ void game_exit();
 
 void game_keypressed(int key, int scancode, int action, int mode);
 
+void game_resize(int width, int height);
+
 #endif // GAME_H

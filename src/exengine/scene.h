@@ -161,6 +161,14 @@ void ex_scene_dbgui(ex_scene_t *s);
 void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows);
 
 /**
+ * [ex_scene_resize resize internal frambuffers]
+ * @param s      [the scene to resize]
+ * @param width  [new width]
+ * @param height [new height]
+ */
+void ex_scene_resize(ex_scene_t *s, int width, int height);
+
+/**
  * [ex_scene_destroy cleanup scene data]
  * @param s [the scene to destroy]
  */

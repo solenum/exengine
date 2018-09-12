@@ -53,6 +53,7 @@ extern void (*ex_keypressed_ptr)(int, int, int, int);
 extern void (*ex_mousepressed_ptr)(int, int, int);
 extern void (*ex_keyinput_ptr)(unsigned int);
 extern void (*ex_mousescroll_ptr)(double, double);
+extern void (*ex_resize_ptr)(int, int);
 
 /**
  * [exengine starts the internal engine loop]

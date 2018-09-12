@@ -13,6 +13,7 @@
 #include "exengine/engine.h"
 #include "exengine/input.h"
 #include "exengine/sound.h"
+#include "exengine/gbuffer.h"
 #include "inc/game.h"
 
 ex_fps_camera_t *camera, *camera2;
@@ -218,11 +219,10 @@ void game_draw()
   ex_scene_draw(scene, 0, 0, 0, 0, &camera->matrices);
   ex_fps_camera_resize(camera);
   ex_scene_draw(scene, 0, 0, 640, 320, &camera2->matrices);
-  ex_fps_camera_resize(camera2);
 
   // ex_scene_dbgui(scene);
   // igShowTestWindow(NULL);
-  ex_dbgui_render_profiler();
+  // ex_dbgui_render_profiler();
 }
 
 void game_exit()
@@ -234,4 +234,9 @@ void game_exit()
 void game_keypressed(int key, int scancode, int action, int mode)
 {
 
+}
+
+void game_resize(int width, int height)
+{
+  ex_scene_resize(scene, width, height);
 }

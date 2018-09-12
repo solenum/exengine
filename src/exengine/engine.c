@@ -27,6 +27,7 @@ void (*ex_keypressed_ptr)(int, int, int, int);
 void (*ex_mousepressed_ptr)(int, int, int);
 void (*ex_keyinput_ptr)(unsigned int);
 void (*ex_mousescroll_ptr)(double, double);
+void (*ex_resize_ptr)(int, int);
 
 conf_t conf;
 

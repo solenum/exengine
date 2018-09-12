@@ -9,6 +9,7 @@ int main(int argc, char **argv)
   ex_draw_ptr = game_draw;
   ex_exit_ptr = game_exit;
   ex_keypressed_ptr = game_keypressed;
+  ex_resize_ptr = game_resize;
 
   exengine(argv, EX_ENGINE_SOUND);
 
