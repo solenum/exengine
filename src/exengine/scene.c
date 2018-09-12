@@ -283,7 +283,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
     if (pl == NULL || !pl->is_visible)
       continue;
 
-    if (!pl->is_shadow || pl->distance_to_cam > EX_POINT_SHADOW_DIST) {
+    if (!pl->is_shadow) {
       sprintf(buff, "u_point_lights[%d]", pcount);
       ex_point_light_draw(pl, ex_gmainshader, buff);
       pcount++;
@@ -328,6 +328,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
         ssao_bind_texture(ex_gmainshader);
       else
         ssao_bind_default(ex_gmainshader);
+
       ex_gbuffer_render(ex_gmainshader);
     }
   }
