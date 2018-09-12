@@ -1,49 +1,50 @@
 # exengine, a C 3D game engine.
-**WARNING! Test repo, likely unstable and messy.**
 
-**An official release repo will come in the *near* future.  Please see the [TODO](TODO.md) list and [Milestones](https://github.com/exezin/exengine-testing/milestones).**
+**This engine is far from complete**
 
 ### What exactly is exengine?
-Began as an experiment, evolved into something feasible for actually making games.  exengine takes a slightly
-different approach than other libraries and engines do, in that its a code-base you include directly into yours.  Rather than using it as a static/shared library.
+exengine is a 3d engine that takes a slightly different approach than other libraries and engines do, in that it's a code-base you include directly into your own.  Rather than using it as a static/shared library.
 
-This approach allows easy and direct access to the engine back-end should you want to make modifications to suit your specific needs.
+This approach allows easy and direct access to the engine back-end should you want to make modifications to suit your specific needs, so think of it as more of a template.
 
-The code-base is almost entirely C99, with an exception for [imgui](https://github.com/ocornut/imgui) support.
+Assuming you don't want to set up your own build system (I can't blame you), you can clone the repo and use the existing build system and file structure as a starting template.  It compiles on Linux, MacOS, and Windows.
 
-**The contents of main.c/game.c are only supplied as examples to showcase how one might use exengine.  While these source files and the current build system can work as a nice starting template, it is suggested that you include the src/exengine/ directory into your own project and setup a build system to suit your own needs.**
+The code-base is almost entirely C99, with an exception for [imgui](https://github.com/ocornut/imgui) support, which is also optional and exists only for tools and debugging.
 
-Everything outside of src/exengine/ is supplied as an example **ONLY**, use it if you so wish.
+**The contents of main.c/game.c are only supplied as examples to showcase how one might use the engine.**
 
 ### What are the features?
 * *Simple* and small
 * C99 compliant
+* Deferred rendering
 * Various light casters
 * Smooth shadow mapping
 * Normal & specular mapping
+* Half-kernel SSAO
 * IQM model loading
 * 3D model animation
 * Scene manager
+* Instancing
 * Polygon soup collision detection
 * Smooth collision response
 * Various cameras
-* View models
 * Debug GUI with docking
-* More to come, check the [TODO](TODO.md) list
+* More to come..
 
 ### Depends
 * A C99 and C++ compiler (gcc, clang etc)
 * GLFW3
 * GLEW
 * OpenGL 3.3+
+* OpenAL
 
 ### Getting Started
 #### Documentation
-Docs will be available once an official release repository is out.  For now refer to the engine headers should you want to experiment with this.
+The current method of documentation is code comments, every engine header has extensive documentation as to its purpose and how one might use it.  Better documentation will come in the near future.
 
 #### Using & Compiling
 
-Simply clone the repository and include src/exengine/ and src/lib/ into your codebase.  The only build system supplied currently is a Linux makefile, for those on Windows you'll need to use Cygwin.  See compilation instructions below.
+Simply clone the repository and install the required libraries and compilers listed below for the OS you are using.
 
 **This only applies to those wanting to use the current build system and game code as a starting template, and not those wanting to include exengine into an existing project or build system.**
 
@@ -51,20 +52,31 @@ Simply clone the repository and include src/exengine/ and src/lib/ into your cod
 
 ````
 sudo apt-get update
-sudo apt-get install libglfw3-dev libglew-dev
+sudo apt-get install libglfw3-dev libglew-dev libopenal-dev
 cd src && make
 ````
 
 The resulting binary will be in src/build/
 
+#### MacOS
+
+Install [brew](https://brew.sh), and the following packages
+
+````
+brew install glfw glew gcc
+````
+
+After this compiling is the same as Linux.
+
 #### Windows
 
-Download and install [Cygwin](https://www.cygwin.com/) with the following packages.
+Download and install [Cygwin](https://www.cygwin.com/) with the following packages.  *All required libraries for Windows are included in the codebase.*
 
 ````
 mingw64-x86_64-gcc
 mingw64-x86_64-gcc-g++
 make
+zip
 ````
 
 Alternatively switch to category view and set ['Devel' to install.](https://i.stack.imgur.com/2uzkB.jpg)  *This method takes up 1-2GB of space*
@@ -80,8 +92,12 @@ the resulting .exe will be in src/build/
 
 #### Stand-alone (*recommended*)
 
-Alternatively you can drop the exengine/ directory right into your own project and use it with your own build system.  This method obviously takes more work and time but is the recommended approach.  Everything outside of src/exengine/ is supplied as an example **ONLY**
+Alternatively you can drop the exengine/ directory right into your own project and use it with your own build system.  This method obviously takes more work and time.
 
 ### Gallery
 ![scrot](http://i.imgur.com/4NGlapU.png)
+![scrot](http://i.imgur.com/4NGlapU.png)
 ![scrot](http://i.imgur.com/H1pMBXI.png)
+![scrot](https://i.imgur.com/n6FcPau.png)
+![scrot](https://i.imgur.com/t7CcuiK.png)
+![scrot](https://i.imgur.com/qesG2md.png)
