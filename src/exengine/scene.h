@@ -49,9 +49,10 @@
   renderer features you want.
 */
 #define EX_SCENE_SSAO 1
+#define EX_SCENE_DEFERRED 2
 
 typedef struct {
-  GLuint shader, primshader;
+  GLuint shader, primshader, forwardshader;
   list_t *model_list, *coll_list;
   ex_skybox_t *skybox;
   vec3 gravity;
@@ -72,6 +73,7 @@ typedef struct {
 
   /* rendering features */
   int ssao;
+  int deferred;
 } ex_scene_t;
 
 /**
@@ -135,6 +137,28 @@ void ex_scene_update(ex_scene_t *s, float delta_time);
  * @param matrices [the camera matrices]
  */
 void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
+
+/**
+ * [ex_scene_render_deferred]
+ * @param s        [the scene to use]
+ * @param x        [x offset]
+ * @param y        [y offset]
+ * @param width    [render width]
+ * @param height   [render height]
+ * @param matrices [the camera matrices]
+ */
+void ex_scene_render_deferred(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
+
+/**
+ * [ex_scene_render_forward]
+ * @param s        [the scene to use]
+ * @param x        [x offset]
+ * @param y        [y offset]
+ * @param width    [render width]
+ * @param height   [render height]
+ * @param matrices [the camera matrices]
+ */
+void ex_scene_render_forward(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
 
 /**
  * [ex_scene_manage_lights cull lights]

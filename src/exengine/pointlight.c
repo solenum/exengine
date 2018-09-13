@@ -107,14 +107,18 @@ void ex_point_light_begin(ex_point_light_t *l)
   glUniform3fv(ex_uniform(l->shader, "u_light_pos"), 1, l->position);
 }
 
-void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix)
+void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix, int deferred)
 {
+  int tid = 7;
+  if (deferred)
+    tid = 4;
+
   if (l->is_shadow) {
     glUniform1i(ex_uniform(shader, "u_point_light.is_shadow"), 1);
     
-    glUniform1i(ex_uniform(shader, "u_point_depth"), 4);
+    glUniform1i(ex_uniform(shader, "u_point_depth"), tid);
     
-    glActiveTexture(GL_TEXTURE4);
+    glActiveTexture(GL_TEXTURE0+tid);
     glBindTexture(GL_TEXTURE_CUBE_MAP, l->depth_map);
   } else if (prefix != NULL) {
     char buff[64];

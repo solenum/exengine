@@ -15,32 +15,19 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   ex_scene_t *s = malloc(sizeof(ex_scene_t));
 
   // renderer features
-  s->ssao = 0;
+  s->ssao     = 0;
+  s->deferred = 0;
 
   // init lists
   s->model_list = list_new(); 
 
   // init framebuffers etc
   s->framebuffer = ex_framebuffer_new(0, 0);
-  ex_gbuffer_init(0);
 
   // init lights
   ex_point_light_init();
-  ex_dir_light_init();
-  ex_spot_light_init();
-  s->dir_light = NULL;
   for (int i=0; i<EX_MAX_POINT_LIGHTS; i++)
     s->point_lights[i] = NULL;
-  for (int i=0; i<EX_MAX_SPOT_LIGHTS; i++)
-    s->spot_lights[i] = NULL;
-  
-  ex_reflection_init();
-  for (int i=0; i<EX_MAX_REFLECTIONS; i++)
-    s->reflection_probes[i] = NULL;
-
-  // init skybox
-  s->skybox = NULL;
-  ex_skybox_init();
 
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
@@ -69,6 +56,14 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   if (flags & EX_SCENE_SSAO) {
     ssao_init();
     s->ssao = 1;
+  }
+
+  // init the deferred renderer
+  if (flags & EX_SCENE_DEFERRED) {
+    ex_gbuffer_init(0);
+    s->deferred = 1;
+  } else {
+    s->forwardshader = ex_shader_compile("forward.vs", "forward.fs", NULL);
   }
 
   return s;
@@ -203,7 +198,30 @@ void ex_scene_update(ex_scene_t *s, float delta_time)
   ex_dbgprofiler.end[ex_dbgprofiler_update] = glfwGetTime();
 }
 
+void ex_scene_render_depthmaps(ex_scene_t *s)
+{
+  // render pointlight depth maps
+  glCullFace(GL_BACK);
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = glfwGetTime();
+  for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
+    ex_point_light_t *l = s->point_lights[i];
+    if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
+      ex_point_light_begin(l);
+      ex_scene_render_models(s, l->shader, 1);
+    }
+  }
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
+}
+
 void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
+{
+  if (s->deferred)
+    ex_scene_render_deferred(s, view_x, view_y, view_width, view_height, matrices);
+  else
+    ex_scene_render_forward(s, view_x, view_y, view_width, view_height, matrices);
+}
+
+void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
 {
   int vw, vh;
   glfwGetFramebufferSize(display.window, &vw, &vh);
@@ -217,17 +235,8 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   ex_dbgui_end_profiler();
   ex_dbgui_begin_profiler();
 
-  // render pointlight depth maps
-  glCullFace(GL_BACK);
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = glfwGetTime();
-  for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
-    ex_point_light_t *l = s->point_lights[i];
-    if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
-      ex_point_light_begin(l);
-      ex_scene_render_models(s, l->shader, 1);
-    }
-  }
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
+  // render light depthmaps
+  ex_scene_render_depthmaps(s);
 
   // first geometry render pass
   ex_gbuffer_first(0, 0, view_width, view_height);
@@ -259,8 +268,6 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
 
   glUniform1i(ex_uniform(ex_gmainshader, "u_ambient_pass"), 1);
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 0);
-  glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
-  glUniform1i(ex_uniform(ex_gmainshader, "u_spot_active"), 0);
 
   if (s->ssao)
     ssao_bind_texture(ex_gmainshader);
@@ -285,7 +292,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
 
     if (!pl->is_shadow) {
       sprintf(buff, "u_point_lights[%d]", pcount);
-      ex_point_light_draw(pl, ex_gmainshader, buff);
+      ex_point_light_draw(pl, ex_gmainshader, buff, 1);
       pcount++;
     }
   }
@@ -298,7 +305,6 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
     ssao_bind_default(ex_gmainshader);
   ex_gbuffer_render(ex_gmainshader);
   glUniform1i(ex_uniform(ex_gmainshader, "u_point_count"), 0);
-  glUniform1i(ex_uniform(ex_gmainshader, "u_dir_active"), 0);
 
   // enable blending for second pass onwards
   glEnable(GL_BLEND);
@@ -309,14 +315,14 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
   for (int i=0; i<EX_SCENE_BIGGEST_LIGHT; i++) {
     ex_point_light_t *pl = i > EX_MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
     
-    if (pl == NULL)
+    if (pl == NULL || !pl->is_shadow)
       continue;
 
     // point light
     if (pl != NULL) {
-      if (pl->is_shadow && pl->is_visible) {
+      if (pl->is_visible) {
         glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 1);
-        ex_point_light_draw(pl, ex_gmainshader, NULL);
+        ex_point_light_draw(pl, ex_gmainshader, NULL, 1);
       } else {
         glUniform1i(ex_uniform(ex_gmainshader, "u_point_active"), 0);
       } 
@@ -331,6 +337,99 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
 
       ex_gbuffer_render(ex_gmainshader);
     }
+  }
+  glDisable(GL_BLEND);
+  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
+
+  // render debug primitives
+  glUseProgram(s->primshader);
+
+  // send vars to shader
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
+  glUniformMatrix4fv(ex_uniform(s->primshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
+
+  if (ex_dbgprofiler.render_octree)
+    ex_octree_render(s->coll_tree);
+
+  // render screen quad
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  ex_framebuffer_draw(s->framebuffer, view_x, (vh-view_y-view_height), vw, vh);
+
+  ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
+}
+
+void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
+{
+  int vw, vh;
+  glfwGetFramebufferSize(display.window, &vw, &vh);
+  if (!view_width)
+    view_width = vw;
+  if (!view_height)
+    view_height = vh;
+
+  // begin profiler
+  ex_dbgprofiler.end[ex_dbgprofiler_other] = glfwGetTime();
+  ex_dbgui_end_profiler();
+  ex_dbgui_begin_profiler();
+
+  // render light depthmaps
+  ex_scene_render_depthmaps(s);
+
+  ex_framebuffer_bind(s->framebuffer);
+
+  // render scene
+  glUseProgram(s->forwardshader);
+
+  // send vars to shader
+  glUniformMatrix4fv(ex_uniform(s->forwardshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
+  glUniformMatrix4fv(ex_uniform(s->forwardshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
+  glUniformMatrix4fv(ex_uniform(s->forwardshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
+
+  // first pass is ambient
+  glDisable(GL_BLEND);
+  glCullFace(GL_BACK);
+
+  // do all non shadow casting lights in a single pass
+  // including the one directional light
+  // and lights outside of the shadow render range
+  int pcount = 0;
+  char buff[64];
+  for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
+    ex_point_light_t *pl = s->point_lights[i];
+    if (pl == NULL || !pl->is_visible)
+      continue;
+
+    if (!pl->is_shadow) {
+      sprintf(buff, "u_point_lights[%d]", pcount);
+      ex_point_light_draw(pl, s->forwardshader, buff, 0);
+      pcount++;
+    }
+  }
+
+  glUniform1i(ex_uniform(s->forwardshader, "u_point_active"), 0);
+  glUniform1i(ex_uniform(s->forwardshader, "u_point_count"), pcount);
+  glUniform1i(ex_uniform(s->forwardshader, "u_ambient_pass"), 1);
+  ex_scene_render_models(s, s->forwardshader, 0);
+  glUniform1i(ex_uniform(s->forwardshader, "u_ambient_pass"), 0);
+  glUniform1i(ex_uniform(s->forwardshader, "u_point_count"), 0);
+
+  // enable blending for second pass onwards
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+  // render all shadow casting point lights
+  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
+  for (int i=0; i<EX_SCENE_BIGGEST_LIGHT; i++) {
+    ex_point_light_t *pl = i > EX_MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
+    
+    if (pl == NULL || !pl->is_shadow || !pl->is_visible)
+      continue;
+
+    glUniform1i(ex_uniform(s->forwardshader, "u_point_active"), 1);
+    ex_point_light_draw(pl, s->forwardshader, NULL, 0);
+    ex_scene_render_models(s, s->forwardshader, 0);
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
@@ -486,7 +585,9 @@ void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
 void ex_scene_resize(ex_scene_t *s, int width, int height)
 {
   s->framebuffer = ex_framebuffer_resize(s->framebuffer, width, height);
-  ex_gbuffer_resize(width, height);
+
+  if (s->deferred)
+    ex_gbuffer_resize(width, height);
 }
 
 void ex_scene_destroy(ex_scene_t *s)

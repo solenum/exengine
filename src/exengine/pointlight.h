@@ -60,7 +60,7 @@ void ex_point_light_begin(ex_point_light_t *l);
  * @param shader [shader to use]
  * @param prefix [used for non shadowcasting sources]
  */
-void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix);
+void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix, int deferred);
 
 /**
  * [ex_point_light_destroy cleanup a pointlights data]
