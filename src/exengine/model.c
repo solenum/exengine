@@ -31,8 +31,21 @@ ex_model_t* ex_model_copy(ex_model_t *model)
 {
   // copy the mesh directly
   // keeping the pointers the same
-  ex_model_t *m = malloc(sizeof(ex_model_t));
-  memcpy(m, model, sizeof(ex_model_t));
+  ex_model_t *m = ex_model_new();
+  
+  m->shader = model->shader;
+
+  list_node_t *n = model->mesh_list;
+  while (n->data != NULL) {
+    ex_mesh_t *mesh = n->data;
+    ex_mesh_t *mesh_copy = ex_mesh_copy(mesh);
+    list_add(m->mesh_list, mesh_copy);
+
+    if (n->next != NULL)
+      n = n->next;
+    else
+      break;
+  }
 
   // init instancing matrix vbos etc 
   ex_model_init_instancing(m, 1);

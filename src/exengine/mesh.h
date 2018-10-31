@@ -47,6 +47,13 @@ typedef struct {
 ex_mesh_t* ex_mesh_new(ex_vertex_t *vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture);
 
 /**
+ * [ex_mesh_copy duplicates a mesh]
+ * @param  mesh [the mesh to copy]
+ * @return      [the new copy]
+ */
+ex_mesh_t* ex_mesh_copy(ex_mesh_t *mesh);
+
+/**
  * [ex_mesh_draw renders a mesh to the screen]
  * @param m              [ex_mesh_t pointer]
  * @param shader_program [shader program to use]

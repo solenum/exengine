@@ -62,6 +62,56 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, si
   return m;
 }
 
+ex_mesh_t* ex_mesh_copy(ex_mesh_t *mesh)
+{
+  ex_mesh_t *m = malloc(sizeof(ex_mesh_t));
+
+  m->VBO = mesh->VBO;
+  m->EBO = mesh->EBO;
+  m->texture = mesh->texture;
+  m->vcount  = mesh->vcount;
+  m->icount  = mesh->icount;
+  m->texture_spec = 0;
+  m->texture_norm = 0;
+
+  glGenVertexArrays(1, &m->VAO);
+  glBindVertexArray(m->VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, m->VBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
+  
+    // position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ex_vertex_t), (GLvoid*)0);
+  glEnableVertexAttribArray(0);
+
+  // tex coords
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ex_vertex_t), (GLvoid*)(3 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(1);
+
+  // normals
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ex_vertex_t), (GLvoid*)(5 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(2);
+
+  // tangents
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(ex_vertex_t), (GLvoid*)(8 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(3);
+
+  // color
+  glVertexAttribPointer(4, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ex_vertex_t), (GLvoid*)(12 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(4);
+
+  // blend indexes
+  glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ex_vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(4 * sizeof(GLubyte))));
+  glEnableVertexAttribArray(5);
+
+  // blend weights
+  glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ex_vertex_t), (GLvoid*)(12 * sizeof(GLfloat)+(8 * sizeof(GLubyte))));
+  glEnableVertexAttribArray(6);
+
+  glBindVertexArray(0);
+
+  return m;
+}
+
 void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, int count)
 {
   // bind vao/ebo/tex

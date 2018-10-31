@@ -38,8 +38,8 @@ void game_init()
   ex_scene_add_model(scene, m6);
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
-  e->position[1] = 0.0f; 
-  e->position[0] = 0.0f; 
+  e->position[1] = 0.0f;
+  e->position[0] = 0.0f;
   e->position[2] = 0.0f;
 
   // load a sound
