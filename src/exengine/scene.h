@@ -54,7 +54,7 @@
 #define EX_SCENE_DEFERRED 2
 
 typedef struct {
-  GLuint shader, primshader, forwardshader;
+  GLuint shader, primshader, forwardshader, defaultshader;
   list_t *coll_list;
   ex_skybox_t *skybox;
   vec3 gravity;

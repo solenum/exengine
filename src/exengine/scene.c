@@ -52,8 +52,10 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   if (flags & EX_SCENE_DEFERRED) {
     ex_gbuffer_init(0);
     s->deferred = 1;
+    s->defaultshader = ex_gshader;
   } else {
     s->forwardshader = ex_shader_compile("forward.glsl");
+    s->defaultshader = s->forwardshader;
   }
 
   for (int i=0; i<EX_SCENE_MAX_MODELS; i++)
@@ -247,7 +249,7 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
   glUniformMatrix4fv(ex_uniform(ex_gshader, "u_projection"), 1, GL_FALSE, matrices->projection[0]);
   glUniformMatrix4fv(ex_uniform(ex_gshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
   glUniformMatrix4fv(ex_uniform(ex_gshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
-  ex_scene_render_models(s, ex_gshader, 0);
+  ex_scene_render_models(s, 0, 0);
 
   // render ssao
   if (s->ssao)
@@ -412,7 +414,7 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
   glUniform1i(ex_uniform(s->forwardshader, "u_point_active"), 0);
   glUniform1i(ex_uniform(s->forwardshader, "u_point_count"), pcount);
   glUniform1i(ex_uniform(s->forwardshader, "u_ambient_pass"), 1);
-  ex_scene_render_models(s, s->forwardshader, 0);
+  ex_scene_render_models(s, 0, 0);
   glUniform1i(ex_uniform(s->forwardshader, "u_ambient_pass"), 0);
   glUniform1i(ex_uniform(s->forwardshader, "u_point_count"), 0);
 
@@ -430,7 +432,7 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
 
     glUniform1i(ex_uniform(s->forwardshader, "u_point_active"), 1);
     ex_point_light_draw(pl, s->forwardshader, NULL, 0);
-    ex_scene_render_models(s, s->forwardshader, 0);
+    ex_scene_render_models(s, 0, 0);
   }
   glDisable(GL_BLEND);
   ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
@@ -553,6 +555,11 @@ void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
       continue;
     
     ex_model_t *m = s->models[i];
+
+    if (shadows == 0) {
+      shader = m->shader;
+      glUseProgram(shader);
+    }
 
     if ((shadows && m->is_shadow) || !shadows)
       ex_model_draw(m, shader);
