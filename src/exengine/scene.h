@@ -42,6 +42,8 @@
 // this should be the value of the biggest define above
 #define EX_SCENE_BIGGEST_LIGHT 500
 
+#define EX_SCENE_MAX_MODELS 500
+
 /*
   The renderer feature flags,
   OR these together in the flags argument
@@ -53,9 +55,10 @@
 
 typedef struct {
   GLuint shader, primshader, forwardshader;
-  list_t *model_list, *coll_list;
+  list_t *coll_list;
   ex_skybox_t *skybox;
   vec3 gravity;
+  ex_model_t *models[EX_SCENE_MAX_MODELS];
   ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
   ex_spot_light_t *spot_lights[EX_MAX_SPOT_LIGHTS];
   ex_dir_light_t *dir_light;
@@ -98,6 +101,20 @@ void ex_scene_add_collision(ex_scene_t *s, ex_model_t *m);
  * @param s [the scene to use]
  */
 void ex_scene_build_collision(ex_scene_t *s);
+
+/**
+ * [ex_scene_add_model add a model to the render list]
+ * @param s [the scene]
+ * @param m [the model to add]
+ */
+void ex_scene_add_model(ex_scene_t *s, ex_model_t *m);
+
+/**
+ * [ex_scene_remove_model remove a model from the render list]
+ * @param s [the scene]
+ * @param m [the model to remove]
+ */
+void ex_scene_remove_model(ex_scene_t *s, ex_model_t *m);
 
 /**
  * [ex_scene_add_pointlight]

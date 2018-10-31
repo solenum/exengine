@@ -18,9 +18,6 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   s->ssao     = 0;
   s->deferred = 0;
 
-  // init lists
-  s->model_list = list_new(); 
-
   // init framebuffers etc
   s->framebuffer = ex_framebuffer_new(0, 0);
 
@@ -42,13 +39,6 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   // init debug gui
   ex_dbgui_init(s);
 
-  // init debug vars
-  s->plightc    = 0;
-  s->dynplightc = 0;
-  s->dlightc    = 0;
-  s->slightc    = 0;
-  s->modelc     = 0;
-
   // primitive debug shader
   s->primshader = ex_shader_compile("primshader.glsl");
 
@@ -65,6 +55,9 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   } else {
     s->forwardshader = ex_shader_compile("forward.glsl");
   }
+
+  for (int i=0; i<EX_SCENE_MAX_MODELS; i++)
+    s->models[i] = NULL;
 
   return s;
 }
@@ -132,13 +125,30 @@ void ex_scene_build_collision(ex_scene_t *s)
   s->collision_built = 1;
 }
 
+void ex_scene_add_model(ex_scene_t *s, ex_model_t *m)
+{
+  for (int i=0; i<EX_SCENE_MAX_MODELS; i++) {
+    if (s->models[i] == NULL) {
+      s->models[i] = m;
+      return;
+    }
+  }
+
+  printf("Maximum scene model count exceeded!\n");
+}
+
+void ex_scene_remove_model(ex_scene_t *s, ex_model_t *m)
+{
+  for (int i=0; i<EX_SCENE_MAX_MODELS; i++) {
+    if (s->models[i] == m) {
+      s->models[i] = NULL;
+      return;
+    }
+  }
+}
+
 void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl)
 {
-  if (pl->dynamic && pl->is_shadow)
-    s->dynplightc++;
-  else
-    s->plightc++;
-
   for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
     if (s->point_lights[i] == NULL) {
       s->point_lights[i] = pl;
@@ -151,11 +161,6 @@ void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl)
 
 void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *sl)
 {
-  if (sl->dynamic && sl->is_shadow)
-    s->dynplightc++;
-  else
-    s->slightc++;
-
   for (int i=0; i<EX_MAX_SPOT_LIGHTS; i++) {
     if (s->spot_lights[i] == NULL) {
       s->spot_lights[i] = sl;
@@ -182,14 +187,10 @@ void ex_scene_update(ex_scene_t *s, float delta_time)
     ex_scene_build_collision(s);
 
   // update models animations etc
-  list_node_t *n = s->model_list;
-  while (n->data != NULL) {
-    ex_model_update(n->data, delta_time);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+  for (int i=0; i<EX_SCENE_MAX_MODELS; i++) {
+    if (s->models[i]) {
+      ex_model_update(s->models[i], delta_time);
+    }
   }
 
   // handle light stuffs
@@ -516,17 +517,6 @@ void ex_scene_manage_lights(ex_scene_t *s)
 
 void ex_scene_dbgui(ex_scene_t *s)
 {
-  if (s->dir_light != NULL)
-    s->dlightc = 1;
-
-  int rendered_lights = 0;
-  int culled_lights = 0;
-  for (int i=0; i<EX_MAX_POINT_LIGHTS; i++)
-    if (s->point_lights[i] != NULL && s->point_lights[i]->is_visible)
-      rendered_lights++;
-    else if (s->point_lights[i] != NULL)
-      culled_lights++;
-
   // draw gui
   if (igBegin("Scene Debugger", NULL, ImGuiWindowFlags_NoTitleBar)) {
     igColumns(3, "", 0);
@@ -544,13 +534,6 @@ void ex_scene_dbgui(ex_scene_t *s)
     igText("Culled Lights");
     igText("Scene Models");
     igNextColumn();
-    igText("%i", s->dynplightc);
-    igText("%i", s->plightc);
-    igText("%i", s->dlightc);
-    igText("%i", rendered_lights);
-    igText("%i", culled_lights);
-    igText("%i", s->modelc);
-    igNextColumn();
     igText("Dynamic");
     igText("Static");
     igText("Dynamic");
@@ -565,19 +548,14 @@ void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
   if (ex_dbgprofiler.wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  s->modelc = 0;
-  list_node_t *n = s->model_list;
-  while (n->data != NULL) {
-    ex_model_t *m = (ex_model_t*)n->data;
-    s->modelc++;
+  for (int i=0; i<EX_SCENE_MAX_MODELS; i++) {
+    if (!s->models[i])
+      continue;
+    
+    ex_model_t *m = s->models[i];
 
     if ((shadows && m->is_shadow) || !shadows)
       ex_model_draw(m, shader);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
   }
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }

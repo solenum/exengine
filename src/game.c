@@ -35,7 +35,7 @@ void game_init()
 
   m6 = ex_iqm_load_model(scene, "data/level.iqm", EX_KEEP_VERTICES);
   m6->is_shadow = 1;
-  list_add(scene->model_list, m6);
+  ex_scene_add_model(scene, m6);
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 0.0f; 
@@ -55,7 +55,7 @@ void game_init()
 
   box->is_lit = 0;
   box->is_shadow = 0;
-  list_add(scene->model_list, box);
+  ex_scene_add_model(scene, box);
   cube = ex_entity_new(scene, (vec3){0.95f, 0.99f, 0.95f});
   cube->position[2] = 5.0f;
   cube->position[1] = 0.0f;
