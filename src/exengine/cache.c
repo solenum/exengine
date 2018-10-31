@@ -15,7 +15,7 @@ void ex_cache_model(ex_model_t *model)
 {
   printf("Caching model %s\n", model->path);
 
-  list_add(model_list, (void*)model);
+  list_add(model_list, model);
 }
 
 ex_model_t* ex_cache_get_model(const char *path)
@@ -28,7 +28,7 @@ ex_model_t* ex_cache_get_model(const char *path)
     // compare file paths
     if (strcmp(path, m->path) == 0) {
       // exists, return it
-      printf("Returning instance of model from cache for %s\n", path);
+      printf("Returning copy of model from cache for %s\n", path);
       return ex_model_copy(m);
     }
 

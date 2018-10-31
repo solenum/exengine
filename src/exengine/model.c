@@ -42,7 +42,7 @@ ex_model_t* ex_model_copy(ex_model_t *model)
 void ex_model_init_instancing(ex_model_t *m, int count)
 {
   // cleanup old if it exists
-  if (m->transforms) {
+  if (m->transforms != NULL) {
     free(m->transforms);
     m->transforms = NULL;
 
