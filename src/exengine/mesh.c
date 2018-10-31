@@ -71,8 +71,8 @@ ex_mesh_t* ex_mesh_copy(ex_mesh_t *mesh)
   m->texture = mesh->texture;
   m->vcount  = mesh->vcount;
   m->icount  = mesh->icount;
-  m->texture_spec = 0;
-  m->texture_norm = 0;
+  m->texture_spec = mesh->texture_spec;
+  m->texture_norm = mesh->texture_norm;
 
   glGenVertexArrays(1, &m->VAO);
   glBindVertexArray(m->VAO);
