@@ -22,6 +22,7 @@ ex_model_t* ex_model_new()
 
   m->transforms = NULL;
   m->instance_count = 0;
+  m->is_static = 0;
 
   return m;
 }
@@ -155,10 +156,15 @@ void ex_model_draw(ex_model_t *m, GLuint shader)
   }
 
   // update instancing matrix vbo
-  glBindBuffer(GL_ARRAY_BUFFER, m->instance_vbo);
-  GLvoid *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-  memcpy(ptr, &m->transforms[0], m->instance_count * sizeof(mat4x4));
-  glUnmapBuffer(GL_ARRAY_BUFFER);
+  if (!m->is_static || m->is_static == 1) {
+    glBindBuffer(GL_ARRAY_BUFFER, m->instance_vbo);
+    GLvoid *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, &m->transforms[0], m->instance_count * sizeof(mat4x4));
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    
+    if (m->is_static)
+      m->is_static = 2;
+  }
 
   // render meshes
   list_node_t *n = m->mesh_list;

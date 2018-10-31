@@ -65,6 +65,7 @@ typedef struct {
   mat4x4 *transforms;
   GLuint instance_vbo;
   size_t instance_count;
+  int    is_static;
 
   char path[512];
 } ex_model_t;
