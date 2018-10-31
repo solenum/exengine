@@ -50,7 +50,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   s->modelc     = 0;
 
   // primitive debug shader
-  s->primshader = ex_shader_compile("primshader.vs", "primshader.fs", NULL);
+  s->primshader = ex_shader_compile("primshader.glsl");
 
   // init ssao stuffs
   if (flags & EX_SCENE_SSAO) {
@@ -63,7 +63,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
     ex_gbuffer_init(0);
     s->deferred = 1;
   } else {
-    s->forwardshader = ex_shader_compile("forward.vs", "forward.fs", NULL);
+    s->forwardshader = ex_shader_compile("forward.glsl");
   }
 
   return s;

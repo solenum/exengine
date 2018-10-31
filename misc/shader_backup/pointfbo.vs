@@ -1,3 +1,4 @@
+#START VS
 #version 330 core
 
 layout (location = 0) in vec3 in_position;
@@ -26,3 +27,53 @@ void main()
 
 	gl_Position = transform * vec4(in_position, 1.0);
 }
+#END VS
+
+
+#START FS
+#version 330 core
+
+in vec4 frag;
+
+uniform vec3 u_light_pos;
+uniform float u_far_plane;
+uniform bool u_is_lit;
+
+void main()
+{
+  if (!u_is_lit) {
+    discard;
+  }
+
+  float light_distance = length(frag.xyz - u_light_pos);
+
+  light_distance = light_distance / u_far_plane;
+
+  gl_FragDepth = light_distance;
+}
+#END FS
+
+
+#START GS
+#version 330 core
+
+layout (triangles) in;
+layout (triangle_strip, max_vertices=18) out;
+
+uniform mat4 u_shadow_matrices[6];
+
+out vec4 frag;
+
+void main()
+{
+  for (int face=0; face<6; ++face) {
+    gl_Layer = face;
+    for (int i=0; i<3; ++i) {
+      frag = gl_in[i].gl_Position;
+      gl_Position = u_shadow_matrices[face] * frag;
+      EmitVertex();
+    }
+    EndPrimitive();
+  }
+}
+#END GS

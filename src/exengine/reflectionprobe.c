@@ -11,7 +11,7 @@ mat4x4 reflection_projection;
 
 void ex_reflection_init()
 {
-  reflection_shader = ex_shader_compile("reflection.vs", "reflection.fs", "reflection.gs");
+  reflection_shader = ex_shader_compile("reflection.glsl");
 
   float aspect = (float)REFLECTION_RESOLUTION/(float)REFLECTION_RESOLUTION;
   mat4x4_perspective(reflection_projection, rad(90.0f), aspect, 0.1f, RELFECTION_FAR);

@@ -164,7 +164,7 @@ void glimgui_createobjects()
   glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
   glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
-  shader = ex_shader_compile("imgui.vs", "imgui.fs", NULL);
+  shader = ex_shader_compile("imgui.glsl");
 
   locationtex = glGetUniformLocation(shader, "Texture");
   locationproj = glGetUniformLocation(shader, "ProjMtx");

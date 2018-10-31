@@ -11,7 +11,7 @@ GLuint ex_fbo_shader, fbo_vao, fbo_vbo;
 void ex_framebuffer_init()
 {
   // load the fbo shader
-  ex_fbo_shader = ex_shader_compile("fboshader.vs", "fboshader.fs", NULL);
+  ex_fbo_shader = ex_shader_compile("fboshader.glsl");
   /* ------------------------- */
 
   /* -- screen quad -- */
@@ -64,7 +64,7 @@ ex_framebuffer_t* ex_framebuffer_new(int width, int height)
      
   glGenTextures(1, &fb->colorbuffer);
   glBindTexture(GL_TEXTURE_2D, fb->colorbuffer);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, fb->width, fb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, fb->width, fb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

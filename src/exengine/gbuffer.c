@@ -63,8 +63,8 @@ void ex_gbuffer_init(int reinit)
 
   if (!reinit) {
     // compile shaders
-    ex_gshader     = ex_shader_compile("gbuffer.vs", "gbuffer.fs", NULL);
-    ex_gmainshader = ex_shader_compile("gmain.vs", "gmain.fs", NULL);
+    ex_gshader     = ex_shader_compile("gbuffer.glsl");
+    ex_gmainshader = ex_shader_compile("gmain.glsl");
 
     /* -- screen quad -- */
     GLfloat vertices[] = {   

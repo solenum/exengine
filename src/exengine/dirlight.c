@@ -12,7 +12,7 @@ GLuint ex_dir_light_shader;
 void ex_dir_light_init()
 {
   float s = DIR_LIGHT_SIZE;
-  ex_dir_light_shader = ex_shader_compile("dirfbo.vs", "dirfbo.fs", NULL);
+  ex_dir_light_shader = ex_shader_compile("dirfbo.glsl");
   mat4x4_ortho(dir_shadow_projection, -s, s, -s, s, 0.1f, DIR_FAR_PLANE);
 }
 

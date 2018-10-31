@@ -1,3 +1,20 @@
+#START VS
+#version 330 core
+
+layout (location = 0) in vec2 in_position;
+layout (location = 1) in vec2 in_uv;
+
+out vec2 uv;
+
+void main() 
+{
+  gl_Position = vec4(in_position.x, in_position.y, 0.0f, 1.0f);
+  uv = in_uv;
+}
+#END VS
+
+
+#START FS
 #version 330 core
 
 in vec2 uv;
@@ -133,15 +150,6 @@ vec3 calc_point_light(point_light light)
   return vec3((1.0 - shadow) * (diffuse + specular));
 }
 
-vec3 aces_tonemap(vec3 x) {
-  float a = 2.51;
-  float b = 0.03;
-  float c = 2.43;
-  float d = 0.59;
-  float e = 0.14;
-  return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
-}
-
 void main()
 {
   vec3 diffuse = vec3(0.0f);
@@ -174,9 +182,7 @@ void main()
     for (int i=0; i<u_point_count; i++)
       diffuse += calc_point_light(u_point_lights[i]);
 
-  vec3 tex_color = vec3(1.0) - exp(-diffuse * 1.0);
-  color = vec4(aces_tonemap(tex_color), 2.5);
-  color *= ao;
+  color = vec4(diffuse * ao, 1.0);
   color *= min(100.0 / length(texture(u_position, uv).rgb), 1.0);
-  // color = vec4(diffuse * ao, 1.0f);
 }
+#END FS
