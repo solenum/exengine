@@ -280,7 +280,7 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags
     }
 
     // push mesh into mesh list
-    list_add(model->mesh_list, m);
+    ex_model_add_mesh(model, m);
   }
 
   // store vertices
@@ -301,8 +301,8 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags
   free(indices);
   free(data);
 
-  ex_model_init_instancing(model, 1);
-  model->shader = scene->defaultshader; 
+  if (scene != NULL)
+    model->shader = scene->defaultshader;
 
   // store the model in the cache and return an instance of it
   ex_cache_model(model);

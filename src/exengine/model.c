@@ -6,7 +6,6 @@ ex_model_t* ex_model_new()
 {
   // init lists etc
   ex_model_t *m = malloc(sizeof(ex_model_t));
-  m->mesh_list = list_new();
 
   // init attributes
   memset(m->position, 0, sizeof(vec3));
@@ -24,6 +23,9 @@ ex_model_t* ex_model_new()
   m->instance_count = 0;
   m->is_static = 0;
 
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++)
+    m->meshes[i] = NULL;
+
   return m;
 }
 
@@ -35,22 +37,28 @@ ex_model_t* ex_model_copy(ex_model_t *model)
   
   m->shader = model->shader;
 
-  list_node_t *n = model->mesh_list;
-  while (n->data != NULL) {
-    ex_mesh_t *mesh = n->data;
-    ex_mesh_t *mesh_copy = ex_mesh_copy(mesh);
-    list_add(m->mesh_list, mesh_copy);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+  // copy meshes
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
+    if (model->meshes[i] != NULL)
+      ex_model_add_mesh(m, ex_mesh_copy(model->meshes[i]));
   }
 
   // init instancing matrix vbos etc 
   ex_model_init_instancing(m, 1);
   
   return m;
+}
+
+void ex_model_add_mesh(ex_model_t *m, ex_mesh_t *mesh)
+{
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
+    if (m->meshes[i] == NULL) {
+      m->meshes[i] = mesh;
+      return;
+    }
+  }
+
+  printf("Maximum mesh count exceeded for model %s!\n", m->path);
 }
 
 void ex_model_init_instancing(ex_model_t *m, int count)
@@ -73,9 +81,12 @@ void ex_model_init_instancing(ex_model_t *m, int count)
   glBindBuffer(GL_ARRAY_BUFFER, m->instance_vbo);
   glBufferData(GL_ARRAY_BUFFER, count * sizeof(mat4x4), &m->transforms[0], GL_DYNAMIC_DRAW);
 
-  list_node_t *n = m->mesh_list;
-  while (n->data != NULL) {
-    ex_mesh_t *mesh = n->data;
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
+    ex_mesh_t *mesh = m->meshes[i];
+
+    if (mesh == NULL)
+      continue;
+
     glBindVertexArray(mesh->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m->instance_vbo);
 
@@ -97,11 +108,6 @@ void ex_model_init_instancing(ex_model_t *m, int count)
 
 
     glBindVertexArray(0);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
   }
 }
 
@@ -180,33 +186,23 @@ void ex_model_draw(ex_model_t *m, GLuint shader)
   }
 
   // render meshes
-  list_node_t *n = m->mesh_list;
-  while (n->data != NULL) {
-    glUniform1i(ex_uniform(shader, "u_is_lit"), m->is_lit);
-    ex_mesh_draw(n->data, shader, m->instance_count);
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
+    if (m->meshes[i] == NULL)
+      continue;
 
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+    glUniform1i(ex_uniform(shader, "u_is_lit"), m->is_lit);
+    ex_mesh_draw(m->meshes[i], shader, m->instance_count);
   }
 }
 
 void ex_model_destroy(ex_model_t *m)
 {
   // cleanup meshes
-  list_node_t *n = m->mesh_list;
-  while (n->data != NULL) {
-    ex_mesh_destroy(n->data);
-
-    if (n->next != NULL)
-      n = n->next;
-    else
-      break;
+  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
+    if (m->meshes[i] != NULL) {
+      ex_mesh_destroy(m->meshes[i]);
+    }
   }
-
-  // free mesh list
-  list_destroy(m->mesh_list);
 
   // clean up anim data
   if (m->bones != NULL)

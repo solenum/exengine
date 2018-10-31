@@ -17,6 +17,8 @@
 #include "octree.h"
 #include "mesh.h"
 
+#define EX_MODEL_MAX_MESHES 128
+
 typedef struct {
   char name[64];
   int parent;
@@ -40,7 +42,7 @@ typedef struct {
 typedef ex_pose_t* ex_frame_t;
 
 typedef struct {
-  list_t *mesh_list;
+  ex_mesh_t *meshes[EX_MODEL_MAX_MESHES];
 
   vec3 position, rotation;
   float scale;
@@ -84,6 +86,13 @@ ex_model_t* ex_model_new();
  * @return       [the new instance of the given model]
  */
 ex_model_t* ex_model_copy(ex_model_t *model);
+
+/**
+ * [ex_model_add_mesh add a mesh to the render list]
+ * @param m    [the model]
+ * @param mesh [mesh to add]
+ */
+void ex_model_add_mesh(ex_model_t *m, ex_mesh_t *mesh);
 
 /**
  * [ex_model_init_instancing init the intancing transform arrays]
