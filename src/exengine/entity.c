@@ -5,7 +5,9 @@
 #include <string.h>
 
 #define VERY_CLOSE_DIST 0.005f
-#define SLOPE_WALK_ANGLE 0.98f
+#define SLOPE_WALK_ANGLE 0.84f
+#define DOWN_DIRECTION -1.0f
+#define DOWN_AXIS 1 // y
 
 ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 {
@@ -57,7 +59,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
   // check for collision
   vec3 temp;
 
-  for (int i=0; i<2; ++i) {
+  for (int i=0; i<3; ++i) {
     // setup coll packet
     vec3_norm(temp, e_velocity);
     memcpy(entity->packet.e_norm_velocity, temp, sizeof(vec3));
@@ -142,8 +144,6 @@ void ex_entity_check_collision(ex_entity_t *entity)
   if (count <= 0)
     return;
 
-  // printf("%i\n", count);
-
   ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t) * count);
   for (int i=0; i<count; i++) {
     data[i].data = NULL;
@@ -172,50 +172,130 @@ void ex_entity_check_collision(ex_entity_t *entity)
   free(data);
 }
 
+// Möller–Trumbore intersection algorithm
+int ray_in_tri(vec3 from, vec3 to, vec3 v0, vec3 v1, vec3 v2, vec3 intersect)
+{
+  vec3 vector;
+  vec3_norm(vector, to);
+
+  vec3 edge1, edge2, h, s, q;
+  vec3_sub(edge1, v1, v0);
+  vec3_sub(edge2, v2, v0);
+
+  vec3_mul_cross(h, vector, edge2);
+  float a = vec3_mul_inner(edge1, h);
+
+  if (a > -FLT_EPSILON && a < FLT_EPSILON)
+    return 0;
+
+  float f = 1.0/a;
+  
+  vec3_sub(s, from, v0);
+
+  float u = f * vec3_mul_inner(s, h);
+  if (u < 0.0 || u > 1.0)
+    return 0;
+
+  vec3_mul_cross(q, s, edge1);
+  float v = f * vec3_mul_inner(vector, q);
+  if (v < 0.0 || u + v > 1.0)
+    return 0;
+
+  float t = f * vec3_mul_inner(edge2, q);
+  if (t > FLT_EPSILON) {
+    vec3 tmp;
+    vec3_scale(tmp, vector, t);
+    vec3_add(intersect, from, tmp);
+    return 1;
+  }
+
+  return 0;
+}
+
+void raycast(ex_entity_t *entity, vec3 from, vec3 to)
+{ 
+  vec3 a,b;
+  memcpy(a, from, sizeof(vec3));
+  vec3_add(b, from, to);
+
+  ex_rect_t r;
+  vec3_min(r.min, a, b);
+  vec3_max(r.max, a, b);
+  
+  int count = 0;
+  ex_octree_get_colliding_count(entity->scene->coll_tree, &r, &count);
+
+  if (count <= 0)
+    return;
+
+  ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t) * count);
+  for (int i=0; i<count; i++) {
+    data[i].data = NULL; 
+    data[i].len  = 0;
+  }
+
+  int index = 0;
+  ex_octree_get_colliding(entity->scene->coll_tree, &r, data, &index);
+
+  vec3 *vertices = entity->scene->coll_vertices;
+  float dist = FLT_MAX;
+  vec3 intersect, nearest;
+  for (int i=0; i<count; i++) {
+    uint32_t *indices = (uint32_t*)data[i].data;
+
+    if (indices == NULL)
+      continue;
+
+    for (int k=0; k<data[i].len; k++) {
+      if (ray_in_tri(from, to, vertices[indices[k]+0], vertices[indices[k]+1], vertices[indices[k]+2], intersect)) {
+
+        vec3 len;
+        vec3_sub(len, from, intersect);
+        float d = vec3_len(len);
+        if (d < dist) {
+          memcpy(nearest, intersect, sizeof(vec3));
+          dist = d;
+        }
+      }
+    }
+  }
+
+  if (dist < FLT_MAX && dist <= vec3_len(to)) {
+    printf("Coll found! %f %f %f\n", nearest[0]-from[0], nearest[1]-from[1], nearest[2]-from[2]);
+  } else {
+    printf("Shit!\n");
+  }
+
+  free(data);
+}
+
 void ex_entity_check_grounded(ex_entity_t *entity, double dt)
 {
-  vec3 vel = {0.0f, -(entity->radius[1]+0.25f), 0.0f};
-  memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
-  memcpy(entity->packet.r3_velocity, vel, sizeof(vec3));
-  memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
-  entity->packet.r3_position[1] += entity->radius[1];
+  // vec3 to = {0.0f, -entity->radius[1]-0.1f, 0.0f};
+  // raycast(entity, entity->position, to);
+  // return;
+  memset(&entity->packet.plane, 0, sizeof(ex_plane_t));
 
-  vec3 e_position, e_velocity;
-  vec3_div(e_position, entity->packet.r3_position, entity->packet.e_radius);
-  vec3_div(e_velocity, vel, entity->packet.e_radius);
+  vec3 vel = {0.0f}, rad = {0.1f, 1.0f, 0.1f};
+  vel[DOWN_AXIS] = 0.5f * DOWN_DIRECTION;
+  memcpy(entity->packet.e_radius, rad, sizeof(vec3));
+  memcpy(entity->packet.e_velocity, vel, sizeof(vec3));
+  vec3_norm(entity->packet.e_norm_velocity, vel);
+  vec3_div(entity->packet.e_base_point, entity->position, rad);
 
-  vec3_norm(entity->packet.e_norm_velocity, e_velocity);
-  memcpy(entity->packet.e_norm_velocity, e_velocity, sizeof(vec3));
-  memcpy(entity->packet.e_velocity, e_velocity, sizeof(vec3));
-  memcpy(entity->packet.e_base_point, e_position, sizeof(vec3));
   entity->packet.found_collision = 0;
   entity->packet.nearest_distance = FLT_MAX;
 
   ex_entity_check_collision(entity);
 
-  if (entity->packet.found_collision == 0) {
+  double d = vec3_mul_inner(entity->packet.plane.normal, entity->packet.e_base_point) + entity->packet.plane.equation[3];
+
+  // printf("%f %f\n", d, entity->packet.plane.normal[DOWN_AXIS]);
+
+  if (entity->packet.found_collision && entity->packet.plane.normal[DOWN_AXIS] >= SLOPE_WALK_ANGLE)
+    entity->grounded = 1;
+  else
     entity->grounded = 0;
-  } else {
-    vec3 dest_point, new_base_point;
-    vec3_add(dest_point, e_position, e_velocity);
-    memcpy(new_base_point, e_position, sizeof(vec3));
-
-    // get the slope angle
-    vec3 slide_plane_normal;
-    vec3_sub(slide_plane_normal, new_base_point, entity->packet.intersect_point);
-    vec3_norm(slide_plane_normal, slide_plane_normal);
-    float slope = vec3_mul_inner(slide_plane_normal, (vec3){0.0f, 1.0f, 0.0f});
-
-    if (slope > SLOPE_WALK_ANGLE) {
-      entity->grounded = 1;
-
-      // snap to surface (also stepup)
-      vec3_mul(entity->packet.intersect_point, entity->packet.intersect_point, entity->packet.e_radius);
-      entity->position[1] = entity->packet.intersect_point[1] + entity->radius[1] + VERY_CLOSE_DIST;
-    } else {
-      entity->grounded = 0;
-    }
-  }
 }
 
 void ex_entity_update(ex_entity_t *entity, double dt)
@@ -223,5 +303,6 @@ void ex_entity_update(ex_entity_t *entity, double dt)
   vec3_scale(entity->velocity, entity->velocity, dt);
   ex_entity_collide_and_slide(entity);
   vec3_scale(entity->velocity, entity->velocity, 1.0f / dt);
+  
   ex_entity_check_grounded(entity, dt);
 }

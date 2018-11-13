@@ -65,7 +65,7 @@ void game_init()
 void game_update(double dt)
 {
   ex_entity_update(e, dt);
-  ex_entity_update(cube, dt);
+  // ex_entity_update(cube, dt);
 
   memcpy(camera->position, e->position, sizeof(vec3));
   camera->position[1] += e->radius[1];
@@ -83,15 +83,12 @@ void game_update(double dt)
     vec3_sub(e->velocity, e->velocity, temp);
   }
 
-  vec3_scale(temp, cube->velocity, 1.0f * dt);
+  vec3_scale(temp, cube->velocity, 25.0f * dt);
   temp[1] = 0.0f;
   if (cube->grounded == 1)
     vec3_sub(cube->velocity, cube->velocity, temp);
 
-  if (cube->grounded == 0)
-    cube->velocity[1] -= (100.0f * dt);
-  if (cube->velocity[1] <= 0.0f && cube->grounded)
-    cube->velocity[1] = 0.0f;
+  cube->velocity[1] -= (100.0f * dt);
 
   if (ex_keys_down[EX_KEY_LEFT_CONTROL]) {
     vec3 p;
@@ -150,8 +147,6 @@ ctrl_end:
     move_speed = 20.0f;
   
   e->velocity[1] -= (100.0f * dt);
-  if (e->velocity[1] <= 0.0f && e->grounded)
-    e->velocity[1] = 0.0f;
 
   if (ex_keys_down[EX_KEY_C])
     glfwSwapInterval(1);
