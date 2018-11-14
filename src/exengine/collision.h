@@ -27,6 +27,9 @@ typedef struct {
   vec3 e_norm_velocity;
   vec3 e_base_point;
 
+  // original tri points
+  vec3 a,b,c;
+
   // hit information
   int found_collision;
   float nearest_distance;
@@ -91,6 +94,18 @@ int ex_check_point_in_triangle(const vec3 point, const vec3 p1, const vec3 p2, c
  * @return      [1 if solution exists]
  */
 int ex_get_lowest_root(float a, float b, float c, float max, float *root);
+
+/**
+ * [ray_in_tri Möller–Trumbore intersection algorithm]
+ * @param  from      [starting point]
+ * @param  to        [directional vector]
+ * @param  v0        [tri p1]
+ * @param  v1        [tri p2]
+ * @param  v2        [tri p3]
+ * @param  intersect [returned intersect point]
+ * @return           [1 if intersection occurs, otherwise 0]
+ */
+int ray_in_tri(vec3 from, vec3 to, vec3 v0, vec3 v1, vec3 v2, vec3 intersect);
 
 /**
  * [ex_collision_check_triangle the main collision iteration]

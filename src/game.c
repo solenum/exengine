@@ -39,7 +39,7 @@ void game_init()
  
   e = ex_entity_new(scene, (vec3){0.5f, 1.0f, 0.5f});
   e->position[1] = 0.0f;
-  e->position[0] = 0.0f;
+  e->position[0] = 5.0f;
   e->position[2] = 0.0f;
 
   // load a sound
@@ -56,16 +56,16 @@ void game_init()
   box->is_lit = 0;
   box->is_shadow = 0;
   ex_scene_add_model(scene, box);
-  cube = ex_entity_new(scene, (vec3){0.95f, 0.99f, 0.95f});
+  cube = ex_entity_new(scene, (vec3){0.95f, 0.95f, 0.95f});
   cube->position[2] = 5.0f;
-  cube->position[1] = 0.0f;
+  cube->position[1] = 5.0f;
   cube->position[0] = 0.0f;
 }
 
 void game_update(double dt)
 {
   ex_entity_update(e, dt);
-  // ex_entity_update(cube, dt);
+  ex_entity_update(cube, dt);
 
   memcpy(camera->position, e->position, sizeof(vec3));
   camera->position[1] += e->radius[1];
@@ -83,11 +83,11 @@ void game_update(double dt)
     vec3_sub(e->velocity, e->velocity, temp);
   }
 
-  vec3_scale(temp, cube->velocity, 25.0f * dt);
+  vec3_scale(temp, cube->velocity, 5.0f * dt);
   temp[1] = 0.0f;
   if (cube->grounded == 1)
     vec3_sub(cube->velocity, cube->velocity, temp);
-
+    
   cube->velocity[1] -= (100.0f * dt);
 
   if (ex_keys_down[EX_KEY_LEFT_CONTROL]) {

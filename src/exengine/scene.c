@@ -586,15 +586,6 @@ void ex_scene_destroy(ex_scene_t *s)
     }
   }
 
-  // clean up dir lights
-  if (s->dir_light != NULL)
-    ex_dir_light_destroy(s->dir_light);
-
-  // cleanup skybox
-  if (s->skybox != NULL) {
-    ex_skybox_destroy(s->skybox);
-  }
-
   // cleanup framebuffers
   ex_framebuffer_destroy(s->framebuffer);
 }

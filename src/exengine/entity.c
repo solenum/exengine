@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SLIDE_BIAS 0.036f
 #define VERY_CLOSE_DIST 0.005f
-#define SLOPE_WALK_ANGLE 0.84f
+#define SLOPE_WALK_ANGLE 0.80f
 #define DOWN_DIRECTION -1.0f
 #define DOWN_AXIS 1 // y
 
@@ -22,6 +23,8 @@ ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 
 void ex_entity_collide_and_slide(ex_entity_t *entity)
 {
+  entity->grounded = 0;
+
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
   memcpy(entity->packet.r3_velocity, entity->velocity, sizeof(vec3));
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
@@ -59,7 +62,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
   // check for collision
   vec3 temp;
 
-  for (int i=0; i<3; ++i) {
+  for (int i=0; i<3; i++) {
     // setup coll packet
     vec3_norm(temp, e_velocity);
     memcpy(entity->packet.e_norm_velocity, temp, sizeof(vec3));
@@ -76,6 +79,16 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
     if (entity->packet.found_collision == 0) {
       memcpy(e_position, dest, sizeof(vec3));
       return;
+    }
+
+    if (entity->velocity[1] > VERY_CLOSE_DIST || entity->velocity[1] < -VERY_CLOSE_DIST);
+      ex_entity_check_grounded(entity);
+    
+    if (entity->grounded) {
+      if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[1] < -VERY_CLOSE_DIST) {
+        e_velocity[1] = 0.0f;
+        vec3_add(dest, e_position, e_velocity);
+      }
     }
 
     // point touching tri
@@ -172,48 +185,31 @@ void ex_entity_check_collision(ex_entity_t *entity)
   free(data);
 }
 
-// Möller–Trumbore intersection algorithm
-int ray_in_tri(vec3 from, vec3 to, vec3 v0, vec3 v1, vec3 v2, vec3 intersect)
+void ex_entity_check_grounded(ex_entity_t *entity)
 {
-  vec3 vector;
-  vec3_norm(vector, to);
+  if (!entity->packet.found_collision)
+    return;
 
-  vec3 edge1, edge2, h, s, q;
-  vec3_sub(edge1, v1, v0);
-  vec3_sub(edge2, v2, v0);
+  vec3 a, b, c;
+  vec3_mul(a, entity->packet.a, entity->radius);
+  vec3_mul(b, entity->packet.b, entity->radius);
+  vec3_mul(c, entity->packet.c, entity->radius);
+  ex_plane_t plane = ex_triangle_to_plane(a, b, c);
+  float f = vec3_mul_inner(plane.normal, (vec3){0.0f, 1.0f, 0.0f});
 
-  vec3_mul_cross(h, vector, edge2);
-  float a = vec3_mul_inner(edge1, h);
-
-  if (a > -FLT_EPSILON && a < FLT_EPSILON)
-    return 0;
-
-  float f = 1.0/a;
-  
-  vec3_sub(s, from, v0);
-
-  float u = f * vec3_mul_inner(s, h);
-  if (u < 0.0 || u > 1.0)
-    return 0;
-
-  vec3_mul_cross(q, s, edge1);
-  float v = f * vec3_mul_inner(vector, q);
-  if (v < 0.0 || u + v > 1.0)
-    return 0;
-
-  float t = f * vec3_mul_inner(edge2, q);
-  if (t > FLT_EPSILON) {
-    vec3 tmp;
-    vec3_scale(tmp, vector, t);
-    vec3_add(intersect, from, tmp);
-    return 1;
-  }
-
-  return 0;
+  if (f >= SLOPE_WALK_ANGLE)
+    entity->grounded = 1;
 }
 
-void raycast(ex_entity_t *entity, vec3 from, vec3 to)
-{ 
+void ex_entity_update(ex_entity_t *entity, double dt)
+{
+  vec3_scale(entity->velocity, entity->velocity, dt);
+  ex_entity_collide_and_slide(entity);
+  vec3_scale(entity->velocity, entity->velocity, 1.0f / dt); 
+}
+
+float raycast(ex_entity_t *entity, vec3 from, vec3 to, ex_plane_t *plane)
+{
   vec3 a,b;
   memcpy(a, from, sizeof(vec3));
   vec3_add(b, from, to);
@@ -226,7 +222,7 @@ void raycast(ex_entity_t *entity, vec3 from, vec3 to)
   ex_octree_get_colliding_count(entity->scene->coll_tree, &r, &count);
 
   if (count <= 0)
-    return;
+    return 0.0f;
 
   ex_octree_data_t *data = malloc(sizeof(ex_octree_data_t) * count);
   for (int i=0; i<count; i++) {
@@ -237,6 +233,7 @@ void raycast(ex_entity_t *entity, vec3 from, vec3 to)
   int index = 0;
   ex_octree_get_colliding(entity->scene->coll_tree, &r, data, &index);
 
+  size_t tri;
   vec3 *vertices = entity->scene->coll_vertices;
   float dist = FLT_MAX;
   vec3 intersect, nearest;
@@ -255,54 +252,20 @@ void raycast(ex_entity_t *entity, vec3 from, vec3 to)
         if (d < dist) {
           memcpy(nearest, intersect, sizeof(vec3));
           dist = d;
+          tri = indices[k];
         }
       }
     }
   }
 
   if (dist < FLT_MAX && dist <= vec3_len(to)) {
-    printf("Coll found! %f %f %f\n", nearest[0]-from[0], nearest[1]-from[1], nearest[2]-from[2]);
-  } else {
-    printf("Shit!\n");
+    ex_plane_t p = ex_triangle_to_plane(vertices[tri], vertices[tri+1], vertices[tri+2]);
+    memcpy(plane, &p, sizeof(ex_plane_t));
+    
+    free(data);
+    return dist;
   }
 
   free(data);
-}
-
-void ex_entity_check_grounded(ex_entity_t *entity, double dt)
-{
-  // vec3 to = {0.0f, -entity->radius[1]-0.1f, 0.0f};
-  // raycast(entity, entity->position, to);
-  // return;
-  memset(&entity->packet.plane, 0, sizeof(ex_plane_t));
-
-  vec3 vel = {0.0f}, rad = {0.1f, 1.0f, 0.1f};
-  vel[DOWN_AXIS] = 0.5f * DOWN_DIRECTION;
-  memcpy(entity->packet.e_radius, rad, sizeof(vec3));
-  memcpy(entity->packet.e_velocity, vel, sizeof(vec3));
-  vec3_norm(entity->packet.e_norm_velocity, vel);
-  vec3_div(entity->packet.e_base_point, entity->position, rad);
-
-  entity->packet.found_collision = 0;
-  entity->packet.nearest_distance = FLT_MAX;
-
-  ex_entity_check_collision(entity);
-
-  double d = vec3_mul_inner(entity->packet.plane.normal, entity->packet.e_base_point) + entity->packet.plane.equation[3];
-
-  // printf("%f %f\n", d, entity->packet.plane.normal[DOWN_AXIS]);
-
-  if (entity->packet.found_collision && entity->packet.plane.normal[DOWN_AXIS] >= SLOPE_WALK_ANGLE)
-    entity->grounded = 1;
-  else
-    entity->grounded = 0;
-}
-
-void ex_entity_update(ex_entity_t *entity, double dt)
-{
-  vec3_scale(entity->velocity, entity->velocity, dt);
-  ex_entity_collide_and_slide(entity);
-  vec3_scale(entity->velocity, entity->velocity, 1.0f / dt);
-  
-  ex_entity_check_grounded(entity, dt);
+  return 0;
 }

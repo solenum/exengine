@@ -119,6 +119,46 @@ int ex_get_lowest_root(float a, float b, float c, float max, float *root)
   return 0;
 }
 
+// Möller–Trumbore intersection algorithm
+int ray_in_tri(vec3 from, vec3 to, vec3 v0, vec3 v1, vec3 v2, vec3 intersect)
+{
+  vec3 vector;
+  vec3_norm(vector, to);
+
+  vec3 edge1, edge2, h, s, q;
+  vec3_sub(edge1, v1, v0);
+  vec3_sub(edge2, v2, v0);
+
+  vec3_mul_cross(h, vector, edge2);
+  float a = vec3_mul_inner(edge1, h);
+
+  if (a > -FLT_EPSILON && a < FLT_EPSILON)
+    return 0;
+
+  float f = 1.0/a;
+  
+  vec3_sub(s, from, v0);
+
+  float u = f * vec3_mul_inner(s, h);
+  if (u < 0.0 || u > 1.0)
+    return 0;
+
+  vec3_mul_cross(q, s, edge1);
+  float v = f * vec3_mul_inner(vector, q);
+  if (v < 0.0 || u + v > 1.0)
+    return 0;
+
+  float t = f * vec3_mul_inner(edge2, q);
+  if (t > FLT_EPSILON) {
+    vec3 tmp;
+    vec3_scale(tmp, vector, t);
+    vec3_add(intersect, from, tmp);
+    return 1;
+  }
+
+  return 0;
+}
+
 void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const vec3 p2, const vec3 p3)
 {
   ex_plane_t plane = ex_triangle_to_plane(p1, p2, p3);
@@ -343,6 +383,9 @@ void ex_collision_check_triangle(ex_coll_packet_t *packet, const vec3 p1, const 
       packet->found_collision = 1;
       packet->t = t;
       memcpy(&packet->plane, &plane, sizeof(ex_plane_t));
+      memcpy(packet->a, p1, sizeof(vec3));
+      memcpy(packet->b, p2, sizeof(vec3));
+      memcpy(packet->c, p3, sizeof(vec3));
     }
   }
 }

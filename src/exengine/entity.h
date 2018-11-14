@@ -59,13 +59,8 @@ void ex_entity_check_collision(ex_entity_t *entity);
 /**
  * [ex_entity_check_grounded checks if entity is on a ground]
  * @param entity [entity to check]
- * @param dt     [delta time]
- * 
- * This needs to be refined, it could easily be handled
- * inside the already existing check_collision function
- * via checking the resulting collison packet.
  */
-void ex_entity_check_grounded(ex_entity_t *entity, double dt);
+void ex_entity_check_grounded(ex_entity_t *entity);
 
 /**
  * [ex_entity_update updates an entity, calling the above functions]
