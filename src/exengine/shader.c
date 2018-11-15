@@ -56,7 +56,7 @@ GLuint ex_shader_compile(const char *path)
       size_t len = (end - start)  - 10;
       shaders[i] = malloc(len);
       strncpy(shaders[i], &start[10], len);
-      shaders[i][len] = '\0';
+      shaders[i][len-1] = '\0';
     }    
   }
 
@@ -67,7 +67,7 @@ GLuint ex_shader_compile(const char *path)
   geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
 
   // compile the shaders
-  glShaderSource(vertex_shader, 1, (const GLchar**)&shaders[0], NULL);
+  glShaderSource(vertex_shader, 1, (const GLchar* const*)&shaders[0], NULL);
   glCompileShader(vertex_shader);
 
   GLint success = 0;
@@ -79,7 +79,7 @@ GLuint ex_shader_compile(const char *path)
     goto exit;
   }
 
-  glShaderSource(fragment_shader, 1, (const GLchar**)&shaders[1], NULL);
+  glShaderSource(fragment_shader, 1, (const GLchar* const*)&shaders[1], NULL);
   glCompileShader(fragment_shader);
 
   success = 0;
@@ -91,7 +91,7 @@ GLuint ex_shader_compile(const char *path)
   }
 
   if (shaders[2] != NULL) {
-    glShaderSource(geometry_shader, 1, (const GLchar**)&shaders[2], NULL);
+    glShaderSource(geometry_shader, 1, (const GLchar* const*)&shaders[2], NULL);
     glCompileShader(geometry_shader);
 
     success = 0;

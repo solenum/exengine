@@ -33,7 +33,7 @@ void game_init()
   // init the camera
   camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 70.0f);
 
-  m6 = ex_iqm_load_model(scene, "data/level.iqm", EX_KEEP_VERTICES);
+  m6 = ex_iqm_load_model(scene, "data/level_2.iqm", EX_KEEP_VERTICES);
   m6->is_shadow = 1;
   ex_scene_add_model(scene, m6);
  
@@ -85,9 +85,9 @@ void game_update(double dt)
 
   vec3_scale(temp, cube->velocity, 5.0f * dt);
   temp[1] = 0.0f;
-  if (cube->grounded == 1)
-    vec3_sub(cube->velocity, cube->velocity, temp);
-    
+  // if (cube->grounded == 1)
+    // vec3_sub(cube->velocity, cube->velocity, temp);
+
   cube->velocity[1] -= (100.0f * dt);
 
   if (ex_keys_down[EX_KEY_LEFT_CONTROL]) {

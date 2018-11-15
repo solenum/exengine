@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SLIDE_BIAS 0.036f
-#define VERY_CLOSE_DIST 0.005f
-#define SLOPE_WALK_ANGLE 0.80f
-#define DOWN_DIRECTION -1.0f
+#define SLIDE_BIAS 0.036
+#define VERY_CLOSE_DIST 0.01
+#define SLOPE_WALK_ANGLE 0.80
+#define DOWN_DIRECTION -1.0
 #define DOWN_AXIS 1 // y
 
 ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
@@ -30,8 +30,9 @@ void ex_entity_collide_and_slide(ex_entity_t *entity)
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
 
   // y velocity in a seperate pass
-  vec3 gravity = {0.0f, entity->packet.r3_velocity[1], 0.0f};
-  entity->packet.r3_velocity[1] = 0.0f;
+  vec3 gravity = {0.0f};
+  gravity[DOWN_AXIS] = entity->packet.r3_velocity[DOWN_AXIS];
+  entity->packet.r3_velocity[DOWN_AXIS] = 0.0f;
 
   // lets get e-spacey?
   vec3 e_position, e_velocity, final_position;
@@ -39,7 +40,6 @@ void ex_entity_collide_and_slide(ex_entity_t *entity)
   vec3_div(e_velocity, entity->packet.r3_velocity, entity->packet.e_radius);
 
   // do velocity iteration
-  entity->packet.depth = 0;
   ex_entity_collide_with_world(entity, e_position, e_velocity);
 
   // do gravity iteration
@@ -71,6 +71,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
     memcpy(entity->packet.e_radius, entity->radius, sizeof(vec3));
     entity->packet.found_collision = 0;
     entity->packet.nearest_distance = FLT_MAX;
+    entity->packet.t = 0.0f;
     
     // check for collision
     ex_entity_check_collision(entity);
@@ -81,12 +82,12 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
       return;
     }
 
-    if (entity->velocity[1] > VERY_CLOSE_DIST || entity->velocity[1] < -VERY_CLOSE_DIST);
+    if (entity->velocity[DOWN_AXIS] > VERY_CLOSE_DIST || entity->velocity[DOWN_AXIS] < -VERY_CLOSE_DIST);
       ex_entity_check_grounded(entity);
     
     if (entity->grounded) {
-      if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[1] < -VERY_CLOSE_DIST) {
-        e_velocity[1] = 0.0f;
+      if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[DOWN_AXIS] < -VERY_CLOSE_DIST) {
+        e_velocity[DOWN_AXIS] = 0.0f;
         vec3_add(dest, e_position, e_velocity);
       }
     }
@@ -115,7 +116,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
     vec3_norm(slide_plane_normal, slide_plane_normal);
 
     if (i == 0) {
-      double long_radius = 1.0f + VERY_CLOSE_DIST;
+      double long_radius = 1.0 + VERY_CLOSE_DIST;
 
       first_plane = ex_plane_new(slide_plane_origin, slide_plane_normal);
 
@@ -190,12 +191,15 @@ void ex_entity_check_grounded(ex_entity_t *entity)
   if (!entity->packet.found_collision)
     return;
 
+  vec3 axis = {0.0f};
+  axis[DOWN_AXIS] = 1.0f;
+
   vec3 a, b, c;
   vec3_mul(a, entity->packet.a, entity->radius);
   vec3_mul(b, entity->packet.b, entity->radius);
   vec3_mul(c, entity->packet.c, entity->radius);
   ex_plane_t plane = ex_triangle_to_plane(a, b, c);
-  float f = vec3_mul_inner(plane.normal, (vec3){0.0f, 1.0f, 0.0f});
+  float f = vec3_mul_inner(plane.normal, axis);
 
   if (f >= SLOPE_WALK_ANGLE)
     entity->grounded = 1;
@@ -205,7 +209,7 @@ void ex_entity_update(ex_entity_t *entity, double dt)
 {
   vec3_scale(entity->velocity, entity->velocity, dt);
   ex_entity_collide_and_slide(entity);
-  vec3_scale(entity->velocity, entity->velocity, 1.0f / dt); 
+  vec3_scale(entity->velocity, entity->velocity, 1.0 / dt); 
 }
 
 float raycast(ex_entity_t *entity, vec3 from, vec3 to, ex_plane_t *plane)

@@ -23,6 +23,9 @@ ex_model_t* ex_model_new()
   m->instance_count = 0;
   m->is_static = 0;
 
+  m->bones = NULL;
+  m->current_anim = NULL;
+
   for (int i=0; i<EX_MODEL_MAX_MESHES; i++)
     m->meshes[i] = NULL;
 
@@ -31,8 +34,7 @@ ex_model_t* ex_model_new()
 
 ex_model_t* ex_model_copy(ex_model_t *model)
 {
-  // copy the mesh directly
-  // keeping the pointers the same
+  // do a deep copy
   ex_model_t *m = ex_model_new();
   
   m->shader = model->shader;
