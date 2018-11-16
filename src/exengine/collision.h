@@ -64,7 +64,7 @@ ex_plane_t ex_triangle_to_plane(const vec3 a, const vec3 b, const vec3 c);
  * @param  plane      [the plane]
  * @return            [the signed distance]
  */
-double ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane);
+float ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane);
 
 /**
  * [ex_is_front_facing]

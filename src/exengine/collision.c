@@ -39,7 +39,7 @@ ex_plane_t ex_triangle_to_plane(const vec3 a, const vec3 b, const vec3 c)
   return plane;
 }
 
-double ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane)
+float ex_signed_distance_to_plane(const vec3 base_point, const ex_plane_t *plane)
 {
   // return vec3_mul_inner(base_point, plane->normal) - vec3_mul_inner(plane->normal, plane->origin);// + plane->equation[3];
   return vec3_mul_inner(base_point, plane->normal) + plane->equation[3];
