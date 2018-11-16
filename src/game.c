@@ -141,9 +141,9 @@ ctrl_end:
   vec3_scale(temp, e->velocity, 25.0f * dt);
   temp[1] = 0.0f;
 
-  if (e->grounded == 1) 
-    vec3_sub(e->velocity, e->velocity, temp);
-  else
+  // if (e->grounded == 1) 
+    // vec3_sub(e->velocity, e->velocity, temp);
+  // else
     move_speed = 20.0f;
   
   e->velocity[1] -= (100.0f * dt);

@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define SLIDE_BIAS 0.036
-#define VERY_CLOSE_DIST 0.01
+#define VERY_CLOSE_DIST 0.005
 #define SLOPE_WALK_ANGLE 0.80
 #define DOWN_DIRECTION -1.0
 #define DOWN_AXIS 1 // y
@@ -23,8 +23,6 @@ ex_entity_t* ex_entity_new(ex_scene_t *scene, vec3 radius)
 
 void ex_entity_collide_and_slide(ex_entity_t *entity)
 {
-  entity->grounded = 0;
-
   memcpy(entity->packet.r3_position, entity->position, sizeof(vec3));
   memcpy(entity->packet.r3_velocity, entity->velocity, sizeof(vec3));
   memcpy(entity->packet.e_radius,    entity->radius,   sizeof(vec3));
@@ -50,6 +48,25 @@ void ex_entity_collide_and_slide(ex_entity_t *entity)
   // finally set entity position & velocity
   vec3_mul(entity->position, e_position, entity->packet.e_radius);
   vec3_sub(entity->velocity, entity->position, entity->packet.r3_position);
+
+  double long_radius = 1.0f + VERY_CLOSE_DIST;
+  vec3 a, b, c;
+  vec3_mul(a, entity->packet.a, entity->radius);
+  vec3_mul(b, entity->packet.b, entity->radius);
+  vec3_mul(c, entity->packet.c, entity->radius);
+  ex_plane_t p = ex_triangle_to_plane(a, b, c);
+  double dist_to_plane  = ex_signed_distance_to_plane(entity->position, &p) - long_radius;
+
+  // out_velocity = out_direction * max(len(in_velocity), len(out_velocity))
+  // recalculate forward against last contact normal
+  /*if (packet.contacts.length > 0) {
+          var n = packet.contacts[packet.contacts.length-1].normal;
+          var f = new_direction.copy();
+          f.normalize();
+          var r = Vec3.cross(f, n);
+          f = Vec3.cross(r, n);
+          new_direction = f * -new_speed;
+  }*/
 }
 
 void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_velocity)
@@ -82,13 +99,13 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
       return;
     }
 
-    if (entity->velocity[DOWN_AXIS] > VERY_CLOSE_DIST || entity->velocity[DOWN_AXIS] < -VERY_CLOSE_DIST);
+    // if (entity->velocity[DOWN_AXIS] > VERY_CLOSE_DIST || entity->velocity[DOWN_AXIS] < -VERY_CLOSE_DIST);
       ex_entity_check_grounded(entity);
     
     if (entity->grounded) {
       if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[DOWN_AXIS] < -VERY_CLOSE_DIST) {
-        e_velocity[DOWN_AXIS] = 0.0f;
-        vec3_add(dest, e_position, e_velocity);
+        // e_velocity[DOWN_AXIS] = 0.0f;
+        // vec3_add(dest, e_position, e_velocity);
       }
     }
 
@@ -207,9 +224,13 @@ void ex_entity_check_grounded(ex_entity_t *entity)
 
 void ex_entity_update(ex_entity_t *entity, double dt)
 {
-  vec3_scale(entity->velocity, entity->velocity, dt);
-  ex_entity_collide_and_slide(entity);
-  vec3_scale(entity->velocity, entity->velocity, 1.0 / dt); 
+  entity->grounded = 0;
+  dt = dt / 4.0;
+  for (int i=0; i<4; i++) {
+    vec3_scale(entity->velocity, entity->velocity, dt);
+    ex_entity_collide_and_slide(entity);
+    vec3_scale(entity->velocity, entity->velocity, 1.0 / dt); 
+  }
 }
 
 float raycast(ex_entity_t *entity, vec3 from, vec3 to, ex_plane_t *plane)
