@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SLIDE_BIAS 0.015
+#define SLIDE_BIAS 0.008
 #define VERY_CLOSE_DIST 0.01
 #define SLOPE_WALK_ANGLE 0.80
 #define DOWN_DIRECTION -1.0
@@ -79,7 +79,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
         // e_velocity[DOWN_AXIS] = 0.0f;
         // vec3_add(dest, e_position, e_velocity);
       }
-    }
+    } 
 
     // no collision move along
     if (entity->packet.found_collision == 0) {
@@ -203,10 +203,10 @@ void ex_entity_check_grounded(ex_entity_t *entity)
 void ex_entity_update(ex_entity_t *entity, double dt)
 {
   entity->grounded = 0;
-  dt = dt / 4.0;
+  dt = dt / 5.0;
   
   vec3_scale(entity->velocity, entity->velocity, dt);
-  for (int i=0; i<4; i++)
+  for (int i=0; i<5; i++)
     ex_entity_collide_and_slide(entity);
   vec3_sub(entity->velocity, entity->position, entity->packet.r3_position);
   vec3_scale(entity->velocity, entity->velocity, 1.0 / dt);

@@ -114,7 +114,7 @@ void game_update(double dt)
     cube->velocity[1] += f*0.1f;
   
     if (ex_buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
-      vec3_scale(temp, camera->front, 40.0f);
+      vec3_scale(temp, camera->front, 80.0f);
       vec3_add(cube->velocity, cube->velocity, temp);
       ex_keys_down[EX_KEY_LEFT_CONTROL] = 0;
     }
@@ -127,7 +127,7 @@ ctrl_end:
     ex_model_set_anim(d, "Run");
 
   if (ex_keys_down[EX_KEY_F]) {
-    float r = (float)rand()/(float)(RAND_MAX/1.0f);
+    float r = (float)rand()/(float)(RAND_MAX/1.0f); 
     float g = (float)rand()/(float)(RAND_MAX/1.0f);
     float b = (float)rand()/(float)(RAND_MAX/1.0f);
     ex_point_light_t *l = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){r, g, b}, 0);
@@ -138,13 +138,13 @@ ctrl_end:
   }
 
   /* debug entity movement */
-  vec3_scale(temp, e->velocity, 25.0f * dt);
+  vec3_scale(temp, e->velocity, 15.0f * dt);
   temp[1] = 0.0f;
 
   // if (e->grounded == 1) 
     // vec3_sub(e->velocity, e->velocity, temp);
   // else
-    move_speed = 20.0f;
+    move_speed = 50.0f;
   
   e->velocity[1] -= (100.0f * dt);
 
