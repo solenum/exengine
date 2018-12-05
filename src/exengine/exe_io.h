@@ -15,7 +15,7 @@
 static char* io_read_file(const char *path, const char *mode, size_t *len)
 {
   if (!PHYSFS_exists(path)) {
-    printf("could not load file %s\n", path);
+    printf("[IO] Could not load file %s\n", path);
     return NULL;
   }
 

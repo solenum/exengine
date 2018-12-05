@@ -76,8 +76,8 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
     ex_entity_check_grounded(entity);
     if (entity->grounded) {
       if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[DOWN_AXIS] < 0.0f) {
-        // e_velocity[DOWN_AXIS] = 0.0f;
-        // vec3_add(dest, e_position, e_velocity);
+        e_velocity[DOWN_AXIS] = 0.0f;
+        vec3_add(dest, e_position, e_velocity);
       }
     } 
 

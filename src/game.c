@@ -14,6 +14,7 @@
 #include "exengine/input.h"
 #include "exengine/sound.h"
 #include "exengine/gbuffer.h"
+#include "exengine/text.h"
 #include "inc/game.h"
 
 ex_fps_camera_t *camera;
@@ -22,6 +23,7 @@ ex_model_t *m6, *d, *box;
 ex_entity_t *cube, *e;
 ex_point_light_t *l, *pl;
 ex_source_t *sound;
+ex_font_t *font;
 float move_speed = 1.5f;
 
 void game_init()
@@ -33,7 +35,7 @@ void game_init()
   // init the camera
   camera = ex_fps_camera_new(0.0f, 0.0f, 0.0f, 0.1f, 70.0f);
 
-  m6 = ex_iqm_load_model(scene, "data/level_2.iqm", EX_KEEP_VERTICES);
+  m6 = ex_iqm_load_model(scene, "data/level.iqm", EX_KEEP_VERTICES);
   m6->is_shadow = 1;
   ex_scene_add_model(scene, m6);
  
@@ -60,6 +62,9 @@ void game_init()
   cube->position[2] = 5.0f;
   cube->position[1] = 5.0f;
   cube->position[0] = 0.0f;
+
+  // this aint it
+  // font = ex_font_load("data/fonts/OpenSans-Regular.ttf");
 }
 
 void game_update(double dt)
@@ -142,7 +147,7 @@ ctrl_end:
   temp[1] = 0.0f;
 
   // if (e->grounded == 1) 
-    // vec3_sub(e->velocity, e->velocity, temp);
+  //  vec3_sub(e->velocity, e->velocity, temp);
   // else
     move_speed = 50.0f;
   
@@ -190,7 +195,7 @@ ctrl_end:
       alSourcePlay(sound->id);
     }
   }
-  move_speed = 200.0f;
+  move_speed = 100.0f;
   if (ex_keys_down[EX_KEY_G] || glimgui_ex_keys_down[EX_KEY_G]) {
     ex_keys_down[EX_KEY_G] = 0;
     glimgui_ex_keys_down[EX_KEY_G] = 0;

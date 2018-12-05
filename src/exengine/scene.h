@@ -11,9 +11,7 @@
   and has semi-function light culling.
 
   The following are features that need implementing:
-  * A Forward renderer for simpler games
   * Frustrum culling for models, lights etc
-  * Better handling of collision data
 */
 
 #ifndef EX_SCENE_H

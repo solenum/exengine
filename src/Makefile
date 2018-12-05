@@ -12,7 +12,7 @@ _IDIRS  =lib inc lib/physfs
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -lstdc++ -lGL -lGLEW -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -Wall -lstdc++ -lGL -lGLEW -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -40,15 +40,16 @@ endif
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
 model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
-gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h input.h \
-sound.h cache.h
+gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h \
+defaults.h input.h sound.h cache.h text.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 # engine srcs
 ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
 collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
-ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o cache.o
+ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o cache.o \
+text.o
 
 # lib deps
 _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h  physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
