@@ -58,7 +58,7 @@ typedef struct {
 } signed_distance_t;
 
 // defines what color channel an edge belongs to
-enum EdgeColor {
+enum edge_color {
     BLACK = 0,
     RED = 1,
     GREEN = 2,
@@ -511,6 +511,31 @@ double median(double a, double b, double c)
   return MAX(MIN(a, b), MIN(MAX(a, b), c));
 }
 
+int is_corner(vec2 a, vec2 b, double threshold)
+{
+  return vec2_mul_inner(a, b) <= 0 || fabs(cross(a, b)) > threshold;
+}
+
+void switch_color(int *color, unsigned long long *seed, int banned)
+{
+  int combined = *color & banned;
+  if (combined == RED || combined == GREEN || combined == BLUE) {
+    *color = combined ^ WHITE;
+    return;
+  }
+
+  if (*color == BLACK || *color == WHITE) {
+    static const int start[3] = {CYAN, MAGENTA, YELLOW};
+    *color = start[*seed & 3];
+    *seed /= 3;
+    return;
+  }
+
+  int shifted = *color<<(1+(*seed&1));
+  *color = (shifted|shifted>>3)&WHITE;
+  *seed >>= 1;
+}
+
 
 float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 {
@@ -630,6 +655,42 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
     }
   }
 
+  // calculate edge-colors
+  double anglethreshold = 1.0f;
+  double crossthreshold = sin(anglethreshold);
+  size_t corner_count = 0;
+  for (int i=0; i<contour_count; ++i)
+    for (int j=0; j<contour_data[i].edge_count; ++j)
+      corner_count++;
+
+  int corners[corner_count];
+  int corner_index = 0;
+  for (int i=0; i<contour_count; ++i) {
+      
+    if (contour_data[i].edge_count > 0) {
+      vec2 prev_dir, dir;
+      direction(prev_dir, &contour_data[i].edges[contour_data[i].edge_count-1], 1);
+
+      int index = 0;
+      for (int j=0; j<contour_data[i].edge_count; ++j, ++index) {
+        edge_segment_t *e = &contour_data[i].edges[j];
+        direction(dir, e, 0);
+        vec2_norm(dir, dir);
+        vec2_norm(prev_dir, prev_dir);
+        if (is_corner(prev_dir, dir, crossthreshold))
+          corners[corner_index++] = index;
+        direction(prev_dir, e, 1);
+      }
+    }
+
+    if (corner_index == 0) {
+      for (int j=0; i<contour_data[i].edge_count; ++j)
+        contour_data[i].edges[j].color = WHITE;
+    } else if (corner_index == 1) {
+      // int colors[3] = { }
+    }
+  }
+
   typedef struct {
     double r, g, b;
     double med;
@@ -704,6 +765,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 
         double med_min_dist = fabs(median(r.min_distance.dist, g.min_distance.dist, b.min_distance.dist));
 
+        // this is wrong?
         int w = stbtt__compute_crossings_x(p[0], p[1], num_verts, verts);
         if (med_min_dist < d) {
           d = med_min_dist;
