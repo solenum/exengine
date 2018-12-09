@@ -13,6 +13,11 @@
 #define INF   -1e240
 #define RANGE 1.0
 
+double median(double a, double b, double c)
+{
+  return MAX(MIN(a, b), MIN(MAX(a, b), c));
+}
+
 float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h);
 
 ex_font_t* ex_font_load(const char *path)
@@ -30,20 +35,32 @@ ex_font_t* ex_font_load(const char *path)
   stbtt_InitFont(&font, (const uint8_t*)data, stbtt_GetFontOffsetForIndex(data,0));
 
   // generate a msdf bitmap
-  float *bitmap = ex_font_msdf(&font, 'A', 16, 16);
-  uint8_t *shitmap = malloc(16*16*3);
-  for (int y=0; y<16; y++) {
-    for (int x=0; x<16; x++) {
-      size_t index = 3*((y*16)+x);
-      printf("(%.1f %.1f %.1f)", fabs(bitmap[index]), fabs(bitmap[index+1]), fabs(bitmap[index+2]) );
-      shitmap[index+0] = (uint8_t)(255/bitmap[index+0]);
-      shitmap[index+1] = (uint8_t)(255/bitmap[index+1]);
-      shitmap[index+2] = (uint8_t)(255/bitmap[index+2]);
+  // this is all just debug vomit
+  // its due to be replaced
+  int size = 64;
+  float *bitmap = ex_font_msdf(&font, 'V', size, size);
+  uint8_t *shitmap = malloc(3*size*size); // lol dont even free this who cares
+  for (int y=0; y<size; y++) {
+    for (int x=0; x<size; x++) {
+      size_t index = 3*((y*size)+x);
+
+      // im certain this isnt how you math
+      float v = median(bitmap[index], bitmap[index+1], bitmap[index+2]) - 0.5;
+      v *= vec2_mul_inner((vec2){1.0f/size, 1.0f/size}, (vec2){64, 64});
+      float a = MAX(0.0, MIN(v + 0.5, 1.0));
+      a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
+
+      // reeeeeeeeeeee
+      shitmap[index]   = 255*a;//(uint8_t)(255*(bitmap[index]+64)/64);
+      shitmap[index+1] = 255*a;//(uint8_t)(255*(bitmap[index+1]+64)/64);
+      shitmap[index+2] = 255*a;//(uint8_t)(255*(bitmap[index+2]+64)/64);
     }
     printf("\n");
   }
 
-  stbi_write_png("out.png", 16, 16, 3, shitmap, 3);
+  // write to a png just to debug
+  // why the fuck else would I write to a png?
+  stbi_write_png("out.png", size, size, 3, shitmap, size*3);
 
   free(data);
   printf("[TEXT] Done generating msdf font for %s\n", path);
@@ -58,7 +75,7 @@ typedef struct {
 } signed_distance_t;
 
 // defines what color channel an edge belongs to
-enum edge_color {
+typedef enum {
     BLACK = 0,
     RED = 1,
     GREEN = 2,
@@ -67,7 +84,7 @@ enum edge_color {
     MAGENTA = 5,
     CYAN = 6,
     WHITE = 7
-};
+} edge_color_t;
 
 // the possible types:
 // STBTT_vmove  = start of a contour
@@ -506,36 +523,162 @@ int signed_compare(signed_distance_t a, signed_distance_t b)
   return fabs(a.dist) < fabs(b.dist) || (fabs(a.dist) == fabs(b.dist) && a.d < b.d);
 }
 
-double median(double a, double b, double c)
-{
-  return MAX(MIN(a, b), MIN(MAX(a, b), c));
-}
-
 int is_corner(vec2 a, vec2 b, double threshold)
 {
   return vec2_mul_inner(a, b) <= 0 || fabs(cross(a, b)) > threshold;
 }
 
-void switch_color(int *color, unsigned long long *seed, int banned)
+void switch_color(edge_color_t *color, unsigned long long *seed, edge_color_t banned)
 {
-  int combined = *color & banned;
+  edge_color_t combined = *color & banned;
   if (combined == RED || combined == GREEN || combined == BLUE) {
-    *color = combined ^ WHITE;
+    *color = (edge_color_t)(combined ^ WHITE);
     return;
   }
 
   if (*color == BLACK || *color == WHITE) {
-    static const int start[3] = {CYAN, MAGENTA, YELLOW};
+    static const edge_color_t start[3] = {CYAN, MAGENTA, YELLOW};
     *color = start[*seed & 3];
     *seed /= 3;
     return;
   }
 
   int shifted = *color<<(1+(*seed&1));
-  *color = (shifted|shifted>>3)&WHITE;
+  *color = (edge_color_t)((shifted|shifted>>3)&WHITE);
   *seed >>= 1;
 }
 
+void linear_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
+{
+  vec2 p;
+  
+  point(p, e, 1/3.0);
+  memcpy(&p1->p[0], e->p[0] , sizeof(vec2));
+  memcpy(&p1->p[1], p, sizeof(vec2));
+  p1->color = e->color;
+  
+  point(p, e, 1/3.0);
+  memcpy(&p2->p[0], p , sizeof(vec2));
+  point(p, e, 2/3.0);
+  memcpy(&p2->p[1], p, sizeof(vec2));
+  p2->color = e->color;
+
+  point(p, e, 2/3.0);
+  memcpy(&p3->p[0], p , sizeof(vec2));
+  point(p, e, 2/3.0);
+  memcpy(&p3->p[1], e->p[1], sizeof(vec2));
+  p3->color = e->color;
+}
+
+void quadratic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
+{
+  vec2 p,a,b;
+  
+  memcpy(&p1->p[0], e->p[0] , sizeof(vec2));
+  mix(p, e->p[0], e->p[1], 1/3.0);
+  memcpy(&p1->p[1], p, sizeof(vec2));
+  point(p, e, 1/3.0);
+  memcpy(&p1->p[2], p, sizeof(vec2));
+  p1->color = e->color;
+  
+  point(p, e, 1/3.0);
+  memcpy(&p2->p[0], p , sizeof(vec2));
+  mix(a, e->p[0], e->p[1], 5/9.0);
+  mix(b, e->p[1], e->p[2], 4/9.0);
+  mix(p, a, b, 0.5);
+  memcpy(&p2->p[1], p, sizeof(vec2));
+  point(p, e, 2/3.0);
+  memcpy(&p2->p[2], p, sizeof(vec2));
+  p2->color = e->color;
+
+  point(p, e, 2/3.0);
+  memcpy(&p3->p[0], p , sizeof(vec2));
+  mix(p, e->p[1], e->p[2], 2/3.0);
+  memcpy(&p3->p[1], p, sizeof(vec2));
+  memcpy(&p3->p[2], e->p[2], sizeof(vec2));
+  p3->color = e->color;
+}
+
+void cubic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
+{
+  vec2 p,a,b,c,d;
+  
+  memcpy(&p1->p[0], e->p[0], sizeof(vec2)); // p1 0
+  if (e->p[0] == e->p[1]) {
+    memcpy(&p1->p[1], e->p[0], sizeof(vec2)); // ? p1 1
+  } else {
+    mix(p, e->p[0], e->p[1], 1/3.0);
+    memcpy(&p1->p[1], p, sizeof(vec2)); // ? p1 1
+  }
+  mix(a, e->p[0], e->p[1], 1/3.0);
+  mix(b, e->p[1], e->p[2], 1/3.0);
+  mix(p, a, b, 1/3.0);
+  memcpy(&p1->p[2], p, sizeof(vec2)); // p1 2
+  point(p, e, 1/3.0);
+  memcpy(&p1->p[3], p, sizeof(vec2)); // p1 3
+  p1->color = e->color;
+
+  point(p, e, 1/3.0);
+  memcpy(&p2->p[0], p, sizeof(vec2)); // p2 0
+  mix(a, e->p[0], e->p[1], 1/3.0);
+  mix(b, e->p[1], e->p[2], 1/3.0);
+  mix(c, a, b, 1/3.0);
+  mix(a, e->p[1], e->p[2], 1/3.0);
+  mix(b, e->p[2], e->p[3], 1/3.0);
+  mix(d, a, b, 1/3.0);
+  mix(p, c, d, 2/3.0);
+  memcpy(&p2->p[1], p, sizeof(vec2)); // p2 1
+  mix(a, e->p[0], e->p[1], 2/3.0);
+  mix(b, e->p[1], e->p[2], 2/3.0);
+  mix(c, a, b, 2/3.0);
+  mix(a, e->p[1], e->p[2], 2/3.0);
+  mix(b, e->p[2], e->p[3], 2/3.0);
+  mix(d, a, b, 2/3.0);
+  mix(p, c, d, 1/3.0);
+  memcpy(&p2->p[2], p, sizeof(vec2)); // p2 2
+  point(p, e, 2/3.0);
+  memcpy(&p2->p[3], p, sizeof(vec2)); // p2 3
+  p2->color = e->color;
+
+  point(p, e, 2/3.0);
+  memcpy(&p3->p[0], p, sizeof(vec2)); // p3 0
+
+  mix(a, e->p[1], e->p[2], 2/3.0);
+  mix(b, e->p[2], e->p[3], 2/3.0);
+  mix(p, a, b, 2/3.0);
+  memcpy(&p3->p[1], p, sizeof(vec2)); // p3 1
+
+  if (e->p[2] == e->p[3]) {
+    memcpy(&p3->p[2], e->p[3], sizeof(vec2)); // ? p3 2
+  } else {
+    mix(p, e->p[2], e->p[3], 2/3.0);
+    memcpy(&p3->p[2], p, sizeof(vec2)); // ? p3 2
+  }
+
+  memcpy(&p3->p[3], e->p[3], sizeof(vec2)); // p3 3
+}
+
+void edge_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
+{
+  switch (e->type) {
+    case STBTT_vmove: {
+      linear_split(e, p1, p2, p3);
+      break;
+    }
+    case STBTT_vline: {
+      linear_split(e, p1, p2, p3);
+      break;
+    }
+    case STBTT_vcurve: {
+      quadratic_split(e, p1, p2, p3);
+      break;
+    }
+    case STBTT_vcubic: {
+      cubic_split(e, p1, p2, p3);
+      break;
+    }
+  }
+}
 
 float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 {
@@ -543,7 +686,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   memset(bitmap, 0, sizeof(float)*3*w*h);
 
   stbtt_vertex *verts;
-  int num_verts = stbtt_GetGlyphShape(font, c, &verts);
+  int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
   
   int winding_count      = 0;
   int *winding_lengths   = NULL;
@@ -656,7 +799,8 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   }
 
   // calculate edge-colors
-  double anglethreshold = 1.0f;
+  unsigned long long seed = 0;
+  double anglethreshold = 3.0;
   double crossthreshold = sin(anglethreshold);
   size_t corner_count = 0;
   for (int i=0; i<contour_count; ++i)
@@ -687,7 +831,60 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
       for (int j=0; i<contour_data[i].edge_count; ++j)
         contour_data[i].edges[j].color = WHITE;
     } else if (corner_index == 1) {
-      // int colors[3] = { }
+      edge_color_t colors[3] = {WHITE, WHITE};
+      switch_color(&colors[0], &seed, BLACK);
+      colors[2] = colors[0];
+      switch_color(&colors[2], &seed, BLACK);
+
+      int corner = corners[0];
+      if (contour_data[i].edge_count >= 3) {
+        int m = contour_data[i].edge_count;
+        for (int i=0; i<m; ++i)
+          contour_data[i].edges[(corner+i)%m].color = (colors+1)[(int)(3+2.875*i/(m-1)-1.4375+.5)-3];
+      } else if (contour_data[i].edge_count >= 1) {
+        edge_segment_t *parts[7] = {};
+        edge_split(&contour_data[i].edges[0], parts[3-3*corner], parts[4-3*corner], parts[5-3*corner]);
+        if (contour_data[i].edge_count >= 2) {
+          edge_split(&contour_data[i].edges[1], parts[3-3*corner], parts[4-3*corner], parts[5-3*corner]);
+          parts[0]->color = parts[1]->color = colors[0];
+          parts[2]->color = parts[3]->color = colors[1];
+          parts[4]->color = parts[5]->color = colors[2];
+        } else {
+          parts[0]->color = colors[0];
+          parts[1]->color = colors[1];
+          parts[2]->color = colors[2];
+        }
+        free(contour_data[i].edges);
+        contour_data[i].edges = malloc(sizeof(edge_segment_t) * 7);
+        contour_data[i].edge_count = 7;
+        int index = 0;
+        for (int j = 0; parts[j]; ++j) {
+          memcpy(&contour_data[i].edges[index].p[0], &parts[j]->p[0], sizeof(vec2));
+          memcpy(&contour_data[i].edges[index].p[1], &parts[j]->p[1], sizeof(vec2));
+          memcpy(&contour_data[i].edges[index].p[2], &parts[j]->p[2], sizeof(vec2));
+          memcpy(&contour_data[i].edges[index].p[3], &parts[j]->p[3], sizeof(vec2));
+          contour_data[i].edges[index].type = parts[j]->type;
+          contour_data[i].edges[index].color = parts[j]->color;
+          index++;
+        }
+      }
+    } else {
+      int spline = 0;
+      int start = corners[0];
+      int m = contour_data[i].edge_count;
+      edge_color_t color = WHITE;
+      switch_color(&color, &seed, BLACK);
+      edge_color_t initial_color = color;
+      for (int j=0; j<m; ++j) {
+        int index = (start+j)%m;
+        if (spline+1 < corner_count && corners[spline+1] == index) {
+          ++spline;
+
+          edge_color_t s = spline == (edge_color_t)((corner_count-1)*initial_color);
+          switch_color(&color, &seed, s);
+        }
+        contour_data[i].edges[index].color = color;
+      }
     }
   }
 
@@ -699,9 +896,16 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   multi_distance_t *contour_sd;
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
-  for (int y=0; y<h; y++) {
-    for (int x=0; x<w; x++) {
-      vec2 p = {(x+.5), (y+.5)};
+  int sx, sy, ix, iy;
+  int left_bearing, advance;
+  stbtt_GetCodepointBitmapBox(font, stbtt_FindGlyphIndex(font,c), 16, 16, &sx, &sy, &ix, &iy);
+  stbtt_GetCodepointHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
+  left_bearing /= w;
+
+  for (int y=0; y<h; ++y) {
+    int row = sy > iy ? y : h-y-1; // broken?
+    for (int x=0; x<w; ++x) {
+      vec2 p = {(x+.5)*0.5-left_bearing, (y+.5)*0.5-4.0f};
 
       edge_point_t sr, sg, sb;
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
@@ -766,7 +970,8 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         double med_min_dist = fabs(median(r.min_distance.dist, g.min_distance.dist, b.min_distance.dist));
 
         // this is wrong?
-        int w = stbtt__compute_crossings_x(p[0], p[1], num_verts, verts);
+        // int w = stbtt__compute_crossings_x(p[0], p[1], num_verts, verts);
+        int w = winding_lengths[j];
         if (med_min_dist < d) {
           d = med_min_dist;
           winding = -w;
@@ -824,7 +1029,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         msd.b = sb.min_distance.dist;
       }
 
-      size_t index = 3*((y*w)+x);
+      size_t index = 3*((row*w)+x);
       bitmap[index] = (float)msd.r/RANGE+.5;   // r
       bitmap[index+1] = (float)msd.g/RANGE+.5; // g
       bitmap[index+2] = (float)msd.b/RANGE+.5; // b
