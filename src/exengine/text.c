@@ -10,8 +10,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define INF   -1e240
+#define INF   -1e24
 #define RANGE 1.0
+
+// pixel at (x, y) in bitmap (arr)
+#define P(x, y, w, arr) ((vec3){arr[(3*((y*w)+x))], arr[(3*((y*w)+x))+1], arr[(3*((y*w)+x))+2]})
 
 double median(double a, double b, double c)
 {
@@ -36,17 +39,18 @@ ex_font_t* ex_font_load(const char *path)
 
   // generate a msdf bitmap
   // this is all just debug vomit
-  // its due to be replaced
+  // its due to be replaced 冥
   int size = 64;
-  float *bitmap = ex_font_msdf(&font, 'V', size, size);
-  uint8_t *shitmap = malloc(3*size*size); // lol dont even free this who cares
+  float *bitmap = ex_font_msdf(&font, '冥', size, size);
+  uint8_t *shitmap = malloc(3*size*size);
+  memset(shitmap, 0, 3*size*size);
   for (int y=0; y<size; y++) {
     for (int x=0; x<size; x++) {
       size_t index = 3*((y*size)+x);
 
       // im certain this isnt how you math
       float v = median(bitmap[index], bitmap[index+1], bitmap[index+2]) - 0.5;
-      v *= vec2_mul_inner((vec2){1.0f/size, 1.0f/size}, (vec2){64, 64});
+      v *= vec2_mul_inner((vec2){2.0f/size, 2.0f/size}, (vec2){x/0.5, y/0.5});
       float a = MAX(0.0, MIN(v + 0.5, 1.0));
       a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
 
@@ -55,14 +59,14 @@ ex_font_t* ex_font_load(const char *path)
       shitmap[index+1] = 255*a;//(uint8_t)(255*(bitmap[index+1]+64)/64);
       shitmap[index+2] = 255*a;//(uint8_t)(255*(bitmap[index+2]+64)/64);
     }
-    printf("\n");
   }
 
-  // write to a png just to debug
-  // why the fuck else would I write to a png?
+  // debug output
   stbi_write_png("out.png", size, size, 3, shitmap, size*3);
 
   free(data);
+  free(bitmap);
+  free(shitmap);
   printf("[TEXT] Done generating msdf font for %s\n", path);
 
   // ex_font_t *f = malloc(sizeof(ex_font_t));
@@ -194,6 +198,37 @@ void getortho(vec2 r, vec2 const v, int polarity, int allow_zero)
   }
 }
 
+int pixel_clash(const vec3 a, const vec3 b, double threshold)
+{
+    int aIn = (a[0] > .5f)+(a[1] > .5f)+(a[2] > .5f) >= 2;
+    int bIn = (b[0] > .5f)+(b[1] > .5f)+(b[2] > .5f) >= 2;
+    if (aIn != bIn) return 0;
+    if ((a[0] > .5f && a[1] > .5f && a[2] > .5f) || (a[0] < .5f && a[1] < .5f && a[2] < .5f)
+        || (b[0] > .5f && b[1] > .5f && b[2] > .5f) || (b[0] < .5f && b[1] < .5f && b[2] < .5f))
+        return 0;
+    float aa, ab, ba, bb, ac, bc;
+    if ((a[0] > .5f) != (b[0] > .5f) && (a[0] < .5f) != (b[0] < .5f)) {
+        aa = a[0], ba = b[0];
+        if ((a[1] > .5f) != (b[1] > .5f) && (a[1] < .5f) != (b[1] < .5f)) {
+            ab = a[1], bb = b[1];
+            ac = a[2], bc = b[2];
+        } else if ((a[2] > .5f) != (b[2] > .5f) && (a[2] < .5f) != (b[2] < .5f)) {
+            ab = a[2], bb = b[2];
+            ac = a[1], bc = b[1];
+        } else
+            return 0; // this should never happen
+    } else if ((a[1] > .5f) != (b[1] > .5f) && (a[1] < .5f) != (b[1] < .5f)
+        && (a[2] > .5f) != (b[2] > .5f) && (a[2] < .5f) != (b[2] < .5f)) {
+        aa = a[1], ba = b[1];
+        ab = a[2], bb = b[2];
+        ac = a[0], bc = b[0];
+    } else
+        return 0;
+    return (fabsf(aa-ba) >= threshold)
+        && (fabsf(ab-bb) >= threshold)
+        && fabsf(ac-.5f) >= fabsf(bc-.5f);
+}
+
 void mix(vec2 r, vec2 a, vec2 b, double weight)
 { 
   r[0] = (1-weight)*a[0]+weight*b[0];
@@ -244,10 +279,6 @@ void cubic_direction(vec2 r, edge_segment_t *e, double param)
 void direction(vec2 r, edge_segment_t *e, double param)
 {
   switch (e->type) {
-    case STBTT_vmove: {
-      linear_direction(r, e, param);
-      break;
-    }
     case STBTT_vline: {
       linear_direction(r, e, param);
       break;
@@ -293,10 +324,6 @@ void cubic_point(vec2 r, edge_segment_t *e, double param)
 void point(vec2 r, edge_segment_t *e, double param)
 {
   switch (e->type) {
-    case STBTT_vmove: {
-      linear_point(r, e, param);
-      break;
-    }
     case STBTT_vline: {
       linear_point(r, e, param);
       break;
@@ -490,10 +517,12 @@ signed_distance_t cubic_dist(edge_segment_t *e, vec2 origin, double *param)
 void dist_to_pseudo(signed_distance_t *distance, vec2 origin, double param, edge_segment_t *e)
 {
   if (param < 0) {
-    vec2 dir;
+    vec2 dir, p;
     direction(dir, e, 0);
     vec2_norm(dir, dir);
     vec2 aq  = {origin[0], origin[1]};
+    point(p, e, 0);
+    vec2_sub(aq, origin, p);
     double ts = vec2_mul_inner(aq, dir);
     if (ts < 0) {
       double pseudo_dist = cross(aq, dir);
@@ -503,10 +532,12 @@ void dist_to_pseudo(signed_distance_t *distance, vec2 origin, double param, edge
       }
     }
   } else if (param > 1) {
-    vec2 dir;
+    vec2 dir,p;
     direction(dir, e, 1);
     vec2_norm(dir, dir);
-    vec2 bq  = {origin[0]-1, origin[1]-1};
+    vec2 bq  = {origin[0], origin[1]};
+    point(p, e, 1);
+    vec2_sub(bq, origin, p);
     double ts = vec2_mul_inner(bq, dir);
     if (ts > 0) {
       double pseudo_dist = cross(bq, dir);
@@ -661,10 +692,6 @@ void cubic_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge
 void edge_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_segment_t *p3)
 {
   switch (e->type) {
-    case STBTT_vmove: {
-      linear_split(e, p1, p2, p3);
-      break;
-    }
     case STBTT_vline: {
       linear_split(e, p1, p2, p3);
       break;
@@ -752,6 +779,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         case STBTT_vmove: {
           vec2 p = {v->x/64.0, v->y/64.0};
           memcpy(&initial, p, sizeof(vec2));
+          contour_data->edge_count++;
           break;
         }
 
@@ -798,6 +826,20 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
     }
   }
 
+  // normalize shape
+  for (int i=0; i<contour_count; i++) {
+    if (contour_data[i].edge_count == 1) {
+      edge_segment_t *parts[3] = {};
+      edge_split(&contour_data[i].edges[0], parts[0], parts[1], parts[2]);
+      free(contour_data[i].edges);
+      contour_data[i].edges = malloc(sizeof(edge_segment_t) * 3);
+      contour_data[i].edge_count = 3;
+      for (int j=0; j<3; j++)
+        memcpy(&contour_data[i].edges[j], &parts[j], sizeof(edge_segment_t));
+    }
+  }
+  
+
   // calculate edge-colors
   unsigned long long seed = 0;
   double anglethreshold = 3.0;
@@ -843,7 +885,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
           contour_data[i].edges[(corner+i)%m].color = (colors+1)[(int)(3+2.875*i/(m-1)-1.4375+.5)-3];
       } else if (contour_data[i].edge_count >= 1) {
         edge_segment_t *parts[7] = {};
-        edge_split(&contour_data[i].edges[0], parts[3-3*corner], parts[4-3*corner], parts[5-3*corner]);
+        edge_split(&contour_data[i].edges[0], parts[0+3*corner], parts[1+3*corner], parts[2+3*corner]);
         if (contour_data[i].edge_count >= 2) {
           edge_split(&contour_data[i].edges[1], parts[3-3*corner], parts[4-3*corner], parts[5-3*corner]);
           parts[0]->color = parts[1]->color = colors[0];
@@ -856,16 +898,11 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         }
         free(contour_data[i].edges);
         contour_data[i].edges = malloc(sizeof(edge_segment_t) * 7);
-        contour_data[i].edge_count = 7;
+        contour_data[i].edge_count = 0;
         int index = 0;
         for (int j = 0; parts[j]; ++j) {
-          memcpy(&contour_data[i].edges[index].p[0], &parts[j]->p[0], sizeof(vec2));
-          memcpy(&contour_data[i].edges[index].p[1], &parts[j]->p[1], sizeof(vec2));
-          memcpy(&contour_data[i].edges[index].p[2], &parts[j]->p[2], sizeof(vec2));
-          memcpy(&contour_data[i].edges[index].p[3], &parts[j]->p[3], sizeof(vec2));
-          contour_data[i].edges[index].type = parts[j]->type;
-          contour_data[i].edges[index].color = parts[j]->color;
-          index++;
+          memcpy(&contour_data[i].edges[index++], &parts[j], sizeof(edge_segment_t));
+          contour_data[i].edge_count++;
         }
       }
     } else {
@@ -880,7 +917,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         if (spline+1 < corner_count && corners[spline+1] == index) {
           ++spline;
 
-          edge_color_t s = spline == (edge_color_t)((corner_count-1)*initial_color);
+          edge_color_t s = (edge_color_t)((spline == corner_count-1)*initial_color);
           switch_color(&color, &seed, s);
         }
         contour_data[i].edges[index].color = color;
@@ -911,6 +948,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
       sr.near_param = sg.near_param = sb.near_param = 0;
       sr.min_distance.dist = sg.min_distance.dist = sb.min_distance.dist = INF;
+      sr.min_distance.d = sg.min_distance.d = sb.min_distance.d = 1;
       double d = fabs(INF);
       double neg_dist = -INF;
       double pos_dist = INF;
@@ -921,11 +959,14 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         r.near_edge = g.near_edge = b.near_edge = NULL;
         r.near_param = g.near_param = b.near_param = 0;
         r.min_distance.dist = g.min_distance.dist = b.min_distance.dist = INF;
+        r.min_distance.d = g.min_distance.d = b.min_distance.d = 1;
 
         for (int k=0; k<contour_data[j].edge_count; ++k) {
           edge_segment_t *e = &contour_data[j].edges[k];
           double param;
           signed_distance_t distance;
+          distance.dist = INF;
+          distance.d = 1;
 
           // calculate signed distance
           switch (e->type) {
@@ -971,10 +1012,10 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 
         // this is wrong?
         // int w = stbtt__compute_crossings_x(p[0], p[1], num_verts, verts);
-        int w = winding_lengths[j];
+        int wind = winding_lengths[j];
         if (med_min_dist < d) {
           d = med_min_dist;
-          winding = -w;
+          winding = -wind;
         }
 
         if (r.near_edge)
@@ -990,9 +1031,9 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         contour_sd[j].b = b.min_distance.dist;
         contour_sd[j].med = med_min_dist;
 
-        if (w > 0 && med_min_dist >= 0 && fabs(med_min_dist) < fabs(pos_dist))
+        if (wind > 0 && med_min_dist >= 0 && fabs(med_min_dist) < fabs(pos_dist))
           pos_dist = med_min_dist;
-        if (w < 0 && med_min_dist <= 0 && fabs(med_min_dist) < fabs(neg_dist))
+        if (wind < 0 && med_min_dist <= 0 && fabs(med_min_dist) < fabs(neg_dist))
           neg_dist = med_min_dist;
       }
 
@@ -1009,18 +1050,18 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         msd.med = INF;
         winding = 1;
         for (int i=0; i<contour_count; ++i)
-          if (w > 0 && contour_sd[i].med > msd.med && fabs(contour_sd[i].med) < fabs(neg_dist))
+          if (winding_lengths[i] > 0 && contour_sd[i].med > msd.med && fabs(contour_sd[i].med) < fabs(neg_dist))
             msd = contour_sd[i];
       } else if (neg_dist <= 0 && fabs(neg_dist) <= fabs(pos_dist)) {
         msd.med = -INF;
         winding = -1;
         for (int i=0; i<contour_count; ++i)
-          if (w < 0 && contour_sd[i].med < msd.med && fabs(contour_sd[i].med) < fabs(pos_dist))
+          if (winding_lengths[i] < 0 && contour_sd[i].med < msd.med && fabs(contour_sd[i].med) < fabs(pos_dist))
             msd = contour_sd[i];
       }
 
       for (int i=0; i<contour_count; ++i)
-        if (w != winding && fabs(contour_sd[i].med) < fabs(msd.med))
+        if (winding_lengths[i] != winding && fabs(contour_sd[i].med) < fabs(msd.med))
           msd = contour_sd[i];
 
       if (median(sr.min_distance.dist, sg.min_distance.dist, sb.min_distance.dist) == msd.med) {
@@ -1035,6 +1076,44 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
       bitmap[index+2] = (float)msd.b/RANGE+.5; // b
     }
   }
+  for (int i=0; i<contour_count; i++) {
+    free(contour_data[i].edges);
+    free(contour_data);
+  }
+  free(contour_sd);
+  free(contours);
+
+  typedef struct {
+    int x, y;
+  } clashes_t;
+  clashes_t *clashes = malloc(sizeof(clashes_t) * w * h);
+  size_t cindex = 0;
+
+  // msdf error correction
+  // somehow this is so broken that it actually makes it WORSE
+  double tx = 1.00000001*0.5-left_bearing;
+  double ty = 1.00000001*0.5-4.0f;
+  for (int y=0; y<h; y++) {
+    for (int x=0; x<w; x++) {
+      if ((x > 0  && pixel_clash(P(x, y, w, bitmap), P(x-1, y, w, bitmap), tx))
+      || (x < w-1 && pixel_clash(P(x, y, w, bitmap), P(x+1, y, w, bitmap), tx))
+      || (y > 0   && pixel_clash(P(x, y, w, bitmap), P(x, y-1, w, bitmap), ty))
+      || (y < h-1 && pixel_clash(P(x, y, w, bitmap), P(x, y+1, w, bitmap), ty))
+        ) {
+          clashes[cindex].x   = x;
+          clashes[cindex++].y = y;
+      }
+    }
+  }
+
+  for (int i=0; i<cindex; i++) {
+    size_t index = (clashes[i].y*w)+clashes[i].x;
+    float med = median(bitmap[index], bitmap[index+1], bitmap[index+2]);
+    // bitmap[index+0] = med;
+    // bitmap[index+1] = med;
+    // bitmap[index+2] = med;
+  }
+  free(clashes);
 
   return bitmap;
 }
