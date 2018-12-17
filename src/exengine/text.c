@@ -41,7 +41,7 @@ ex_font_t* ex_font_load(const char *path)
   // this is all just debug vomit
   // its due to be replaced 冥
   int size = 64;
-  float *bitmap = ex_font_msdf(&font, 'O', size, size);
+  float *bitmap = ex_font_msdf(&font, 'z', size, size);
   uint8_t *shitmap = malloc(3*size*size);
   memset(shitmap, 0, 3*size*size);
   for (int y=0; y<size; y++) {
@@ -987,16 +987,30 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   multi_distance_t *contour_sd;
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
-  int sx, sy, ix, iy;
+  float scale = stbtt_ScaleForPixelHeight(font, h);
+
   int left_bearing, advance;
-  stbtt_GetCodepointBitmapBox(font, stbtt_FindGlyphIndex(font,c), 16, 16, &sx, &sy, &ix, &iy);
   stbtt_GetCodepointHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
-  left_bearing /= w;
+  left_bearing *= scale;
+
+  int ascent, descent;
+  stbtt_GetFontVMetrics(font, &ascent, &descent, 0);
+  int baseline = h-(int)(ascent*scale);
+  printf("BASELINE %i %i\n", baseline, left_bearing);
+
+  int ix0, iy0, ix1, iy1;
+  stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
+  float scale_y = (float)(iy1 - iy0);
+  printf("SCALE %f %f \n", scale_y, scale);
+
+  int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
+  int translate_y = (h/2)-((iy1 - iy0)*scale)/2;
+  scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
-    int row = sy > iy ? y : h-y-1; // broken?
+    int row = iy0 > iy1 ? y : h-y-1; // broken?
     for (int x=0; x<w; ++x) {
-      vec2 p = {(x+.5)*0.5-left_bearing, (y+.5)*0.5-4.0f};
+      vec2 p = {(x+.5-translate_x)/scale, (y+.5-translate_y)/scale};
 
       edge_point_t sr, sg, sb;
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
