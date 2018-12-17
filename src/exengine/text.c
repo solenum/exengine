@@ -41,7 +41,7 @@ ex_font_t* ex_font_load(const char *path)
   // this is all just debug vomit
   // its due to be replaced 冥
   int size = 64;
-  float *bitmap = ex_font_msdf(&font, '冥', size, size);
+  float *bitmap = ex_font_msdf(&font, 'O', size, size);
   uint8_t *shitmap = malloc(3*size*size);
   memset(shitmap, 0, 3*size*size);
   for (int y=0; y<size; y++) {
@@ -707,6 +707,11 @@ void edge_split(edge_segment_t *e, edge_segment_t *p1, edge_segment_t *p2, edge_
   }
 }
 
+double shoelace (const vec2 a, const vec2 b)
+{
+  return (b[0]-a[0])*(a[1]+b[1]);
+}
+
 float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
@@ -715,18 +720,19 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   stbtt_vertex *verts;
   int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
   
-  int winding_count      = 0;
-  int *winding_lengths   = NULL;
-  stbtt__point *windings = stbtt_FlattenCurves(verts, num_verts, 1, &winding_lengths, &winding_count, 0);
-  
-  printf("[TEXT] Number of contours for '%c': %i\n", c, winding_count);
-  printf("[TEXT] Number of verts for '%c': %i\n", c, num_verts);
-
   // figure out how many contours exist
   int contour_count = 0;
   for (int i=0; i<num_verts; i++) {
     if (verts[i].type == STBTT_vmove)
       contour_count++;
+  }
+
+  printf("[TEXT] Number of contours for '%c': %i\n", c, contour_count);
+  printf("[TEXT] Number of verts for '%c': %i\n", c, num_verts);
+
+  if (contour_count == 0) {
+    free(bitmap);
+    return NULL;
   }
 
   // determin what vertices belong to what contours
@@ -770,7 +776,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
     size_t k = 0;
     for (int j=contours[i].start; j<contours[i].end; j++) {
 
-      edge_segment_t *e = &contour_data[i].edges[k++];
+      edge_segment_t *e = &contour_data[i].edges[k];
       stbtt_vertex *v   = &verts[j];
       e->type  = v->type;
       e->color = WHITE;
@@ -779,7 +785,6 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         case STBTT_vmove: {
           vec2 p = {v->x/64.0, v->y/64.0};
           memcpy(&initial, p, sizeof(vec2));
-          contour_data->edge_count++;
           break;
         }
 
@@ -788,7 +793,8 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
           memcpy(&e->p[0], initial, sizeof(vec2));
           memcpy(&e->p[1], p, sizeof(vec2));
           memcpy(&initial, p, sizeof(vec2));
-          contour_data->edge_count++;
+          contour_data[i].edge_count++;
+          k++;
           break;
         }
 
@@ -806,7 +812,8 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
           }
 
           memcpy(&initial, p, sizeof(vec2));
-          contour_data->edge_count++;
+          contour_data[i].edge_count++;
+          k++;
           break;
         }
 
@@ -819,26 +826,17 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
           memcpy(&e->p[2], c1, sizeof(vec2));
           memcpy(&e->p[3], p, sizeof(vec2));
           memcpy(&initial, p, sizeof(vec2));
-          contour_data->edge_count++;
+          contour_data[i].edge_count++;
+          k++;
           break;
         }
-      }
+      } 
     }
-  }
 
-  // normalize shape
-  for (int i=0; i<contour_count; i++) {
-    if (contour_data[i].edge_count == 1) {
-      edge_segment_t *parts[3] = {};
-      edge_split(&contour_data[i].edges[0], parts[0], parts[1], parts[2]);
-      free(contour_data[i].edges);
-      contour_data[i].edges = malloc(sizeof(edge_segment_t) * 3);
-      contour_data[i].edge_count = 3;
-      for (int j=0; j<3; j++)
-        memcpy(&contour_data[i].edges[j], &parts[j], sizeof(edge_segment_t));
-    }
+    printf("Number of edges for contour %i: %zu\n", i, contour_data[i].edge_count);
+    printf("COUNT %zu\n", count);
+    printf("Start: %zu End: %zu\n", contours[i].start, contours[i].end);
   }
-  
 
   // calculate edge-colors
   unsigned long long seed = 0;
@@ -870,7 +868,7 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
     }
 
     if (corner_index == 0) {
-      for (int j=0; i<contour_data[i].edge_count; ++j)
+      for (int j=0; j<contour_data[i].edge_count; ++j)
         contour_data[i].edges[j].color = WHITE;
     } else if (corner_index == 1) {
       edge_color_t colors[3] = {WHITE, WHITE};
@@ -923,6 +921,62 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         contour_data[i].edges[index].color = color;
       }
     }
+  }
+
+  // normalize shape
+  for (int i=0; i<contour_count; i++) {
+    if (contour_data[i].edge_count == 1) {
+      edge_segment_t *parts[3] = {};
+      edge_split(&contour_data[i].edges[0], parts[0], parts[1], parts[2]);
+      free(contour_data[i].edges);
+      contour_data[i].edges = malloc(sizeof(edge_segment_t) * 3);
+      contour_data[i].edge_count = 3;
+      for (int j=0; j<3; j++)
+        memcpy(&contour_data[i].edges[j], &parts[j], sizeof(edge_segment_t));
+    }
+  }
+
+  // calculate windings
+  int *windings = malloc(sizeof(int) * contour_count);
+  for (int i=0; i<contour_count; i++) {
+    size_t edge_count = contour_data[i].edge_count;
+    if (edge_count == 0) {
+      windings[i] = 0;
+      continue;
+    }
+
+    double total = 0;
+
+    if (edge_count == 1) {
+      vec2 a,b,c;
+      point(a, &contour_data[i].edges[0], 0);
+      point(b, &contour_data[i].edges[0], 1/3.0);
+      point(c, &contour_data[i].edges[0], 2/3.0);
+      total += shoelace(a, b);
+      total += shoelace(b, c);
+      total += shoelace(c, a);
+    } else if (edge_count == 2) {
+      vec2 a,b,c,d;
+      point(a, &contour_data[i].edges[0], 0);
+      point(b, &contour_data[i].edges[0], 0.5);
+      point(c, &contour_data[i].edges[1], 0);
+      point(d, &contour_data[i].edges[1], 0.5);
+      total += shoelace(a, b);
+      total += shoelace(b, c);
+      total += shoelace(c, d);
+      total += shoelace(d, a);
+    } else {
+      vec2 prev;
+      point(prev, &contour_data[i].edges[edge_count-1], 0);
+      for (int j=0; j<edge_count; j++) {
+        vec2 cur;
+        point(cur, &contour_data[i].edges[j], 0);
+        total += shoelace(prev, cur);
+        memcpy(prev, cur, sizeof(vec2));
+      }
+    }
+
+    windings[i] = ((0 < total)-(total < 0));
   }
 
   typedef struct {
@@ -1010,12 +1064,9 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
 
         double med_min_dist = fabs(median(r.min_distance.dist, g.min_distance.dist, b.min_distance.dist));
 
-        // this is wrong?
-        // int w = stbtt__compute_crossings_x(p[0], p[1], num_verts, verts);
-        int wind = winding_lengths[j];
         if (med_min_dist < d) {
           d = med_min_dist;
-          winding = -wind;
+          winding = -windings[j];
         }
 
         if (r.near_edge)
@@ -1031,9 +1082,9 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         contour_sd[j].b = b.min_distance.dist;
         contour_sd[j].med = med_min_dist;
 
-        if (wind > 0 && med_min_dist >= 0 && fabs(med_min_dist) < fabs(pos_dist))
+        if (windings[j] > 0 && med_min_dist >= 0 && fabs(med_min_dist) < fabs(pos_dist))
           pos_dist = med_min_dist;
-        if (wind < 0 && med_min_dist <= 0 && fabs(med_min_dist) < fabs(neg_dist))
+        if (windings[j] < 0 && med_min_dist <= 0 && fabs(med_min_dist) < fabs(neg_dist))
           neg_dist = med_min_dist;
       }
 
@@ -1050,18 +1101,18 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         msd.med = INF;
         winding = 1;
         for (int i=0; i<contour_count; ++i)
-          if (winding_lengths[i] > 0 && contour_sd[i].med > msd.med && fabs(contour_sd[i].med) < fabs(neg_dist))
+          if (windings[i] > 0 && contour_sd[i].med > msd.med && fabs(contour_sd[i].med) < fabs(neg_dist))
             msd = contour_sd[i];
       } else if (neg_dist <= 0 && fabs(neg_dist) <= fabs(pos_dist)) {
         msd.med = -INF;
         winding = -1;
         for (int i=0; i<contour_count; ++i)
-          if (winding_lengths[i] < 0 && contour_sd[i].med < msd.med && fabs(contour_sd[i].med) < fabs(pos_dist))
+          if (windings[i] < 0 && contour_sd[i].med < msd.med && fabs(contour_sd[i].med) < fabs(pos_dist))
             msd = contour_sd[i];
       }
 
       for (int i=0; i<contour_count; ++i)
-        if (winding_lengths[i] != winding && fabs(contour_sd[i].med) < fabs(msd.med))
+        if (windings[i] != winding && fabs(contour_sd[i].med) < fabs(msd.med))
           msd = contour_sd[i];
 
       if (median(sr.min_distance.dist, sg.min_distance.dist, sb.min_distance.dist) == msd.med) {
@@ -1076,10 +1127,9 @@ float* ex_font_msdf(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
       bitmap[index+2] = (float)msd.b/RANGE+.5; // b
     }
   }
-  for (int i=0; i<contour_count; i++) {
+  for (int i=0; i<contour_count; i++)
     free(contour_data[i].edges);
-    free(contour_data);
-  }
+  free(contour_data);
   free(contour_sd);
   free(contours);
 
