@@ -281,14 +281,15 @@ void ex_model_set_pose(ex_model_t *m, ex_frame_t frame)
 
 void ex_model_set_anim(ex_model_t *m, char *id)
 {
-  for (int i = 0; i < m->anims_len; i++)
+  for (int i = 0; i < m->anims_len; i++) { 
     if(!strcmp(m->anims[i].name, id)) {
       m->current_anim = &m->anims[i];
       break;
     }
+  }
 
-    if(m->current_anim == NULL)
-      return;
+  if(m->current_anim == NULL)
+    return;
 
   m->current_time  = 0;
   m->current_frame = m->current_anim->first;

@@ -126,6 +126,9 @@ static int conf_load(conf_t *conf, const char *path)
       case conf_type_int:
         printf("%i\n", conf_get_int(conf, conf->vars[i].key));
         break;
+      case conf_type_undefined:
+        printf("Undefined at index %i\n", i);
+        break;
     }
   }
 

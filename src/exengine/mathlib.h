@@ -11,6 +11,16 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define DOT_THRESHOLD 0.9995
 
+static inline double median(double a, double b, double c)
+{
+  return MAX(MIN(a, b), MIN(MAX(a, b), c));
+}
+
+static inline int nonzero_sign(double n)
+{
+  return 2*(n > 0)-1;
+}
+
 static inline float lerp(float a, float b, float f)
 {
   return a + f * (b - a);
@@ -81,6 +91,11 @@ static inline void vec##n##_max(vec##n r, vec##n a, vec##n b) \
 LINMATH_H_DEFINE_VEC(2)
 LINMATH_H_DEFINE_VEC(3)
 LINMATH_H_DEFINE_VEC(4)
+
+static inline double cross(vec2 a, vec2 b)
+{
+  return a[0]*b[1] - a[1]*b[0];
+}
 
 static inline void vec3_mul_cross(vec3 r, vec3 const a, vec3 const b)
 {

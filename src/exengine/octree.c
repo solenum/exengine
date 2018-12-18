@@ -254,6 +254,8 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
     free(o);
     return ex_octree_new(data_type);
   }
+
+  return NULL;
 }
 
 void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count)

@@ -13,7 +13,7 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags
   printf("Loading IQM model file %s\n", path);
 
   // read in the file data
-  uint8_t *data = io_read_file(path, "rb", NULL);
+  uint8_t *data = (uint8_t*)io_read_file(path, "rb", NULL);
   if (data == NULL) {
     printf("Failed to load IQM model file %s\n", path);
     return NULL;

@@ -32,7 +32,7 @@ ex_texture_t* ex_texture_load(const char *file_name, int get_data)
 
   // attempt to load image
   int w,h,n;
-  uint8_t *data = stbi_load_from_memory(buff, size, &w, &h, &n, 4);
+  uint8_t *data = stbi_load_from_memory((uint8_t*)buff, size, &w, &h, &n, 4);
   if (data == NULL) {
     printf("Could not load texture %s\n", file_dir);
     return NULL;

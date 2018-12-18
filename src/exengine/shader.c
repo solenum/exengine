@@ -11,7 +11,7 @@ inline GLint ex_uniform(GLuint shader, const char *str)
   int c;
 
   // hash * 33 + c
-  while (c = *str++)
+  while ((c = *str++))
     key = ((key << 5) + key) + c;
 
   // check if location cached already

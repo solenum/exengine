@@ -13,6 +13,6 @@ typedef struct {
   GLuint texture;
 } ex_font_t;
 
-ex_font_t* ex_font_load(const char *path); 
+ex_font_t* ex_font_load(const char *path);
 
 #endif // EX_TEXT_H

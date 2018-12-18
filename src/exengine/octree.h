@@ -162,6 +162,8 @@ static inline void* ex_octree_data_ptr(ex_octree_t *o) {
       return NULL;
       break;
   }
+
+  return NULL;
 }
 
 /**
