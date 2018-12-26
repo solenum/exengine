@@ -64,7 +64,7 @@ void game_init()
   cube->position[0] = 0.0f;
 
   // this aint it
-  font = ex_font_load("data/fonts/OpenSans-Regular.ttf");
+  // font = ex_font_load("data/fonts/OpenSans-Regular.ttf", "AB");
 }
 
 void game_update(double dt)

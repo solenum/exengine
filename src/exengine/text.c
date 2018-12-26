@@ -1,20 +1,25 @@
 #include "text.h"
 #include "exe_io.h"
 #include "mathlib.h"
-#include "msdf.h"
+#include "shader.h"
 #include <string.h>
 #include <stdio.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
 #define INF   -1e24
 #define RANGE 1.0
+#define SIZE  16
 
-ex_font_t* ex_font_load(const char *path)
+GLuint shader;
+
+void ex_font_init()
+{
+  shader = ex_shader_compile("text.glsl");
+}
+
+ex_font_t* ex_font_load(const char *path, const char *letters)
 {
   // load the ttf data
   size_t length;
@@ -28,38 +33,37 @@ ex_font_t* ex_font_load(const char *path)
   stbtt_fontinfo font;
   stbtt_InitFont(&font, (const uint8_t*)data, stbtt_GetFontOffsetForIndex(data,0));
 
-  // generate a msdf bitmap
-  // this is all just debug vomit
-  // its due to be replaced 冥
-  int size = 128;
-  float *bitmap = ex_msdf_glyph(&font, '.', size, size);
-  uint8_t *shitmap = malloc(3*size*size);
-  memset(shitmap, 0, 3*size*size);
-  for (int y=0; y<size; y++) {
-    for (int x=0; x<size; x++) {
-      size_t index = 3*((y*size)+x);
+  size_t atlas_width = strlen(letters)*SIZE;
+  float *atlas = malloc(sizeof(float)*(strlen(letters)*SIZE*SIZE)*3);
 
-      // im certain this isnt how you math
-      float v = median(bitmap[index], bitmap[index+1], bitmap[index+2]) - 0.5;
-      v *= vec2_mul_inner((vec2){2.0f/size, 2.0f/size}, (vec2){x/0.5, y/0.5});
-      float a = MAX(0.0, MIN(v + 0.5, 1.0));
-      a = sqrt(1.0 * 1.0 * (1.0 - a) + 0.0 * 0.0 * a);
+  ex_metrics_t metrics;
+  char *character = (char*)letters;
+  size_t index = 0;
+  while (*character != '\0') {
+    char c = *character++;
+    float *bitmap = ex_msdf_glyph(&font, ex_utf8(&c), SIZE, SIZE, &metrics);
 
-      // reeeeeeeeeeee
-      shitmap[index]   = 255*a;//(uint8_t)(255*(bitmap[index]+64)/64);
-      shitmap[index+1] = 255*a;//(uint8_t)(255*(bitmap[index+1]+64)/64);
-      shitmap[index+2] = 255*a;//(uint8_t)(255*(bitmap[index+2]+64)/64);
-    }
+    memcpy(&atlas[index*SIZE*SIZE*3], bitmap, sizeof(float)*SIZE*SIZE*3);
+    index++;
+
+    free(bitmap);
   }
 
-  // debug output
-  stbi_write_png("out.png", size, size, 3, shitmap, size*3);
+  ex_font_t *f = malloc(sizeof(ex_font_t));
+
+  glGenTextures(1, &f->texture);
+  glBindTexture(GL_TEXTURE_2D, f->texture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, atlas_width, atlas_width, 0, GL_RGB, GL_FLOAT, atlas);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   free(data);
-  free(bitmap);
-  free(shitmap);
+  free(atlas);
   printf("[TEXT] Done generating msdf font for %s\n", path);
 
-  // ex_font_t *f = malloc(sizeof(ex_font_t));
-  return NULL;
+  return f;
 }

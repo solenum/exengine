@@ -1,15 +1,40 @@
-#include "text.h"
-#include "exe_io.h"
-#include "mathlib.h"
 #include "msdf.h"
-#include <string.h>
-#include <stdio.h>
-
-#define INF   -1e24
-#define RANGE 1.0
+#include "mathlib.h"
 
 // pixel at (x, y) in bitmap (arr)
-#define P(x, y, w, arr) ((vec3){arr[(3*((y*w)+x))], arr[(3*((y*w)+x))+1], arr[(3*((y*w)+x))+2]})
+#define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
+
+#define INF   -1e24
+#define RANGE 2.0
+#define EDGE_THRESHOLD 1.00000001
+
+typedef struct {
+  double dist;
+  double d;
+} signed_distance_t;
+
+// the possible types:
+// STBTT_vmove  = start of a contour
+// STBTT_vline  = linear segment
+// STBTT_vcurve = quadratic segment
+// STBTT_vcubic = cubic segment
+typedef struct {
+  int color;
+  vec2 p[4];
+  int type;
+} edge_segment_t;
+
+// defines what color channel an edge belongs to
+typedef enum {
+    BLACK = 0,
+    RED = 1,
+    GREEN = 2,
+    YELLOW = 3,
+    BLUE = 4,
+    MAGENTA = 5,
+    CYAN = 6,
+    WHITE = 7
+} edge_color_t;
 
 int solve_quadratic(double x[2], double a, double b, double c)
 {
@@ -408,7 +433,7 @@ signed_distance_t cubic_dist(edge_segment_t *e, vec2 origin, double *param)
   direction(d1, e, 1);
   vec2_norm(d0, d0);
   vec2_norm(d1, d1);
-  vec3_norm(qa, qa);
+  vec2_norm(qa, qa);
   vec2 a;
   vec2_sub(a, e->p[3], origin);
   vec2_norm(a, a);
@@ -617,7 +642,7 @@ double shoelace(const vec2 a, const vec2 b)
   return (b[0]-a[0])*(a[1]+b[1]);
 }
 
-float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
+float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
   memset(bitmap, 0, sizeof(float)*3*w*h);
@@ -631,9 +656,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
     if (verts[i].type == STBTT_vmove)
       contour_count++;
   }
-
-  printf("[TEXT] Number of contours for '%c': %i\n", c, contour_count);
-  printf("[TEXT] Number of verts for '%c': %i\n", c, num_verts);
 
   if (contour_count == 0) {
     free(bitmap);
@@ -737,10 +759,6 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
         }
       } 
     }
-
-    printf("Number of edges for contour %i: %zu\n", i, contour_data[i].edge_count);
-    printf("COUNT %zu\n", count);
-    printf("Start: %zu End: %zu\n", contours[i].start, contours[i].end);
   }
 
   // calculate edge-colors
@@ -892,26 +910,39 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   multi_distance_t *contour_sd;
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
-  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
+  // Funit to pixel scale
+  float scale = stbtt_ScaleForPixelHeight(font, h);
 
+  // get left offset and advance
   int left_bearing, advance;
-  stbtt_GetCodepointHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
+  stbtt_GetGlyphHMetrics(font, stbtt_FindGlyphIndex(font,c), &advance, &left_bearing);
   left_bearing *= scale;
 
-  int ascent, descent;
-  stbtt_GetFontVMetrics(font, &ascent, &descent, 0);
-  int baseline = (int)(ascent*scale);
-  printf("BASELINE %i %i\n", baseline, left_bearing);
-
+  // get glyph bounding box (scaled later)
   int ix0, iy0, ix1, iy1;
   stbtt_GetGlyphBox(font, stbtt_FindGlyphIndex(font,c), &ix0, &iy0, &ix1, &iy1);
 
-  int translate_x = (w/2)-((ix1 - ix0)*scale)/2;
-  int translate_y = (h/2)-((iy1 - iy0)*scale)/2;
+  // calculate offset for centering glyph on bitmap
+  int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
+  int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
+
+  // set the glyph metrics
+  // (pre-scale them)
+  if (metrics) {
+    metrics->left_bearing = left_bearing;
+    metrics->advance      = advance*scale;
+    metrics->ix0          = ix0*scale;
+    metrics->ix1          = ix1*scale;
+    metrics->iy0          = iy0*scale;
+    metrics->iy1          = iy1*scale;
+    metrics->character    = c;
+  }
+
+  // offset scale for base metrics
   scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
-    int row = iy0 > iy1 ? y : h-y-1; // broken?
+    int row = iy0 > iy1 ? y : h-y-1;
     for (int x=0; x<w; ++x) {
       vec2 p = {(x+.5-translate_x)/scale, (y+.5-translate_y)/scale};
 
@@ -1049,17 +1080,18 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   free(contour_data);
   free(contour_sd);
   free(contours);
+  free(windings);
+  free(verts);
 
+  // msdf error correction
   typedef struct {
     int x, y;
   } clashes_t;
   clashes_t *clashes = malloc(sizeof(clashes_t) * w * h);
   size_t cindex = 0;
 
-  // msdf error correction
-  // somehow this is so broken that it actually makes it WORSE
-  double tx = 1.00000001*0.5-left_bearing;
-  double ty = 1.00000001*0.5-4.0f;
+  double tx = EDGE_THRESHOLD/(scale*RANGE);
+  double ty = EDGE_THRESHOLD/(scale*RANGE);
   for (int y=0; y<h; y++) {
     for (int x=0; x<w; x++) {
       if ((x > 0  && pixel_clash(P(x, y, w, bitmap), P(x-1, y, w, bitmap), tx))
@@ -1074,11 +1106,11 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint8_t c, size_t w, size_t h)
   }
 
   for (int i=0; i<cindex; i++) {
-    size_t index = (clashes[i].y*w)+clashes[i].x;
+    size_t index = 3*((clashes[i].y*w)+clashes[i].x);
     float med = median(bitmap[index], bitmap[index+1], bitmap[index+2]);
-    // bitmap[index+0] = med;
-    // bitmap[index+1] = med;
-    // bitmap[index+2] = med;
+    bitmap[index+0] = med;
+    bitmap[index+1] = med;
+    bitmap[index+2] = med;
   }
   free(clashes);
 

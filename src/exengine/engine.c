@@ -11,6 +11,7 @@
 #include "glimgui.h"
 #include "framebuffer.h"
 #include "defaults.h"
+#include "text.h"
 #include "cache.h"
 #include "dbgui.h"
 
@@ -68,6 +69,7 @@ void exengine(char **argv, uint8_t flags)
   // init rendering modules
   ex_defaults_textures();
   ex_framebuffer_init();
+  // ex_font_init();
   
   // user init callback
   ex_init_ptr();
