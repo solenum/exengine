@@ -128,10 +128,10 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 
 void ex_font_dbg(ex_font_t *f)
 {
-  char *str = "Heljo World! this is a test";
+  char *str = "Heljo_World! this is a test poo";
   float w = 128.0f, h = 128.0f;
-  w += 96.0f * cos(glfwGetTime());
-  h += 96.0f * cos(glfwGetTime());
+  w += 96.0f * cos(glfwGetTime() * 0.5);
+  h += 96.0f * cos(glfwGetTime() * 0.5);
 
   glUseProgram(shader);
   glBindVertexArray(vao);
@@ -147,7 +147,7 @@ void ex_font_dbg(ex_font_t *f)
     char c = *character++;
 
     if (c == ' ') {
-      x += w/2;
+      x += w/4;
       continue;
     }
 
@@ -191,41 +191,4 @@ void ex_font_dbg(ex_font_t *f)
 
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
-
-  /*if (!vbo) {
-    float p = 1.0f;
-    int   index = 6*12;
-    GLfloat vertices[] = {
-      // pos         // uv
-      -p,  p,  f->uv[index+0],  f->uv[index+1],
-      -p, -p,  f->uv[index+2],  f->uv[index+3],
-       p, -p,  f->uv[index+4],  f->uv[index+5],
-      -p,  p,  f->uv[index+6],  f->uv[index+7],
-       p, -p,  f->uv[index+8],  f->uv[index+9],
-       p,  p,  f->uv[index+10], f->uv[index+11]
-    };
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)(2 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
-  }
-
-  glUseProgram(shader);
-  glBindVertexArray(vao);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glUniform1i(ex_uniform(shader, "u_texture"), 0);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-  glBindVertexArray(0);
-  glBindTexture(GL_TEXTURE_2D, 0);*/
 }

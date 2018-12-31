@@ -6,7 +6,7 @@
 
 #define INF   -1e24
 #define RANGE 0.5
-#define EDGE_THRESHOLD 1.00000001
+#define EDGE_THRESHOLD 0.00001
 
 typedef struct {
   double dist;
@@ -925,7 +925,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   // calculate offset for centering glyph on bitmap
   int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
   int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
-  translate_x = 0;
+  translate_x = 1.0f;
 
   // set the glyph metrics
   // (pre-scale them)
@@ -942,12 +942,12 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   }
 
   // offset scale for base metrics
-  scale *= 64.0;
+  // scale *= 64.0;
 
   for (int y=0; y<h; ++y) {
     int row = iy0 > iy1 ? y : h-y-1;
     for (int x=0; x<w; ++x) {
-      vec2 p = {(x+.5-translate_x)/scale, (y+.5-translate_y)/scale};
+      vec2 p = {(x+.5-translate_x)/(scale*64.0), (y+.5-translate_y)/(scale*64.0)};
 
       edge_point_t sr, sg, sb;
       sr.near_edge = sg.near_edge = sb.near_edge = NULL;
