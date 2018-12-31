@@ -28,6 +28,7 @@ typedef struct {
   int advance;
   int ix0, ix1;
   int iy0, iy1;
+  int tx,  ty;
   uint32_t character;
 } ex_metrics_t;
 

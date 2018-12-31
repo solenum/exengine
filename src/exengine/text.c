@@ -10,6 +10,9 @@
 
 #define SIZE 32
 
+// atlas size, +2 for padding
+#define ASIZE 34
+
 GLuint shader, vao, vbo;
 mat4x4 projection;
 
@@ -51,7 +54,7 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
   stbtt_InitFont(&font, (const uint8_t*)data, stbtt_GetFontOffsetForIndex(data,0));
 
   size_t count      = strlen(letters);
-  size_t atlas_size = ceil(sqrt(count))*SIZE;
+  size_t atlas_size = ceil(sqrt(count))*ASIZE;
   size_t byte_count = sizeof(float)*(atlas_size*atlas_size)*3;
   float *atlas      = malloc(byte_count);
   memset(atlas, 0.0f, byte_count);
@@ -62,7 +65,7 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 
   ex_metrics_t metrics;
   char *character = (char*)letters;
-  size_t x = 0, y = 0, index = 0;
+  size_t x = 1, y = 1, index = 0;
   while (*character != '\0') {
     char c = *character++;
     float *bitmap = ex_msdf_glyph(&font, ex_utf8(&c), SIZE, SIZE, &metrics);
@@ -94,10 +97,10 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
     index++;
 
     // advance to next tile in atlas
-    x += SIZE;
+    x += ASIZE;
     if (x >= atlas_size) {
       x = 0;
-      y += SIZE;
+      y += ASIZE;
     }
 
     free(bitmap);
@@ -125,11 +128,11 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 
 void ex_font_dbg(ex_font_t *f)
 {
-  char *str = "hello";
+  char *str = "Heljo World! this is a test";
   float w = 128.0f, h = 128.0f;
   w += 96.0f * cos(glfwGetTime());
   h += 96.0f * cos(glfwGetTime());
- 
+
   glUseProgram(shader);
   glBindVertexArray(vao);
   glActiveTexture(GL_TEXTURE0);
@@ -138,28 +141,39 @@ void ex_font_dbg(ex_font_t *f)
   glUniformMatrix4fv(ex_uniform(shader, "u_projection"), 1, GL_FALSE, projection[0]);
   glEnable(GL_BLEND);
 
-  float x = 1.0f, y = 1.0f;
+  float x = 32.0f, y = 0.0f, sy = 32.0f;
   char *character = (char*)str;
   while (*character != '\0') {
     char c = *character++;
 
+    if (c == ' ') {
+      x += w/2;
+      continue;
+    }
+
     // find uv array index for char c
-    size_t index = 0;
+    size_t index = 0, iuv = 0;
     for (int i=0; i<MAX_GLYPH; i++) {
       if (f->indices[i] == c) {
-        index = i*12;
+        index = i;
+        iuv   = i*12;
         break;
       }
     }
 
+    y = sy;
+    y -= 16-((f->metrics[index].iy1 - f->metrics[index].iy0)/2);
+    y += f->metrics[index].iy0;
+    y *= (h/SIZE);
+
     GLfloat vertices[] = {
       // pos     // uv
-      x  , y+h,  f->uv[index+0],  f->uv[index+1],
-      x  , y  ,  f->uv[index+2],  f->uv[index+3],
-      x+w, y  ,  f->uv[index+4],  f->uv[index+5],
-      x  , y+h,  f->uv[index+6],  f->uv[index+7],
-      x+w, y  ,  f->uv[index+8],  f->uv[index+9],
-      x+w, y+h,  f->uv[index+10], f->uv[index+11]
+      x  , y+h,  f->uv[iuv+0],  f->uv[iuv+1],
+      x  , y  ,  f->uv[iuv+2],  f->uv[iuv+3],
+      x+w, y  ,  f->uv[iuv+4],  f->uv[iuv+5],
+      x  , y+h,  f->uv[iuv+6],  f->uv[iuv+7],
+      x+w, y  ,  f->uv[iuv+8],  f->uv[iuv+9],
+      x+w, y+h,  f->uv[iuv+10], f->uv[iuv+11]
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -167,8 +181,12 @@ void ex_font_dbg(ex_font_t *f)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    
-    x += w;
+
+    x += f->metrics[index].advance*(w/SIZE);
+
+    // if (*character != '\0') {
+      // x += stbtt_GetGlyphKernAdvance(&font, stbtt_FindGlyphIndex(&font, c), stbtt_FindGlyphIndex(&font, *character));
+    // }
   }
 
   glBindVertexArray(0);

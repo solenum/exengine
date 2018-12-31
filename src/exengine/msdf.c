@@ -645,7 +645,7 @@ double shoelace(const vec2 a, const vec2 b)
 float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_metrics_t *metrics)
 {
   float *bitmap = malloc(sizeof(float)*3*w*h);
-  memset(bitmap, 0, sizeof(float)*3*w*h);
+  memset(bitmap, 0.0f, sizeof(float)*3*w*h);
 
   stbtt_vertex *verts;
   int num_verts = stbtt_GetGlyphShape(font, stbtt_FindGlyphIndex(font, c), &verts);
@@ -925,6 +925,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   // calculate offset for centering glyph on bitmap
   int translate_x = (w/2)-((ix1 - ix0)*scale)/2-left_bearing;
   int translate_y = (h/2)-((iy1 - iy0)*scale)/2-iy0*scale;
+  translate_x = 0;
 
   // set the glyph metrics
   // (pre-scale them)
@@ -935,6 +936,8 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
     metrics->ix1          = ix1*scale;
     metrics->iy0          = iy0*scale;
     metrics->iy1          = iy1*scale;
+    metrics->tx           = translate_x;
+    metrics->ty           = translate_y;
     metrics->character    = c;
   }
 
