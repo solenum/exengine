@@ -129,7 +129,7 @@ exit:
       free(shaders[i]);
   }
 
-  printf("Shaders successfully compiled\n");
+  printf("Shaders (%s) successfully compiled\n", path);
 
   return shader_program;
 }

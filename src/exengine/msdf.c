@@ -5,7 +5,7 @@
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
 #define INF   -1e24
-#define RANGE 2.0
+#define RANGE 0.5
 #define EDGE_THRESHOLD 1.00000001
 
 typedef struct {
