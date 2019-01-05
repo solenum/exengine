@@ -31,7 +31,7 @@ float median(float r, float g, float b) {
 
 void main()
 {
-  vec2 u = 0.1/vec2(32.0);
+  vec2 u = 0.05/vec2(32.0);
   vec3 sample = texture(u_texture, uv).rgb;
   float dist = median(sample.r, sample.g, sample.b) - 0.5;
 
@@ -40,6 +40,6 @@ void main()
 
   dist *= dot(u, 0.5/fwidth(uv));
   float o = clamp(dist + 0.5, 0.0, 1.0);
-  color = mix(vec4(0.0), vec4(1.0), o);
+  color = vec4(vec3(1.0), o);
 }
 #END FS

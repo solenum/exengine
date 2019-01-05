@@ -6,7 +6,7 @@
 
 #define INF   -1e24
 #define RANGE 0.5
-#define EDGE_THRESHOLD 0.00001
+#define EDGE_THRESHOLD 0.02
 
 typedef struct {
   double dist;
@@ -911,7 +911,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   contour_sd = malloc(sizeof(multi_distance_t) * contour_count);
 
   // Funit to pixel scale
-  float scale = stbtt_ScaleForPixelHeight(font, h);
+  float scale = stbtt_ScaleForMappingEmToPixels(font, h);
 
   // get left offset and advance
   int left_bearing, advance;

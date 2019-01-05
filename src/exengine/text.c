@@ -128,7 +128,7 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 
 void ex_font_dbg(ex_font_t *f)
 {
-  char *str = "Heljo_World! this is a test poo";
+  char *str = "Heljo World! this is a test";
   float w = 128.0f, h = 128.0f;
   w += 96.0f * cos(glfwGetTime() * 0.5);
   h += 96.0f * cos(glfwGetTime() * 0.5);
