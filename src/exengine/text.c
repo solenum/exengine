@@ -129,17 +129,20 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 void ex_font_dbg(ex_font_t *f)
 {
   char *str = "Heljo World! this is a test";
+  // float w = 16.0f, h = 16.0f;
   float w = 128.0f, h = 128.0f;
-  w += 96.0f * cos(glfwGetTime() * 0.5);
-  h += 96.0f * cos(glfwGetTime() * 0.5);
+  w += 112.0f * cos(glfwGetTime() * 0.5);
+  h += 112.0f * cos(glfwGetTime() * 0.5);
 
   glUseProgram(shader);
   glBindVertexArray(vao);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, f->texture);
   glUniform1i(ex_uniform(shader, "u_texture"), 0);
+  glUniform1f(ex_uniform(shader, "u_scale"), w/SIZE);
   glUniformMatrix4fv(ex_uniform(shader, "u_projection"), 1, GL_FALSE, projection[0]);
   glEnable(GL_BLEND);
+  glViewport(0, 0, 1280, 720);
 
   float x = 32.0f, y = 0.0f, sy = 32.0f;
   char *character = (char*)str;

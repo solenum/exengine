@@ -5,7 +5,7 @@
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
 #define INF   -1e24
-#define RANGE 0.5
+#define RANGE 1.0
 #define EDGE_THRESHOLD 0.02
 
 typedef struct {
@@ -931,7 +931,7 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
   // (pre-scale them)
   if (metrics) {
     metrics->left_bearing = left_bearing;
-    metrics->advance      = advance*scale;
+     metrics->advance      = advance*scale;
     metrics->ix0          = ix0*scale;
     metrics->ix1          = ix1*scale;
     metrics->iy0          = iy0*scale;

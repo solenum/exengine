@@ -24,6 +24,7 @@ in vec2 uv;
 out vec4 color;
 
 uniform sampler2D u_texture;
+uniform float     u_scale;
 
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));
@@ -33,12 +34,7 @@ void main()
 {
   vec2 u = 0.05/vec2(32.0);
   vec3 sample = texture(u_texture, uv).rgb;
-  float dist = median(sample.r, sample.g, sample.b) - 0.5;
-
-  // float w = fwidth(dist);
-  // float o = smoothstep(0.5 - w, 0.5 + w, dist);
-
-  dist *= dot(u, 0.5/fwidth(uv));
+  float dist = u_scale * (median(sample.r, sample.g, sample.b) - 0.5);
   float o = clamp(dist + 0.5, 0.0, 1.0);
   color = vec4(vec3(1.0), o);
 }
