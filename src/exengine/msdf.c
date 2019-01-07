@@ -5,7 +5,7 @@
 #define P(x, y, w, arr) ((vec3){arr[(3*(((y)*w)+x))], arr[(3*(((y)*w)+x))+1], arr[(3*(((y)*w)+x))+2]})
 
 #define INF   -1e24
-#define RANGE 1.0
+#define RANGE 0.5
 #define EDGE_THRESHOLD 0.02
 
 typedef struct {
@@ -802,8 +802,8 @@ float* ex_msdf_glyph(stbtt_fontinfo *font, uint32_t c, size_t w, size_t h, ex_me
       int corner = corners[0];
       if (contour_data[i].edge_count >= 3) {
         int m = contour_data[i].edge_count;
-        for (int i=0; i<m; ++i)
-          contour_data[i].edges[(corner+i)%m].color = (colors+1)[(int)(3+2.875*i/(m-1)-1.4375+.5)-3];
+        for (int j=0; j<m; ++j)
+          contour_data[i].edges[(corner+j)%m].color = (colors+1)[(int)(3+2.875*i/(m-1)-1.4375+.5)-3];
       } else if (contour_data[i].edge_count >= 1) {
         edge_segment_t *parts[7] = {};
         edge_split(&contour_data[i].edges[0], parts[0+3*corner], parts[1+3*corner], parts[2+3*corner]);

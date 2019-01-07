@@ -32,7 +32,6 @@ float median(float r, float g, float b) {
 
 void main()
 {
-  vec2 u = 0.05/vec2(32.0);
   vec3 sample = texture(u_texture, uv).rgb;
   float dist = u_scale * (median(sample.r, sample.g, sample.b) - 0.5);
   float o = clamp(dist + 0.5, 0.0, 1.0);

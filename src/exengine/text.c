@@ -9,9 +9,11 @@
 #include "stb_truetype.h"
 
 #define SIZE 32
+#define ASIZE 34 // atlas size, +2 for padding
 
-// atlas size, +2 for padding
-#define ASIZE 34
+// defines the constant offset to the aa value
+// increase to sharpen, decrease (down to 0) to smooth/blur
+#define AA_BIAS 0.5
 
 GLuint shader, vao, vbo;
 mat4x4 projection;
@@ -139,7 +141,7 @@ void ex_font_dbg(ex_font_t *f)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, f->texture);
   glUniform1i(ex_uniform(shader, "u_texture"), 0);
-  glUniform1f(ex_uniform(shader, "u_scale"), w/SIZE);
+  glUniform1f(ex_uniform(shader, "u_scale"), (w/SIZE) * AA_BIAS);
   glUniformMatrix4fv(ex_uniform(shader, "u_projection"), 1, GL_FALSE, projection[0]);
   glEnable(GL_BLEND);
   glViewport(0, 0, 1280, 720);

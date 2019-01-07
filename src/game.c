@@ -64,7 +64,7 @@ void game_init()
   cube->position[0] = 0.0f;
 
   // this aint it
-  font = ex_font_load("data/fonts/OpenSans-Regular.ttf", "abcdefghijklmnopqrstuvwxyzHW!_");
+  font = ex_font_load("data/fonts/OpenSans -Regular.ttf", "abcdefghijklmnopqrstuvwxyzHW!_");
 }
 
 void game_update(double dt)
@@ -221,7 +221,7 @@ void game_draw()
 
   // ex_scene_dbgui(scene);
   // igShowTestWindow(NULL);
-  // ex_dbgui_render_profiler();
+  ex_dbgui_render_profiler();
 }
 
 void game_exit()
