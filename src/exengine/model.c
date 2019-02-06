@@ -43,6 +43,7 @@ ex_model_t* ex_model_copy(ex_model_t *model)
   for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
     if (model->meshes[i] != NULL)
       ex_model_add_mesh(m, ex_mesh_copy(model->meshes[i]));
+      break;
   }
 
   // init instancing matrix vbos etc 
