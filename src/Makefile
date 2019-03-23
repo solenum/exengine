@@ -35,6 +35,14 @@ CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 endif
 
+# -- OpenBSD -- #
+UNAME = $(shell uname -s)
+ifeq ($(UNAME),OpenBSD)
+CC =egcc
+CPP =eg++
+FLAGS += -I/usr/X11R6/include -L/usr/X11R6/lib
+endif
+
 # -- Files -- #
 # engine deps
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
