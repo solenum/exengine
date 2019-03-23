@@ -90,6 +90,17 @@ cd src && make
 
 the resulting .exe will be in src/build/
 
+#### OpenBSD
+Make shure you have the correct dependicies installed, the equivalent of linux using pkg_add.
+For OpenBSD specific you will need the 'gmake' and 'gcc', 'g++' packages.
+The gcc and g++ packages will install a more modern compiler as egcc and eg++ in your path.
+
+after this the compilation is almost the same as in linux, this time specificly using gmake.
+
+````
+cd src && gmake
+````
+
 #### Stand-alone (*recommended*)
 
 Alternatively you can drop the exengine/ directory right into your own project and use it with your own build system.  This method obviously takes more work and time.
