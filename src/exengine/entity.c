@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define SLIDE_BIAS 0.008
-#define VERY_CLOSE_DIST 0.01
+#define VERY_CLOSE_DIST 0.001
 #define SLOPE_WALK_ANGLE 0.80
 #define DOWN_DIRECTION -1.0
 #define DOWN_AXIS 1 // y
@@ -74,12 +74,6 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
     ex_entity_check_collision(entity);
 
     ex_entity_check_grounded(entity);
-    if (entity->grounded) {
-      if (vec2_len(e_velocity) <= SLIDE_BIAS && e_velocity[DOWN_AXIS] < 0.0f) {
-        e_velocity[DOWN_AXIS] = 0.0f;
-        vec3_add(dest, e_position, e_velocity);
-      }
-    } 
 
     // no collision move along
     if (entity->packet.found_collision == 0) {
@@ -202,7 +196,17 @@ void ex_entity_check_grounded(ex_entity_t *entity)
 
 void ex_entity_update(ex_entity_t *entity, double dt)
 {
-  entity->grounded = 0;
+  vec3 xz = {0.0f};
+  xz[0] = entity->velocity[0];
+  xz[2] = entity->velocity[2];
+  
+  // prevent sliding while standing still on a slope
+  // change < 0.0f to > 0.0f if inverting y axis
+  if (entity->grounded && fabs(vec2_len(xz)) < 0.1f && entity->velocity[1] < 0.0f)
+    entity->velocity[1] = 0.0f;
+  else
+    entity->grounded = 0;
+  
   dt = dt / 5.0;
   
   vec3_scale(entity->velocity, entity->velocity, dt);

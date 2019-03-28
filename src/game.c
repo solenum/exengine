@@ -90,8 +90,8 @@ void game_update(double dt)
 
   vec3_scale(temp, cube->velocity, 5.0f * dt);
   temp[1] = 0.0f;
-  // if (cube->grounded == 1)
-    // vec3_sub(cube->velocity, cube->velocity, temp);
+  if (cube->grounded == 1)
+    vec3_sub(cube->velocity, cube->velocity, temp);
 
   cube->velocity[1] -= (100.0f * dt);
 
@@ -146,9 +146,9 @@ ctrl_end:
   vec3_scale(temp, e->velocity, 15.0f * dt);
   temp[1] = 0.0f;
 
-  // if (e->grounded == 1) 
-  //  vec3_sub(e->velocity, e->velocity, temp);
-  // else
+  if (e->grounded == 1) 
+   vec3_sub(e->velocity, e->velocity, temp);
+  else
     move_speed = 50.0f;
   
   e->velocity[1] -= (100.0f * dt);
