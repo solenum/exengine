@@ -5,8 +5,15 @@
 
 ex_window_t display;
 
+void ex_window_err(int error, const char *str)
+{
+  printf("GLFW ERR (%i)\n%s\n", error, str);
+}
+
 bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 {
+  glfwSetErrorCallback(ex_window_err);
+
   // init glfw
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
