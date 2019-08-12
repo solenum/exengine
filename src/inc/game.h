@@ -5,8 +5,7 @@
 #include "exengine/window.h"
 #include "exengine/mesh.h"
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include <inttypes.h>

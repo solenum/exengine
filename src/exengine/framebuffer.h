@@ -9,8 +9,7 @@
 #ifndef EX_FRAMEBUFFER_H
 #define EX_FRAMEBUFFER_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 extern GLuint ex_fbo_shader;

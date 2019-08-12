@@ -21,8 +21,7 @@
 
 #define EX_DATA_FILE "data.ex"
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include <inttypes.h>

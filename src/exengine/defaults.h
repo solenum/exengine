@@ -6,8 +6,7 @@
 #ifndef DEFAULTS_H
 #define DEFAULTS_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 extern GLuint default_texture_diffuse;
 extern GLuint default_texture_normal;

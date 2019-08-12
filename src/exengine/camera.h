@@ -6,8 +6,7 @@
 #ifndef EX_CAMERA_H
 #define EX_CAMERA_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 #include "mathlib.h"
 #include "model.h"

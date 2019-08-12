@@ -12,7 +12,7 @@ _IDIRS  =lib inc lib/physfs
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -Wall -Wno-unused -Wno-uninitialized -lstdc++ -lGL -lGLEW -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ -lGL -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 CPPFLAGS=
@@ -21,7 +21,7 @@ CPPFLAGS=
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
 CPP     =x86_64-w64-mingw32-g++
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglew32 -lglfw3dll -lopenal32 -DGLEW_NO_GLU -I. $(IDIRS)
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglfw3dll -lopenal32 -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
 CPPFLAGS=-lstdc++
@@ -30,7 +30,7 @@ endif
 # -- MacOS -- #
 UNAME = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
-FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lglew -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
+FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 endif
@@ -53,7 +53,7 @@ defaults.h input.h sound.h cache.h text.h msdf.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 # engine srcs
-ENGINEOBJ = window.o mesh.o camera.o texture.o iqm.o \
+ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
 collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
 ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o cache.o \
@@ -129,7 +129,6 @@ endif
 release-linux:
 	mkdir -p $(BDIR)/lib
 	rm $(BDIR)/lib/*
-	cp $$(ldd $(BDIR)/game | grep -i libglew | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libopenal | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 

@@ -8,8 +8,7 @@
 
 #include "mathlib.h"
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 #define EX_SPOT_FAR_PLANE 100
 #define EX_SPOT_SHADOW_DIST 150

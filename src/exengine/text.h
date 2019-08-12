@@ -4,8 +4,7 @@
 #ifndef EX_TEXT_H
 #define EX_TEXT_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include "msdf.h"

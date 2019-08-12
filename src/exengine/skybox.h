@@ -6,8 +6,7 @@
 #ifndef EX_SKYBOX_H
 #define EX_SKYBOX_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <inttypes.h>
 
 static GLfloat ex_skybox_vertices[] = {

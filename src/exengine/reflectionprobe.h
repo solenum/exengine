@@ -8,8 +8,7 @@
 
 #include "mathlib.h"
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 typedef struct {
   vec3 position;

@@ -1,6 +1,7 @@
 #include "window.h"
 #include "input.h"
 #include "engine.h"
+#include "glad/glad.h"
 #include <stdio.h>
 
 ex_window_t display;
@@ -42,11 +43,9 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   // set context
   glfwMakeContextCurrent(display.window);
 
-  // init glew
-  glewExperimental = GL_TRUE;
-  GLenum err = glewInit();
-  if (err != GLEW_OK) {
-    printf("Error initializing glew\n%s\n", glewGetErrorString(err));
+  // init glad
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    printf("Error initializing glad\n");
     return 0;
   }
   

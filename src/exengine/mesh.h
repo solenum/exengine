@@ -14,10 +14,10 @@
 #ifndef EX_MESH_H
 #define EX_MESH_H
 
-#include "mathlib.h"
+#include <string.h>
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "mathlib.h"
+#include "glad/glad.h"
 
 typedef struct {
   float position[3];

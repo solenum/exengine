@@ -9,8 +9,7 @@
 #ifndef EX_OCTREE_H
 #define EX_OCTREE_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 #include <stdlib.h>
 #include <string.h>

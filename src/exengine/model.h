@@ -10,8 +10,7 @@
 #ifndef EX_MODEL_H
 #define EX_MODEL_H
 
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "glad/glad.h"
 
 #include "exe_list.h"
 #include "octree.h"
