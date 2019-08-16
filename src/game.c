@@ -7,9 +7,7 @@
 #include "exengine/iqm.h"
 #include "exengine/skybox.h"
 #include "exengine/entity.h"
-#include "exengine/glimgui.h"
 #include "exengine/reflectionprobe.h"
-#include "exengine/dbgui.h"
 #include "exengine/engine.h"
 #include "exengine/input.h"
 #include "exengine/sound.h"
@@ -196,15 +194,6 @@ ctrl_end:
     }
   }
   move_speed = 100.0f;
-  if (ex_keys_down[EX_KEY_G] || glimgui_ex_keys_down[EX_KEY_G]) {
-    ex_keys_down[EX_KEY_G] = 0;
-    glimgui_ex_keys_down[EX_KEY_G] = 0;
-    glimgui_focus = !glimgui_focus;
-  }
-  if (ex_keys_down[EX_KEY_X]) {
-    ex_dbgprofiler.render_octree = !ex_dbgprofiler.render_octree;;
-    ex_keys_down[EX_KEY_X] = 0;
-  }
 
   memcpy(pl->position, e->position, sizeof(vec3));
   pl->position[1] += 1.0f;
@@ -218,10 +207,6 @@ void game_draw()
   ex_fps_camera_resize(camera);
 
   ex_font_dbg(font);
-
-  // ex_scene_dbgui(scene);
-  // igShowTestWindow(NULL);
-  ex_dbgui_render_profiler();
 }
 
 void game_exit()

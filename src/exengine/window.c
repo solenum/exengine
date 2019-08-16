@@ -63,9 +63,6 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   glfwSwapInterval(0);
   glfwSetInputMode(display.window, GLFW_STICKY_KEYS, 1);
 
-  // setup imgui debug gui
-  glimgui_init(display.window);
-
   display.width = width;
   display.height = height;
 
@@ -74,17 +71,13 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 
 void ex_window_begin()
 {
-  if (!glimgui_focus)
-    glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  else
-    glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-  glimgui_newframe();
+  glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
 void ex_window_end()
 {
-  igRender();
+
 }
 
 void ex_window_destroy()

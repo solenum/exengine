@@ -1,6 +1,5 @@
 #include "octree.h"
 #include "vertices.h"
-#include "dbgui.h"
 #include <stdio.h>
 
 int ex_octree_min_size = EX_OCTREE_DEFAULT_MIN_SIZE;
@@ -314,9 +313,6 @@ void ex_octree_render(ex_octree_t *o)
   }
 
   if (alive < 1 && o->data_len == 0)
-    return;
-
-  if (ex_dbgprofiler.octree_obj_only && o->data_len == 0)
     return;
 
   if (!o->rendered) {

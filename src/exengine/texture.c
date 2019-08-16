@@ -11,7 +11,7 @@ ex_texture_t* ex_texture_load(const char *file_name, int get_data)
   char file_dir[len + strlen(file_name)];
   strcpy(file_dir, EX_TEXTURE_LOC);
   strcpy(&file_dir[len], file_name);
-  
+
   printf("Loading texture %s\n", file_dir);
 
   if (!PHYSFS_exists(file_dir)) {
@@ -46,7 +46,7 @@ ex_texture_t* ex_texture_load(const char *file_name, int get_data)
   
   // do we want the data?
   if (get_data == 1) {
-    // we force 4 attributes 
+    // we force 4 attributes
     size_t size = (w*h)*4;
     
     // copy image data

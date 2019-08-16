@@ -8,7 +8,7 @@ LDIR		=lib
 BDIR		=build
 ODIR 		=obj
 IDIR    =inc
-_IDIRS  =lib inc lib/physfs 
+_IDIRS  =lib inc lib/physfs
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
@@ -47,30 +47,33 @@ endif
 # engine deps
 _EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
 texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
-model.h dirlight.h skybox.h collision.h entity.h octree.h glimgui.h dbgui.h \
-gbuffer.h spotlight.h vertices.h ssao.h engine.h reflectionprobe.h \
-defaults.h input.h sound.h cache.h text.h msdf.h
+model.h dirlight.h skybox.h collision.h entity.h octree.h gbuffer.h \
+spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h \
+input.h sound.h cache.h text.h msdf.h
 EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
 
 # engine srcs
 ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
-collision.o entity.o octree.o glimgui.o dbgui.o gbuffer.o spotlight.o \
-ssao.o engine.o reflectionprobe.o shader.o defaults.o input.o sound.o cache.o \
+collision.o entity.o octree.o  gbuffer.o spotlight.o ssao.o engine.o \
+reflectionprobe.o shader.o defaults.o input.o sound.o cache.o \
 text.o msdf.o
 
 # lib deps
-_PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h  physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
+_PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h \
+physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
 PHYSFS_DEPS  =$(patsubst %,$(LDIR)/physfs/%,$(_PHYSFS_DEPS))
 
 # lib srcs
-LOBJ		=cimgui.o fontAtlas.o drawList.o listClipper.o imgui.o imgui_draw.o \
-imgui_demo.o imgui_dock.o \
-physfs_archiver_7z.o physfs_archiver_mvl.o physfs_archiver_wad.o physfs_platform_posix.o \
-physfs_archiver_dir.o physfs_archiver_qpak.o physfs_archiver_zip.o physfs_platform_qnx.o \
-physfs_archiver_grp.o physfs_archiver_slb.o physfs_byteorder.o physfs_platform_unix.o \
-physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o physfs_platform_windows.o \
-physfs_archiver_iso9660.o physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
+LOBJ		= physfs_archiver_7z.o physfs_archiver_mvl.o \
+physfs_archiver_wad.o physfs_platform_posix.o \
+physfs_archiver_dir.o physfs_archiver_qpak.o \
+physfs_archiver_zip.o physfs_platform_qnx.o \
+physfs_archiver_grp.o physfs_archiver_slb.o \
+physfs_byteorder.o physfs_platform_unix.o \
+physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o \
+physfs_platform_windows.o physfs_archiver_iso9660.o \
+physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
 
 ifeq ($(UNAME),Darwin)
 LOBJ += physfs_platform_apple.o
@@ -104,14 +107,6 @@ ifeq ($(UNAME),Darwin)
 $(ODIR)/%.o: $(LDIR)/physfs/%.m $(PHYSFS_DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 endif
-
-# cimgui srcs
-$(ODIR)/%.o: $(LDIR)/cimgui/%.cpp 
-	$(CPP) -c -o $@ $< $(CPPFLAGS) $(FLAGS)
-
-# imgui srcs
-$(ODIR)/%.o: $(LDIR)/imgui/%.cpp
-	$(CPP) -c -o $@ $< $(CPPFLAGS) $(FLAGS)
 
 game: $(OBJ)
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)

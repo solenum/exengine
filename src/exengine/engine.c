@@ -8,7 +8,6 @@
 #include "iqm.h"
 #include "skybox.h"
 #include "entity.h"
-#include "glimgui.h"
 #include "framebuffer.h"
 #include "defaults.h"
 #include "text.h"
@@ -115,7 +114,6 @@ void exengine(char **argv, uint8_t flags)
 
 
   // -- CLEAN UP -- */
-  glimgui_shutdown();
   conf_free(&conf);
   ex_window_destroy();
   PHYSFS_deinit();

@@ -6,7 +6,6 @@
 #include "dirlight.h"
 #include "gbuffer.h"
 #include "window.h"
-#include "dbgui.h"
 #include "sound.h"
 #include "ssao.h"
 
@@ -35,9 +34,6 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   s->coll_vertices_last = 0;
   memset(s->coll_tree->region.min, 0, sizeof(vec3));
   memset(s->coll_tree->region.max, 0, sizeof(vec3));
-
-  // init debug gui
-  ex_dbgui_init(s);
 
   // primitive debug shader
   s->primshader = ex_shader_compile("primshader.glsl");
@@ -183,8 +179,6 @@ void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r)
 
 void ex_scene_update(ex_scene_t *s, float delta_time)
 {
-  ex_dbgprofiler.begin[ex_dbgprofiler_update] = glfwGetTime();
-
   if (!s->collision_built)
     ex_scene_build_collision(s);
 
@@ -197,15 +191,12 @@ void ex_scene_update(ex_scene_t *s, float delta_time)
 
   // handle light stuffs
   ex_scene_manage_lights(s);
-
-  ex_dbgprofiler.end[ex_dbgprofiler_update] = glfwGetTime();
 }
 
 void ex_scene_render_depthmaps(ex_scene_t *s)
 {
   // render pointlight depth maps
   glCullFace(GL_BACK);
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_depth] = glfwGetTime();
   for (int i=0; i<EX_MAX_POINT_LIGHTS; i++) {
     ex_point_light_t *l = s->point_lights[i];
     if (l != NULL && (l->dynamic || l->update) && l->is_shadow && l->is_visible) {
@@ -213,7 +204,6 @@ void ex_scene_render_depthmaps(ex_scene_t *s)
       ex_scene_render_models(s, l->shader, 1);
     }
   }
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_depth] = glfwGetTime();
 }
 
 void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
@@ -232,11 +222,6 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
     view_width = vw;
   if (!view_height)
     view_height = vh;
-
-  // begin profiler
-  ex_dbgprofiler.end[ex_dbgprofiler_other] = glfwGetTime();
-  ex_dbgui_end_profiler();
-  ex_dbgui_begin_profiler();
 
   // render light depthmaps
   ex_scene_render_depthmaps(s);
@@ -314,7 +299,6 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   // render all shadow casting point lights
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
   for (int i=0; i<EX_SCENE_BIGGEST_LIGHT; i++) {
     ex_point_light_t *pl = i > EX_MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
     
@@ -342,7 +326,6 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
     }
   }
   glDisable(GL_BLEND);
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
 
   // render debug primitives
   glUseProgram(s->primshader);
@@ -352,15 +335,10 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
   glUniformMatrix4fv(ex_uniform(s->primshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
   glUniformMatrix4fv(ex_uniform(s->primshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
 
-  if (ex_dbgprofiler.render_octree)
-    ex_octree_render(s->coll_tree);
-
   // render screen quad
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   ex_framebuffer_draw(s->framebuffer, view_x, (vh-view_y-view_height), vw, vh);
-
-  ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
 
 void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
@@ -371,11 +349,6 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
     view_width = vw;
   if (!view_height)
     view_height = vh;
-
-  // begin profiler
-  ex_dbgprofiler.end[ex_dbgprofiler_other] = glfwGetTime();
-  ex_dbgui_end_profiler();
-  ex_dbgui_begin_profiler();
 
   // render light depthmaps
   ex_scene_render_depthmaps(s);
@@ -423,7 +396,6 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   // render all shadow casting point lights
-  ex_dbgprofiler.begin[ex_dbgprofiler_lighting_render] = glfwGetTime();
   for (int i=0; i<EX_SCENE_BIGGEST_LIGHT; i++) {
     ex_point_light_t *pl = i > EX_MAX_POINT_LIGHTS ? NULL : s->point_lights[i];
     
@@ -435,7 +407,6 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
     ex_scene_render_models(s, 0, 0);
   }
   glDisable(GL_BLEND);
-  ex_dbgprofiler.end[ex_dbgprofiler_lighting_render] = glfwGetTime();
 
   // render debug primitives
   glUseProgram(s->primshader);
@@ -445,15 +416,10 @@ void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_wid
   glUniformMatrix4fv(ex_uniform(s->primshader, "u_view"), 1, GL_FALSE, matrices->view[0]);
   glUniformMatrix4fv(ex_uniform(s->primshader, "u_inverse_view"), 1, GL_FALSE, matrices->inverse_view[0]);
 
-  if (ex_dbgprofiler.render_octree)
-    ex_octree_render(s->coll_tree);
-
   // render screen quad
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   ex_framebuffer_draw(s->framebuffer, view_x, (vh-view_y-view_height), vw, vh);
-
-  ex_dbgprofiler.begin[ex_dbgprofiler_other] = glfwGetTime();
 }
 
 void ex_scene_manage_lights(ex_scene_t *s)
@@ -517,39 +483,8 @@ void ex_scene_manage_lights(ex_scene_t *s)
   }
 }
 
-void ex_scene_dbgui(ex_scene_t *s)
-{
-  // draw gui
-  if (igBegin("Scene Debugger", NULL, ImGuiWindowFlags_NoTitleBar)) {
-    igColumns(3, "", 0);
-    igText("Item Type");
-    igNextColumn();
-    igText("Count");
-    igNextColumn();
-    igText("Specifics");
-    igSeparator();
-    igColumns(3, "", 0);
-    igText("Point Lights");
-    igText("Point Lights");
-    igText("Directional Lights");
-    igText("Rendered Lights");
-    igText("Culled Lights");
-    igText("Scene Models");
-    igNextColumn();
-    igText("Dynamic");
-    igText("Static");
-    igText("Dynamic");
-    igText("");
-  }
-
-  igEnd();
-}
-
 void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows)
 {
-  if (ex_dbgprofiler.wireframe)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
   for (int i=0; i<EX_SCENE_MAX_MODELS; i++) {
     if (!s->models[i])
       continue;
