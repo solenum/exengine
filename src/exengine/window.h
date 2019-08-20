@@ -9,21 +9,19 @@
 #define EX_WINDOW_H
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
-
+#include <SDL2/SDL.h>
 #include <inttypes.h>
 
-#include "glimgui.h"
-
 typedef struct {
-	GLFWwindow *window;
+  SDL_Window *window;
+  SDL_GLContext context;
   int width, height;
   float mouse_x, mouse_y;
 } ex_window_t;
 
 extern ex_window_t display;
 
-void ex_resize_callback(GLFWwindow* window, int width, int height);
+void ex_resize_callback(SDL_Window* window, int width, int height);
 
 /**
  * [ex_window_init creates the window and gl context]
@@ -32,7 +30,7 @@ void ex_resize_callback(GLFWwindow* window, int width, int height);
  * @param  title  [window title]
  * @return        [true on success]
  */
-bool ex_window_init(uint32_t width, uint32_t height, const char *title);
+int ex_window_init(uint32_t width, uint32_t height, const char *title);
 
 void ex_window_begin();
 

@@ -9,7 +9,7 @@
 #include "mathlib.h"
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 #define SSAO_NUM_SAMPLES 32
 

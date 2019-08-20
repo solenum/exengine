@@ -2,7 +2,6 @@
 
 # -- Dirs -- #
 CC 			=gcc
-CPP     =g++
 EDIR    =exengine
 LDIR		=lib
 BDIR		=build
@@ -12,25 +11,22 @@ _IDIRS  =lib inc lib/physfs
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ -lGL -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ -lGL -lSDL2 -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
-CPPFLAGS=
 
 # -- Windows -- #
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
-CPP     =x86_64-w64-mingw32-g++
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lglfw3dll -lopenal32 -I. $(IDIRS)
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lSDL2 -lglfw3dll -lopenal32 -I. $(IDIRS)
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
-CPPFLAGS=-lstdc++
 endif
 
 # -- MacOS -- #
 UNAME = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
-FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
+FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lSDL2 -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 endif
@@ -39,7 +35,6 @@ endif
 UNAME = $(shell uname -s)
 ifeq ($(UNAME),OpenBSD)
 CC =egcc
-CPP =eg++
 FLAGS += -I/usr/X11R6/include -L/usr/X11R6/lib
 endif
 
@@ -123,9 +118,10 @@ endif
 
 release-linux:
 	mkdir -p $(BDIR)/lib
-	rm $(BDIR)/lib/*
+	rm -f $(BDIR)/lib/*
 	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libopenal | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
+	cp $$(ldd $(BDIR)/game | grep -i libsdl2 | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 
 #release:
 #ifeq ($(OS),Windows_NT)

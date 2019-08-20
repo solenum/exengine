@@ -4,50 +4,54 @@
 #include "glad/glad.h"
 #include <stdio.h>
 
+#define DEFAULT_FLAGS SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+
 ex_window_t display;
 
-void ex_window_err(int error, const char *str)
+int ex_window_init(uint32_t width, uint32_t height, const char *title)
 {
-  printf("GLFW ERR (%i)\n%s\n", error, str);
-}
-
-bool ex_window_init(uint32_t width, uint32_t height, const char *title)
-{
-  glfwSetErrorCallback(ex_window_err);
-
-  // init glfw
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-  glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-  // create glfw window
-  display.window = glfwCreateWindow(width, height, title, NULL, NULL);
-  if (display.window == NULL) {
-    printf("Failed to initialize window\n");
-    glfwTerminate();
+  if (SDL_Init(SDL_INIT_VIDEO)) {
+    printf("Failed to init SDL\n%s", SDL_GetError());
     return 0;
   }
+
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+
+  // create a window
+  display.window = SDL_CreateWindow(title,
+                                  SDL_WINDOWPOS_CENTERED,
+                                  SDL_WINDOWPOS_CENTERED,
+                                  width,
+                                  height,
+                                  DEFAULT_FLAGS);
+  if (!display.window) {
+    printf("Failed to open SDL window\n%s", SDL_GetError());
+    return 0;
+  }
+
+  // attempt to setup GL
+  display.context = SDL_GL_CreateContext(display.window);
+  if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+    printf("Failed creating GL context");
+    return 0;
+  }
+
+  // set vsync
+  SDL_GL_SetSwapInterval(0);
 
   // set callbacks
-  glfwSetKeyCallback(display.window, ex_key_callback);
-  glfwSetCursorPosCallback(display.window, ex_mouse_callback);
-  glfwSetFramebufferSizeCallback(display.window, ex_resize_callback);
-  glfwSetMouseButtonCallback(display.window, ex_button_callback);
-  glfwSetScrollCallback(display.window, ex_scroll_callback);
-  glfwSetCharCallback(display.window, ex_char_callback);
-
-  // set context
-  glfwMakeContextCurrent(display.window);
-
-  // init glad
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    printf("Error initializing glad\n");
-    return 0;
-  }
+  // glfwSetKeyCallback(display.window, ex_key_callback);
+  // glfwSetCursorPosCallback(display.window, ex_mouse_callback);
+  // glfwSetFramebufferSizeCallback(display.window, ex_resize_callback);
+  // glfwSetMouseButtonCallback(display.window, ex_button_callback);
+  // glfwSetScrollCallback(display.window, ex_scroll_callback);
+  // glfwSetCharCallback(display.window, ex_char_callback);
   
   // set viewport etc
   glViewport(0, 0, width, height);
@@ -59,9 +63,10 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
   glDepthFunc(GL_LEQUAL);
   glEnable(GL_FRAMEBUFFER_SRGB);
 
-  glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSwapInterval(0);
-  glfwSetInputMode(display.window, GLFW_STICKY_KEYS, 1);
+  // lock mouse
+  SDL_SetRelativeMouseMode(1);
+  // SDL_CaptureMouse(1);
+  // SDL_SetWindowGrab(display.window, 1);
 
   display.width = width;
   display.height = height;
@@ -71,8 +76,7 @@ bool ex_window_init(uint32_t width, uint32_t height, const char *title)
 
 void ex_window_begin()
 {
-  glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  // glfwSetInputMode(display.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 }
 
 void ex_window_end()
@@ -82,10 +86,13 @@ void ex_window_end()
 
 void ex_window_destroy()
 {
-  glfwTerminate();
+  // bye bye
+  SDL_GL_DeleteContext(display.context);
+  SDL_DestroyWindow(display.window);
+  SDL_Quit();
 }
 
-void ex_resize_callback(GLFWwindow* window, int width, int height)
+void ex_resize_callback(SDL_Window* window, int width, int height)
 {
   ex_resize_ptr(width, height);
 }

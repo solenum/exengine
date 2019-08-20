@@ -6,7 +6,7 @@
 #include "exengine/mesh.h"
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -31,7 +31,7 @@ void game_draw();
  */
 void game_exit();
 
-void game_keypressed(int key, int scancode, int action, int mode);
+void game_keypressed(int key);
 
 void game_resize(int width, int height);
 

@@ -217,7 +217,7 @@ void ex_scene_draw(ex_scene_t *s, int view_x, int view_y, int view_width, int vi
 void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
 {
   int vw, vh;
-  glfwGetFramebufferSize(display.window, &vw, &vh);
+  SDL_GetWindowSize(display.window, &vw, &vh);
   if (!view_width)
     view_width = vw;
   if (!view_height)
@@ -344,7 +344,7 @@ void ex_scene_render_deferred(ex_scene_t *s, int view_x, int view_y, int view_wi
 void ex_scene_render_forward(ex_scene_t *s, int view_x, int view_y, int view_width, int view_height, ex_camera_matrices_t *matrices)
 {
   int vw, vh;
-  glfwGetFramebufferSize(display.window, &vw, &vh);
+  SDL_GetWindowSize(display.window, &vw, &vh);
   if (!view_width)
     view_width = vw;
   if (!view_height)

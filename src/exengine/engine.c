@@ -12,7 +12,7 @@
 #include "defaults.h"
 #include "text.h"
 #include "cache.h"
-#include "dbgui.h"
+#include "input.h"
 
 // renderer feature toggles
 int ex_enable_ssao = 1;
@@ -23,7 +23,7 @@ void (*ex_update_ptr)(double);
 void (*ex_draw_ptr)(void);
 void (*ex_exit_ptr)(void);
 // non-essential user callbacks
-void (*ex_keypressed_ptr)(int, int, int, int);
+void (*ex_keypressed_ptr)(int);
 void (*ex_mousepressed_ptr)(int, int, int);
 void (*ex_keyinput_ptr)(unsigned int);
 void (*ex_mousescroll_ptr)(double, double);
@@ -77,14 +77,13 @@ void exengine(char **argv, uint8_t flags)
 
   /* -- UPDATE ENGINE -- */
   // main engine loop
-  double last_ex_frame_time = glfwGetTime();
-  while (!glfwWindowShouldClose(display.window)) {
-    // handle window events
-    ex_window_begin();
-
+  double last_ex_frame_time = SDL_GetPerformanceCounter();
+  int running = 1;
+  SDL_Event e;
+  while (running) {
     // calculate delta time
-    double current_ex_frame_time = (double)glfwGetTime();
-    delta_time = current_ex_frame_time - last_ex_frame_time;
+    double current_ex_frame_time = (double)SDL_GetPerformanceCounter();
+    delta_time = (double)(current_ex_frame_time - last_ex_frame_time) / (double)SDL_GetPerformanceFrequency();
     last_ex_frame_time = current_ex_frame_time;
 
     // prevent spiral of death
@@ -94,7 +93,38 @@ void exengine(char **argv, uint8_t flags)
     // update at a constant rate to keep physics in check
     accumulator += delta_time;
     while (accumulator >= phys_delta_time) {
-      glfwPollEvents();
+      SDL_Event event;
+      while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+          case SDL_QUIT:
+            running = 0;
+            break;
+          case SDL_KEYDOWN: {
+            ex_keys_down[event.key.keysym.scancode] = 1;
+            if (event.key.repeat == 0)
+              ex_keypressed_ptr(event.key.keysym.scancode);
+            break;
+          }
+          case SDL_KEYUP: {
+            ex_keys_down[event.key.keysym.scancode] = 0;
+            break;
+          }
+          case SDL_MOUSEBUTTONDOWN: {
+            ex_buttons_down[event.button.button] = 1;
+            break;
+          }
+          case SDL_MOUSEBUTTONUP: {
+            ex_buttons_down[event.button.button] = 0;
+            break;
+          }
+        }
+      }
+
+      // update mouse coords
+      int mx, my;
+      SDL_GetRelativeMouseState(&mx, &my);
+      display.mouse_x = (float)mx;
+      display.mouse_y = (float)my;
 
       // user update callback
       ex_update_ptr(phys_delta_time);
@@ -108,7 +138,7 @@ void exengine(char **argv, uint8_t flags)
 
     // swap buffers render gui etc
     ex_window_end();
-    glfwSwapBuffers(display.window);
+    SDL_GL_SwapWindow(display.window);
   }
   /* ------------------- */
 

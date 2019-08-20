@@ -22,7 +22,7 @@
 #define EX_DATA_FILE "data.ex"
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -48,7 +48,7 @@ extern void (*ex_init_ptr)(void);
 extern void (*ex_update_ptr)(double);
 extern void (*ex_draw_ptr)(void);
 extern void (*ex_exit_ptr)(void);
-extern void (*ex_keypressed_ptr)(int, int, int, int);
+extern void (*ex_keypressed_ptr)(int);
 extern void (*ex_mousepressed_ptr)(int, int, int);
 extern void (*ex_keyinput_ptr)(unsigned int);
 extern void (*ex_mousescroll_ptr)(double, double);

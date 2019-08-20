@@ -64,10 +64,8 @@ void ex_fps_camera_update(ex_fps_camera_t *cam)
   float x = display.mouse_x;
   float y = display.mouse_y;
 
-  float offset_x = x - cam->last_x;
-  float offset_y = cam->last_y - y;
-  cam->last_x = x;
-  cam->last_y = y;
+  float offset_x = x;
+  float offset_y = -y;
 
   offset_x *= cam->sensitivity;
   offset_y *= cam->sensitivity;

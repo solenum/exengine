@@ -14,7 +14,7 @@
 #define EX_GBUFFER_H
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 extern GLuint ex_gshader, ex_gmainshader;
 extern GLuint gposition, gnormal;

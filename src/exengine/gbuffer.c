@@ -16,7 +16,7 @@ void ex_gbuffer_init(int reinit)
   glGenFramebuffers(1, &gbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
 
-  glfwGetFramebufferSize(display.window, &width, &height);
+  SDL_GetWindowSize(display.window, &width, &height);
 
   // position buffer
   glGenTextures(1, &gposition);

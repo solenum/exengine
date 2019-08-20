@@ -133,8 +133,9 @@ void ex_font_dbg(ex_font_t *f)
   char *str = "Heljo World! this is a test";
   // float w = 16.0f, h = 16.0f;
   float w = 128.0f, h = 128.0f;
-  w += 112.0f * cos(glfwGetTime() * 0.5);
-  h += 112.0f * cos(glfwGetTime() * 0.5);
+  double t = (double)SDL_GetPerformanceCounter() / (double)SDL_GetPerformanceFrequency();
+  w += 112.0f * cos(t * 0.5);
+  h += 112.0f * cos(t * 0.5);
 
   glUseProgram(shader);
   glBindVertexArray(vao);

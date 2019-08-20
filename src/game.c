@@ -93,7 +93,7 @@ void game_update(double dt)
 
   cube->velocity[1] -= (100.0f * dt);
 
-  if (ex_keys_down[EX_KEY_LEFT_CONTROL]) {
+  if (ex_keys_down[SDL_SCANCODE_LCTRL]) {
     vec3 p;
     vec3_scale(p, camera->front, 2.5f);
     vec3_add(p, p, e->position);
@@ -103,7 +103,7 @@ void game_update(double dt)
 
     float f = vec3_len(p);
     if (f > 1.5f) {
-      ex_keys_down[EX_KEY_LEFT_CONTROL] = 0;
+      ex_keys_down[SDL_SCANCODE_LCTRL] = 0;
       goto ctrl_end;
     }
 
@@ -116,20 +116,20 @@ void game_update(double dt)
     memcpy(cube->velocity, p, sizeof(vec3));
     cube->velocity[1] += f*0.1f;
   
-    if (ex_buttons_down[GLFW_MOUSE_BUTTON_RIGHT]) {
+    if (ex_buttons_down[SDL_BUTTON_RIGHT]) {
       vec3_scale(temp, camera->front, 80.0f);
       vec3_add(cube->velocity, cube->velocity, temp);
-      ex_keys_down[EX_KEY_LEFT_CONTROL] = 0;
+      ex_keys_down[SDL_SCANCODE_LCTRL] = 0;
     }
   }
 ctrl_end:
 
-  if (ex_keys_down[EX_KEY_1])
+  if (ex_keys_down[SDL_SCANCODE_1])
     ex_model_set_anim(d, "Walk");
-  if (ex_keys_down[EX_KEY_2])
+  if (ex_keys_down[SDL_SCANCODE_2])
     ex_model_set_anim(d, "Run");
 
-  if (ex_keys_down[EX_KEY_F]) {
+  if (ex_keys_down[SDL_SCANCODE_F]) {
     float r = (float)rand()/(float)(RAND_MAX/1.0f); 
     float g = (float)rand()/(float)(RAND_MAX/1.0f);
     float b = (float)rand()/(float)(RAND_MAX/1.0f);
@@ -137,7 +137,7 @@ ctrl_end:
     memcpy(l->position, camera->position, sizeof(vec3));
     ex_scene_add_pointlight(scene, l);
     l->is_shadow = 1;
-    ex_keys_down[EX_KEY_F] = 0;
+    ex_keys_down[SDL_SCANCODE_F] = 0;
   }
 
   /* debug entity movement */
@@ -151,43 +151,38 @@ ctrl_end:
   
   e->velocity[1] -= (100.0f * dt);
 
-  if (ex_keys_down[EX_KEY_C])
-    glfwSwapInterval(1);
-  if (ex_keys_down[EX_KEY_V])
-    glfwSwapInterval(0);
-
   vec3 speed, side;
-  if (ex_keys_down[EX_KEY_W]) {
+  if (ex_keys_down[SDL_SCANCODE_W]) {
     vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
     vec3_scale(speed, speed, move_speed * dt);
     speed[1] = 0.0f;
     vec3_add(e->velocity, e->velocity, speed);
   }
-  if (ex_keys_down[EX_KEY_S]) {
+  if (ex_keys_down[SDL_SCANCODE_S]) {
     vec3_norm(speed, (vec3){camera->front[0], 0.0f, camera->front[2]});
     vec3_scale(speed, speed, move_speed * dt); 
     speed[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, speed);
   }
-  if (ex_keys_down[EX_KEY_A]) {
+  if (ex_keys_down[SDL_SCANCODE_A]) {
     vec3_mul_cross(side, camera->front, camera->up);
     vec3_norm(side, side);
     vec3_scale(side, side, (move_speed*0.9f) * dt);
     side[1] = 0.0f;
     vec3_sub(e->velocity, e->velocity, side);
   }
-  if (ex_keys_down[EX_KEY_D]) {
+  if (ex_keys_down[SDL_SCANCODE_D]) {
     vec3_mul_cross(side, camera->front, camera->up);
     vec3_norm(side, side);
     vec3_scale(side, side, (move_speed*0.9f) * dt);
     side[1] = 0.0f;
     vec3_add(e->velocity, e->velocity, side);
   }
-  if (ex_keys_down[EX_KEY_Q])
+  if (ex_keys_down[SDL_SCANCODE_Q])
     e->velocity[1] = 50.0f;
-  if (ex_keys_down[EX_KEY_Z])
+  if (ex_keys_down[SDL_SCANCODE_Z])
     e->velocity[1] = -50.0f;
-  if (ex_keys_down[EX_KEY_SPACE] && e->grounded == 1) {
+  if (ex_keys_down[SDL_SCANCODE_SPACE] && e->grounded == 1) {
     e->velocity[1] = 20.0f;
     if (e->grounded && !ex_sound_playing(sound)) {
       alSourcePlay(sound->id);
@@ -215,7 +210,7 @@ void game_exit()
   printf("Exiting\n");
 }
 
-void game_keypressed(int key, int scancode, int action, int mode)
+void game_keypressed(int key)
 {
 
 }

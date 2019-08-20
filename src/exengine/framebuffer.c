@@ -56,7 +56,7 @@ ex_framebuffer_t* ex_framebuffer_new(int width, int height)
   fb->height = height;
 
   int vw, vh;
-  glfwGetFramebufferSize(display.window, &vw, &vh);
+  SDL_GetWindowSize(display.window, &vw, &vh);
   if (!width)
     fb->width = vw;
   if (!height)

@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 typedef struct {
   GLuint id;
