@@ -1,19 +1,4 @@
 #include "engine.h"
-#include "render/camera.h"
-#include "render/texture.h"
-#include "render/pointlight.h"
-#include "render/dirlight.h"
-#include "render/skybox.h"
-#include "render/framebuffer.h"
-#include "render/defaults.h"
-#include "render/text.h"
-#include "input/input.h"
-#include "util/exe_list.h"
-#include "util/entity.h"
-#include "util/scene.h"
-#include "util/iqm.h"
-#include "util/cache.h"
-
 // renderer feature toggles
 int ex_enable_ssao = 1;
 

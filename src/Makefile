@@ -53,7 +53,7 @@ endif
 # input
 _EDEPS_IN = input.h
 # math
-_EDEPS_MA = collision.h mathlib.h octree.h
+_EDEPS_MA = math.h collision.h mathlib.h octree.h
 # render
 _EDEPS_RE = render.h camera.h defaults.h dirlight.h \
 gbuffer.h mesh.h model.h msdf.h pointlight.h reflectionprobe.h \
@@ -62,8 +62,8 @@ text.h texture.h window.h framebuffer.h
 # sound
 _EDEPS_SO = sound.h
 # util
-_EDEPS_UT = cache.h entity.h exe_conf.h exe_io.h exe_list.h \
-iqm.h scene.h vertices.h
+_EDEPS_UT = util.h cache.h entity.h exe_conf.h exe_io.h \
+exe_list.h iqm.h scene.h vertices.h
 EDEPS		=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
 EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
 EDEPS	 +=$(patsubst %,$(EDIR)/render/%,$(_EDEPS_RE))
@@ -136,9 +136,9 @@ files:
 	mkdir -p $(ODIR)
 	mkdir -p $(BDIR)/licence
 	cp licence/* $(BDIR)/licence/
-	cp -r $(DATA)/ $(BDIR)/
 	cp -r $(EDATA)/$(DATA) $(BDIR)/
-	(cd build/; zip -r -FS data.ex data)
+	cp -r $(DATA)/ $(BDIR)/
+	(cd build/; zip -r -FS data.ex data; rm -r data/)
 ifeq ($(OS),Windows_NT)
 	cp lib/win/dll/* build
 endif

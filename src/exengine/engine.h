@@ -29,9 +29,11 @@
 #include <physfs.h>
 #include <inttypes.h>
 
-#include "util/exe_conf.h"
-#include "render/window.h"
+#include "render/render.h"
+#include "input/input.h"
+#include "util/util.h"
 #include "sound/sound.h"
+#include "math/math.h"
 
 /*
   The module flags, OR these together when
