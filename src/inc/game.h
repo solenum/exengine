@@ -1,10 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "exengine/exe_conf.h"
-#include "exengine/window.h"
-#include "exengine/mesh.h"
-
 #include "glad/glad.h"
 #include <SDL2/SDL.h>
 

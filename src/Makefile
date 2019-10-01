@@ -7,18 +7,23 @@ LDIR		=lib
 BDIR		=build
 ODIR 		=obj
 IDIR    =inc
-_IDIRS  =lib inc lib/physfs
+_IDIRS  =lib inc lib/physfs exengine
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ -lGL -lSDL2 -lglfw -lopenal -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ \
+-lGL -lSDL2 -lglfw -lopenal -I. $(IDIRS) \
+'-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+#
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 
 # -- Windows -- #
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ -Llib/win -lopengl32 -lSDL2 -lglfw3dll -lopenal32 -I. $(IDIRS)
+FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ \
+-Llib/win -lopengl32 -lSDL2 -lglfw3dll -lopenal32 -I. $(IDIRS)
+#
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
 endif
@@ -26,7 +31,10 @@ endif
 # -- MacOS -- #
 UNAME = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
-FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation -framework IOKit -lglfw -lSDL2 -lphysfs -framework OpenAL -I. $(IDIRS) -Wno-unused-command-line-argument
+FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation \
+-framework IOKit -lglfw -lSDL2 -lphysfs -framework OpenAL \
+-I. $(IDIRS) -Wno-unused-command-line-argument
+#
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 endif
@@ -40,12 +48,25 @@ endif
 
 # -- Files -- #
 # engine deps
-_EDEPS  =exe_conf.h exe_io.h window.h shader.h mesh.h mathlib.h camera.h \
-texture.h stb_image.h iqm.h framebuffer.h pointlight.h exe_list.h scene.h \
-model.h dirlight.h skybox.h collision.h entity.h octree.h gbuffer.h \
-spotlight.h vertices.h ssao.h engine.h reflectionprobe.h defaults.h \
-input.h sound.h cache.h text.h msdf.h
-EDEPS		=$(patsubst %,$(EDIR)/%,$(_EDEPS))
+# input
+_EDEPS_IN = input.h
+# math
+_EDEPS_MA = collision.h mathlib.h octree.h
+# render
+_EDEPS_RE = render.h camera.h defaults.h dirlight.h \
+gbuffer.h mesh.h model.h msdf.h pointlight.h reflectionprobe.h \
+shader.h skybox.h spotlight.h ssao.h stb_image.h stb_truetype.h \
+text.h texture.h window.h framebuffer.h
+# sound
+_EDEPS_SO = sound.h
+# util
+_EDEPS_UT = cache.h entity.h exe_conf.h exe_io.h exe_list.h \
+iqm.h scene.h vertices.h
+EDEPS		=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
+EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
+EDEPS	 +=$(patsubst %,$(EDIR)/render/%,$(_EDEPS_RE))
+EDEPS	 +=$(patsubst %,$(EDIR)/sound/%,$(_EDEPS_SO))
+EDEPS	 +=$(patsubst %,$(EDIR)/util/%,$(_EDEPS_UT))
 
 # engine srcs
 ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
@@ -92,6 +113,16 @@ $(ODIR)/%.o: %.c $(DEPS)
 
 # engine srcs
 $(ODIR)/%.o: $(EDIR)/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+$(ODIR)/%.o: $(EDIR)/sound/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+$(ODIR)/%.o: $(EDIR)/input/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+$(ODIR)/%.o: $(EDIR)/render/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+$(ODIR)/%.o: $(EDIR)/util/%.c $(EDEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+$(ODIR)/%.o: $(EDIR)/math/%.c $(EDEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # physfs src

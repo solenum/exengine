@@ -29,9 +29,9 @@
 #include <physfs.h>
 #include <inttypes.h>
 
-#include "exe_conf.h"
-#include "exengine/window.h"
-#include "exengine/sound.h"
+#include "util/exe_conf.h"
+#include "render/window.h"
+#include "sound/sound.h"
 
 /*
   The module flags, OR these together when
