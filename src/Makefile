@@ -7,12 +7,14 @@ LDIR		=lib
 BDIR		=build
 ODIR 		=obj
 IDIR    =inc
+EDATA   =exengine
+DATA    =data
 _IDIRS  =lib inc lib/physfs exengine
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
 FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ \
--lGL -lSDL2 -lglfw -lopenal -I. $(IDIRS) \
+-lGL -lSDL2 -lopenal -I. $(IDIRS) \
 '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 #
 CFLAGS  =$(FLAGS)
@@ -22,7 +24,7 @@ CFLAGS +=-std=c99 -O2
 ifeq ($(OS),Windows_NT)
 CC 			=x86_64-w64-mingw32-gcc
 FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ \
--Llib/win -lopengl32 -lSDL2 -lglfw3dll -lopenal32 -I. $(IDIRS)
+-Llib/win -lopengl32 -lSDL2 -lopenal32 -I. $(IDIRS)
 #
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
@@ -32,7 +34,7 @@ endif
 UNAME = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation \
--framework IOKit -lglfw -lSDL2 -lphysfs -framework OpenAL \
+-framework IOKit -lSDL2 -lphysfs -framework OpenAL \
 -I. $(IDIRS) -Wno-unused-command-line-argument
 #
 CFLAGS  =$(FLAGS)
@@ -114,15 +116,7 @@ $(ODIR)/%.o: %.c $(DEPS)
 # engine srcs
 $(ODIR)/%.o: $(EDIR)/%.c $(EDEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
-$(ODIR)/%.o: $(EDIR)/sound/%.c $(EDEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-$(ODIR)/%.o: $(EDIR)/input/%.c $(EDEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-$(ODIR)/%.o: $(EDIR)/render/%.c $(EDEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-$(ODIR)/%.o: $(EDIR)/util/%.c $(EDEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-$(ODIR)/%.o: $(EDIR)/math/%.c $(EDEPS)
+$(ODIR)/%.o: $(EDIR)/*/%.c $(EDEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # physfs src
@@ -142,7 +136,9 @@ files:
 	mkdir -p $(ODIR)
 	mkdir -p $(BDIR)/licence
 	cp licence/* $(BDIR)/licence/
-	zip -r -FS build/data.ex data/
+	cp -r $(DATA)/ $(BDIR)/
+	cp -r $(EDATA)/$(DATA) $(BDIR)/
+	(cd build/; zip -r -FS data.ex data)
 ifeq ($(OS),Windows_NT)
 	cp lib/win/dll/* build
 endif
@@ -150,7 +146,6 @@ endif
 release-linux:
 	mkdir -p $(BDIR)/lib
 	rm -f $(BDIR)/lib/*
-	cp $$(ldd $(BDIR)/game | grep -i libglfw | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libopenal | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 	cp $$(ldd $(BDIR)/game | grep -i libsdl2 | awk 'NF == 4 {print $$3}; NF == 2 {print $$1}') $(BDIR)/lib
 
