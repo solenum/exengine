@@ -1,6 +1,6 @@
 #include "util/cache.h"
 #include "util/exe_list.h"
-#include "util/scene.h"
+#include "render/scene.h"
 
 list_t *texture_list, *model_list;
 

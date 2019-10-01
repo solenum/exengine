@@ -19,7 +19,7 @@
 #include "math/mathlib.h"
 #include "math/collision.h"
 #include "math/octree.h"
-#include "util/scene.h"
+#include "render/scene.h"
 
 typedef struct {
   vec3 position, velocity, radius;

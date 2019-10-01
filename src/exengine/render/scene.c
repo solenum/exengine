@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include "sound/sound.h"
 #include "render/scene.h"
+#include "sound/sound.h"
 #include "render/model.h"
 #include "render/pointlight.h"
 #include "render/dirlight.h"

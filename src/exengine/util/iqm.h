@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util/scene.h"
+#include "render/scene.h"
 #include "render/model.h"
 
 #define uint uint32_t

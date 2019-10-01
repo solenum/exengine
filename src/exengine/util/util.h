@@ -7,7 +7,6 @@
 #include "util/exe_io.h"
 #include "util/exe_list.h"
 #include "util/iqm.h"
-#include "util/scene.h"
 #include "util/vertices.h"
 
 #endif // EX_UTIL_H
