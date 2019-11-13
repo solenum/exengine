@@ -46,6 +46,7 @@ UNAME = $(shell uname -s)
 ifeq ($(UNAME),OpenBSD)
 CC =egcc
 FLAGS += -I/usr/X11R6/include -L/usr/X11R6/lib
+FLAGS:=$(filter-out -ldl,$(FLAGS)) #-ldl functionality provided in OpenBSD libc
 endif
 
 # -- Files -- #

@@ -91,11 +91,15 @@ cd src && make
 the resulting .exe will be in src/build/
 
 #### OpenBSD
-Make shure you have the correct dependicies installed, the equivalent of linux using pkg_add.
+Make sure you have the correct dependicies installed, the equivalent of linux using pkg_add.
 For OpenBSD specific you will need the 'gmake' and 'gcc', 'g++' packages.
 The gcc and g++ packages will install a more modern compiler as egcc and eg++ in your path.
 
-after this the compilation is almost the same as in linux, this time specificly using gmake.
+```
+doas pkg_add g++ glew openal glfwls
+```
+
+after this the compilation is almost the same as in linux, this time specificly using gmake(stands for GNU make).
 
 ````
 cd src && gmake
