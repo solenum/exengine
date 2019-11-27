@@ -1,8 +1,8 @@
 #include "render/shader.h"
 #include <string.h>
 
-GLint ex_uniform_map[256][256] = {0};
-GLint ex_uniform_locations[256][256] = {0};
+GLint ex_uniform_map[256][256] = {{0}};
+GLint ex_uniform_locations[256][256] = {{0}};
 
 inline GLint ex_uniform(GLuint shader, const char *str)
 {
