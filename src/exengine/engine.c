@@ -14,7 +14,7 @@ void (*ex_keyinput_ptr)(unsigned int);
 void (*ex_mousescroll_ptr)(double, double);
 void (*ex_resize_ptr)(int, int);
 
-ini_t *conf;
+ex_ini_t *conf;
 
 void exengine(char **argv, uint8_t flags)
 {
@@ -37,16 +37,16 @@ void exengine(char **argv, uint8_t flags)
   double delta_time, accumulator = 0.0;
 
   // load user defined config
-  conf = malloc(sizeof(ini_t));
+  conf = malloc(sizeof(ex_ini_t));
   conf->length = 0;
-  if (!ini_load(conf, "data/conf.cfg")) {
+  if (!ex_ini_load(conf, "data/conf.cfg")) {
     printf("Failed loading engine config.\n");
   }
 
   // load config vars
   uint32_t width = 0, height = 0;
-  width = (int)ini_get_float(conf, "graphics", "window_width");
-  height = (int)ini_get_float(conf, "graphics", "window_height");
+  width = (int)ex_ini_get_float(conf, "graphics", "window_width");
+  height = (int)ex_ini_get_float(conf, "graphics", "window_height");
   
   // init the window and gl
   if (!ex_window_init(width, height, "exengine-testing")) {

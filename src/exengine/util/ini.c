@@ -1,7 +1,7 @@
 #include "ini.h"
 #include "exe_io.h"
 
-int ini_load(ini_t *ini, const char *path)
+int ex_ini_load(ex_ini_t *ini, const char *path)
 {
   printf("Loading config file %s\n", path);
 
@@ -52,10 +52,10 @@ int ini_load(ini_t *ini, const char *path)
       e[0] = '\0';
       
       if (cur_section > -1) {
-        ini_section_t *section = &ini->sections[cur_section];
+        ex_ini_section_t *section = &ini->sections[cur_section];
         
         // check to see if key already exists
-        ini_var_t *cur_var = NULL;
+        ex_ini_var_t *cur_var = NULL;
         for (int i=0; i<section->length; i++) {
           // key found
           if (strcmp(section->vars[i].key, key) == 0) {
@@ -78,10 +78,10 @@ int ini_load(ini_t *ini, const char *path)
           strtod(value, &p);
           if (*p == '\0') {
             cur_var->f = strtof(value, NULL);
-            cur_var->type = ini_type_float;
+            cur_var->type = ex_ini_type_float;
           } else {
             strcpy(cur_var->s, value);
-            cur_var->type = ini_type_string;
+            cur_var->type = ex_ini_type_string;
           }
         }
       }
@@ -91,19 +91,19 @@ int ini_load(ini_t *ini, const char *path)
   }
 
   /*for (int i=0; i<ini->length; i++) {
-    ini_section_t *section = &ini->sections[i];
+    ex_ini_section_t *section = &ini->sections[i];
     for (int j=0; j<section->length; j++) {
-      ini_var_t *var = &section->vars[j];
+      ex_ini_var_t *var = &section->vars[j];
       switch (var->type) {
-        case ini_type_string: {
+        case ex_ini_type_string: {
           printf("%s[%s] = %s\n", section->name, var->key, var->s);
           break;
         }
-        case ini_type_float: {
+        case ex_ini_type_float: {
           printf("%s[%s] = %f\n", section->name, var->key, var->f);
           break;
         }
-        case ini_type_undefined: {
+        case ex_ini_type_undefined: {
           break;
         }
       }
@@ -114,16 +114,16 @@ int ini_load(ini_t *ini, const char *path)
   return 1;
 }
 
-ini_var_t *ini_get_var(ini_t *ini, const char *sec, const char *key)
+ex_ini_var_t *ex_ini_get_var(ex_ini_t *ini, const char *sec, const char *key)
 {
   for (int i=0; i<ini->length; i++) {
-    ini_section_t *section = &ini->sections[i];
+    ex_ini_section_t *section = &ini->sections[i];
 
     if (strcmp(section->name, sec) != 0)
       continue;
 
     for (int j=0; j<section->length; j++) {
-      ini_var_t *var = &section->vars[j];
+      ex_ini_var_t *var = &section->vars[j];
       if (strcmp(var->key, key) == 0) {
         return var;
       }
@@ -133,21 +133,21 @@ ini_var_t *ini_get_var(ini_t *ini, const char *sec, const char *key)
   return NULL;
 }
 
-char *ini_get_string(ini_t *ini, const char *sec, const char *key)
+char *ex_ini_get_string(ex_ini_t *ini, const char *sec, const char *key)
 {
-  ini_var_t *var = ini_get_var(ini, sec, key);
+  ex_ini_var_t *var = ex_ini_get_var(ini, sec, key);
 
-  if (var && var->type == ini_type_string)
+  if (var && var->type == ex_ini_type_string)
     return var->s;
 
   return "";
 }
 
-float ini_get_float(ini_t *ini, const char *sec, const char *key)
+float ex_ini_get_float(ex_ini_t *ini, const char *sec, const char *key)
 {
-  ini_var_t *var = ini_get_var(ini, sec, key);
+  ex_ini_var_t *var = ex_ini_get_var(ini, sec, key);
 
-  if (var && var->type == ini_type_float)
+  if (var && var->type == ex_ini_type_float)
     return var->f;
 
   return 0.0f;
