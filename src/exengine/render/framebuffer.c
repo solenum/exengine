@@ -2,9 +2,6 @@
 #include "render/framebuffer.h"
 #include "render/shader.h"
 #include "render/window.h"
-#include "util/exe_conf.h"
-
-extern conf_t conf;
 
 GLuint ex_fbo_shader, fbo_vao, fbo_vbo;
 

@@ -2,9 +2,6 @@
 #include "render/window.h"
 #include "render/shader.h"
 #include "render/ssao.h"
-#include "util/exe_conf.h"
-
-extern conf_t conf;
 
 GLuint gbuffer, gposition, gnormal, gcolorspec, grenderbuffer;
 GLuint gvao, gvbo;

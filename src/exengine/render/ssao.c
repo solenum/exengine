@@ -6,10 +6,9 @@
 #include "render/shader.h"
 #include "render/framebuffer.h"
 #include "render/defaults.h"
-#include "util/exe_conf.h"
-#include "engine.h"
+#include "util/ini.h"
 
-extern conf_t conf;
+extern ini_t *conf;
 extern GLuint gposition, gnormal;
 extern GLuint fbo_vao;
 
@@ -76,8 +75,8 @@ void ssao_init()
   glGenFramebuffers(1, &ssao_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
 
-  int width = conf_get_int(&conf, "window_width");
-  int height = conf_get_int(&conf, "window_height");
+  int width = (int)ini_get_float(conf, "graphics", "window_width");
+  int height = (int)ini_get_float(conf, "graphics", "window_height");
 
   // generate color buffer
   glGenTextures(1, &ssao_color_buffer);
@@ -143,8 +142,8 @@ void ssao_render(mat4x4 projection, mat4x4 view)
   if (!noise_loc)
     noise_loc = ex_uniform(ssao_shader, "u_noise");
 
-  int width = conf_get_int(&conf, "window_width");
-  int height = conf_get_int(&conf, "window_height");
+  int width = (int)ini_get_float(conf, "graphics", "window_width");
+  int height = (int)ini_get_float(conf, "graphics", "window_height");
   vec2 screensize = {width, height};
   
   glUniform2fv(screensize_loc, 1, (float*)&screensize[0]);

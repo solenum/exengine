@@ -63,7 +63,7 @@ text.h texture.h window.h framebuffer.h
 # sound
 _EDEPS_SO = sound.h
 # util
-_EDEPS_UT = util.h cache.h entity.h exe_conf.h exe_io.h \
+_EDEPS_UT = util.h cache.h entity.h ini.h exe_io.h \
 exe_list.h iqm.h vertices.h
 EDEPS		=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
 EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
@@ -76,7 +76,7 @@ ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
 framebuffer.o pointlight.o scene.o model.o dirlight.o skybox.o \
 collision.o entity.o octree.o  gbuffer.o spotlight.o ssao.o engine.o \
 reflectionprobe.o shader.o defaults.o input.o sound.o cache.o \
-text.o msdf.o
+text.o msdf.o ini.o
 
 # lib deps
 _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h \

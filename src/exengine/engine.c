@@ -14,7 +14,7 @@ void (*ex_keyinput_ptr)(unsigned int);
 void (*ex_mousescroll_ptr)(double, double);
 void (*ex_resize_ptr)(int, int);
 
-conf_t conf;
+ini_t *conf;
 
 void exengine(char **argv, uint8_t flags)
 {
@@ -23,7 +23,7 @@ void exengine(char **argv, uint8_t flags)
   PHYSFS_init(argv[0]);
   printf("%s\n", argv[0]);
   PHYSFS_mount(EX_DATA_FILE, NULL, 1);
-
+  
   // init engine file data cache
   ex_cache_init();
 
@@ -37,12 +37,16 @@ void exengine(char **argv, uint8_t flags)
   double delta_time, accumulator = 0.0;
 
   // load user defined config
-  conf_load(&conf, "data/conf.cfg");
+  conf = malloc(sizeof(ini_t));
+  conf->length = 0;
+  if (!ini_load(conf, "data/conf.cfg")) {
+    printf("Failed loading engine config.\n");
+  }
 
   // load config vars
   uint32_t width = 0, height = 0;
-  width = conf_get_int(&conf, "window_width");
-  height = conf_get_int(&conf, "window_height");
+  width = (int)ini_get_float(conf, "graphics", "window_width");
+  height = (int)ini_get_float(conf, "graphics", "window_height");
   
   // init the window and gl
   if (!ex_window_init(width, height, "exengine-testing")) {
@@ -129,7 +133,7 @@ void exengine(char **argv, uint8_t flags)
 
 
   // -- CLEAN UP -- */
-  conf_free(&conf);
+  free(conf);
   ex_window_destroy();
   PHYSFS_deinit();
   ex_cache_flush();
