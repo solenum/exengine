@@ -34,6 +34,7 @@ ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity,
 
   mat4x4_identity(c->matrices.view);
   mat4x4_identity(c->matrices.projection);
+  mat4x4_identity(c->matrices.inverse_view);
 
   ex_fps_camera_resize(c);
 

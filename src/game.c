@@ -110,11 +110,6 @@ void game_update(double dt)
   }
 ctrl_end:
 
-  if (ex_keys_down[SDL_SCANCODE_1])
-    ex_model_set_anim(d, "Walk");
-  if (ex_keys_down[SDL_SCANCODE_2])
-    ex_model_set_anim(d, "Run");
-
   if (ex_keys_down[SDL_SCANCODE_F]) {
     float r = (float)rand()/(float)(RAND_MAX/1.0f); 
     float g = (float)rand()/(float)(RAND_MAX/1.0f);
