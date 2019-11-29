@@ -3,16 +3,20 @@
 int ex_enable_ssao = 1;
 
 // user defined function callback pointers
-void (*ex_init_ptr)(void);
-void (*ex_update_ptr)(double);
-void (*ex_draw_ptr)(void);
-void (*ex_exit_ptr)(void);
+void (*ex_init_ptr)(void) = NULL;
+void (*ex_update_ptr)(double) = NULL;
+void (*ex_draw_ptr)(void) = NULL;
+void (*ex_exit_ptr)(void) = NULL;
 // non-essential user callbacks
-void (*ex_keypressed_ptr)(int);
-void (*ex_mousepressed_ptr)(int, int, int);
-void (*ex_keyinput_ptr)(unsigned int);
-void (*ex_mousescroll_ptr)(double, double);
-void (*ex_resize_ptr)(int, int);
+void (*ex_keypressed_ptr)(uint32_t) = NULL;
+void (*ex_mousepressed_ptr)(uint8_t) = NULL;
+void (*ex_mousemotion_ptr)(int, int) = NULL;
+void (*ex_mousewheel_ptr)(int32_t, int32_t) = NULL;
+void (*ex_resize_ptr)(uint32_t, uint32_t) = NULL;
+// custom event handling
+void (*ex_event_handler)(SDL_Event*) = NULL;
+// allows full override of default event handler
+void (*ex_event_handler_full)(SDL_Event*) = NULL;
 
 ex_ini_t *conf;
 
@@ -84,36 +88,48 @@ void exengine(char **argv, uint8_t flags)
     while (accumulator >= phys_delta_time) {
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
+        // full event handler override
+        if (ex_event_handler_full) {
+          ex_event_handler_full(&event);
+          continue;
+        }
+
+        // custom event handler
+        // doesnt override anything
+        if (ex_event_handler)
+          ex_event_handler(&event);
+
+        // default event handler
         switch (event.type) {
+          // cya
           case SDL_QUIT:
             running = 0;
             break;
-          case SDL_KEYDOWN: {
-            ex_keys_down[event.key.keysym.scancode] = 1;
-            if (event.key.repeat == 0)
-              ex_keypressed_ptr(event.key.keysym.scancode);
+
+          // input events
+          case SDL_KEYDOWN:
+          case SDL_KEYUP:
+          case SDL_MOUSEBUTTONDOWN:
+          case SDL_MOUSEBUTTONUP:
+          case SDL_MOUSEWHEEL:
+          case SDL_TEXTEDITING:
+          case SDL_TEXTINPUT:
+          case SDL_MOUSEMOTION:
+          case SDL_KEYMAPCHANGED: {
+            ex_input_event(&event);
             break;
           }
-          case SDL_KEYUP: {
-            ex_keys_down[event.key.keysym.scancode] = 0;
-            break;
-          }
-          case SDL_MOUSEBUTTONDOWN: {
-            ex_buttons_down[event.button.button] = 1;
-            break;
-          }
-          case SDL_MOUSEBUTTONUP: {
-            ex_buttons_down[event.button.button] = 0;
+
+          // window events
+          case SDL_WINDOWEVENT: {
+            ex_window_event(&event);
             break;
           }
         }
       }
 
-      // update mouse coords
-      int mx, my;
-      SDL_GetRelativeMouseState(&mx, &my);
-      display.mouse_x = (float)mx;
-      display.mouse_y = (float)my;
+      // handle other frequent input updates
+      ex_input_update();
 
       // user update callback
       ex_update_ptr(phys_delta_time);
@@ -125,8 +141,7 @@ void exengine(char **argv, uint8_t flags)
     // user draw callback
     ex_draw_ptr();
 
-    // swap buffers render gui etc
-    ex_window_end();
+    // swap buffers
     SDL_GL_SwapWindow(display.window);
   }
   /* ------------------- */

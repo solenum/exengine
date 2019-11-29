@@ -51,8 +51,9 @@ endif
 
 # -- Files -- #
 # engine deps
+_EDEPS_EN = engine.h
 # input
-_EDEPS_IN = input.h
+_EDEPS_IN = input.h scancodes.h
 # math
 _EDEPS_MA = math.h collision.h mathlib.h octree.h
 # render
@@ -65,7 +66,8 @@ _EDEPS_SO = sound.h
 # util
 _EDEPS_UT = util.h cache.h entity.h ini.h exe_io.h \
 exe_list.h iqm.h vertices.h
-EDEPS		=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
+EDEPS	  =$(patsubst %,$(EDIR)/%,$(_EDEPS_EN))
+EDEPS	 +=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
 EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
 EDEPS	 +=$(patsubst %,$(EDIR)/render/%,$(_EDEPS_RE))
 EDEPS	 +=$(patsubst %,$(EDIR)/sound/%,$(_EDEPS_SO))

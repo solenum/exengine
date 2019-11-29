@@ -44,14 +44,6 @@ int ex_window_init(uint32_t width, uint32_t height, const char *title)
 
   // set vsync
   SDL_GL_SetSwapInterval(0);
-
-  // set callbacks
-  // glfwSetKeyCallback(display.window, ex_key_callback);
-  // glfwSetCursorPosCallback(display.window, ex_mouse_callback);
-  // glfwSetFramebufferSizeCallback(display.window, ex_resize_callback);
-  // glfwSetMouseButtonCallback(display.window, ex_button_callback);
-  // glfwSetScrollCallback(display.window, ex_scroll_callback);
-  // glfwSetCharCallback(display.window, ex_char_callback);
   
   // set viewport etc
   glViewport(0, 0, width, height);
@@ -64,9 +56,9 @@ int ex_window_init(uint32_t width, uint32_t height, const char *title)
   glEnable(GL_FRAMEBUFFER_SRGB);
 
   // lock mouse
-  SDL_SetRelativeMouseMode(1);
-  // SDL_CaptureMouse(1);
-  // SDL_SetWindowGrab(display.window, 1);
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+  SDL_CaptureMouse(SDL_TRUE);
+  SDL_SetWindowGrab(display.window, SDL_TRUE);
 
   display.width = width;
   display.height = height;
@@ -74,14 +66,17 @@ int ex_window_init(uint32_t width, uint32_t height, const char *title)
   return 1;
 }
 
-void ex_window_begin()
+void ex_window_event(SDL_Event *event)
 {
-
-}
-
-void ex_window_end()
-{
-
+  switch (event->window.event) {
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+    case SDL_WINDOWEVENT_RESIZED: {
+      printf("asdasd\n");
+      if (ex_resize_ptr)
+        ex_resize_ptr(event->window.data1, event->window.data2);
+      break;
+    }
+  }
 }
 
 void ex_window_destroy()
@@ -90,9 +85,4 @@ void ex_window_destroy()
   SDL_GL_DeleteContext(display.context);
   SDL_DestroyWindow(display.window);
   SDL_Quit();
-}
-
-void ex_resize_callback(SDL_Window* window, int width, int height)
-{
-  ex_resize_ptr(width, height);
 }

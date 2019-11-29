@@ -27,8 +27,14 @@ void game_draw();
  */
 void game_exit();
 
-void game_keypressed(int key);
+void game_keypressed(uint32_t key);
 
-void game_resize(int width, int height);
+void game_mousepressed(uint8_t button);
+
+void game_mousemoition(int xrel, int yrel);
+
+void game_mousewheel(int32_t x, int32_t y);
+
+void game_resize(uint32_t width, uint32_t height);
 
 #endif // GAME_H

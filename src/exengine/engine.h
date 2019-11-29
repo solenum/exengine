@@ -50,11 +50,16 @@ extern void (*ex_init_ptr)(void);
 extern void (*ex_update_ptr)(double);
 extern void (*ex_draw_ptr)(void);
 extern void (*ex_exit_ptr)(void);
-extern void (*ex_keypressed_ptr)(int);
-extern void (*ex_mousepressed_ptr)(int, int, int);
-extern void (*ex_keyinput_ptr)(unsigned int);
-extern void (*ex_mousescroll_ptr)(double, double);
-extern void (*ex_resize_ptr)(int, int);
+// non-essential user callbacks
+extern void (*ex_keypressed_ptr)(uint32_t);
+extern void (*ex_mousepressed_ptr)(uint8_t);
+extern void (*ex_mousemotion_ptr)(int, int);
+extern void (*ex_mousewheel_ptr)(int32_t, int32_t);
+extern void (*ex_resize_ptr)(uint32_t, uint32_t);
+// custom event handling
+extern void (*ex_event_handler)(SDL_Event*);
+// allows full override of default event handler
+extern void (*ex_event_handler_full)(SDL_Event*);
 
 /**
  * [exengine starts the internal engine loop]

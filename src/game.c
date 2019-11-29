@@ -196,12 +196,28 @@ void game_exit()
   printf("Exiting\n");
 }
 
-void game_keypressed(int key)
+void game_keypressed(uint32_t key)
 {
-
+  // printf("key %i\n", key);
 }
 
-void game_resize(int width, int height)
+void game_mousepressed(uint8_t button)
 {
+  // printf("button %i\n", button);
+}
+
+void game_mousemoition(int xrel, int yrel)
+{
+  // printf("mouse motion x: %i y: %i\n", xrel, yrel);
+}
+
+void game_mousewheel(int32_t x, int32_t y)
+{
+  // printf("scroll x: %i y: %i\n", x, y);
+}
+
+void game_resize(uint32_t width, uint32_t height)
+{
+  printf("resize x: %i y: %i\n", width, height);
   ex_scene_resize(scene, width, height);
 }

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "render/camera.h"
-#include "render/window.h"
 #include "render/shader.h"
+#include "input/input.h"
 
 ex_fps_camera_t* ex_fps_camera_new(float x, float y, float z, float sensitivity, float fov)
 {
@@ -61,8 +61,8 @@ void ex_fps_camera_update(ex_fps_camera_t *cam)
   if (!cam->update)
     return;
 
-  float x = display.mouse_x;
-  float y = display.mouse_y;
+  float x = (float)ex_mouse_x;
+  float y = (float)ex_mouse_y;
 
   float offset_x = x;
   float offset_y = -y;

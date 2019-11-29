@@ -16,7 +16,6 @@ typedef struct {
   SDL_Window *window;
   SDL_GLContext context;
   int width, height;
-  float mouse_x, mouse_y;
 } ex_window_t;
 
 extern ex_window_t display;
@@ -32,9 +31,11 @@ void ex_resize_callback(SDL_Window* window, int width, int height);
  */
 int ex_window_init(uint32_t width, uint32_t height, const char *title);
 
-void ex_window_begin();
-
-void ex_window_end();
+/**
+ * [ex_window_event window event handler]
+ * @param event [SDL_Event pointer]
+ */
+void ex_window_event(SDL_Event *event);
 
 /**
  * [window_exit clean up any data]
