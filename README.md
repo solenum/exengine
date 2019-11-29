@@ -7,20 +7,18 @@ exengine is a 3d engine that takes a slightly different approach than other libr
 
 This approach allows easy and direct access to the engine back-end should you want to make modifications to suit your specific needs, so think of it as more of a template.
 
-Assuming you don't want to set up your own build system (I can't blame you), you can clone the repo and use the existing build system and file structure as a starting template.  It compiles on Linux, MacOS, and Windows.
-
-The code-base is almost entirely C99, with an exception for [imgui](https://github.com/ocornut/imgui) support, which is also optional and exists only for tools and debugging.
+Assuming you don't want to set up your own build system (I can't blame you), you can clone the repo and use the existing build system and file structure as a starting template.  It compiles on Linux and Windows.
 
 **The contents of main.c/game.c are only supplied as examples to showcase how one might use the engine.**
 
 ### What are the features?
 * *Simple* and small
-* C99 compliant
-* Deferred rendering
+* A straight-forward C99 codebase
+* A deferred and forward renderer
 * Various light casters
 * Smooth shadow mapping
 * Normal & specular mapping
-* Half-kernel SSAO
+* Half-kernel SSAO (deferred only)
 * IQM model loading
 * 3D model animation
 * Scene manager
@@ -28,15 +26,12 @@ The code-base is almost entirely C99, with an exception for [imgui](https://gith
 * Polygon soup collision detection
 * Smooth collision response
 * Various cameras
-* Debug GUI with docking
 * More to come..
 
 ### Depends
-* A C99 and C++ compiler (gcc, clang etc)
-* GLFW3
-* GLEW
+* A C99 compiler, preferably gcc. Clang and others should also work
 * OpenGL 3.3+
-* OpenAL
+* OpenAL (Soon to be replaced)
 
 ### Getting Started
 #### Documentation
@@ -52,21 +47,12 @@ Simply clone the repository and install the required libraries and compilers lis
 
 ````
 sudo apt-get update
-sudo apt-get install libglfw3-dev libglew-dev libopenal-dev
+sudo apt-get install libopenal-dev
 cd src && make
 ````
 
 The resulting binary will be in src/build/
 
-#### MacOS
-
-Install [brew](https://brew.sh), and the following packages
-
-````
-brew install glfw glew gcc
-````
-
-After this compiling is the same as Linux.
 
 #### Windows
 
@@ -84,7 +70,7 @@ Alternatively switch to category view and set ['Devel' to install.](https://i.st
 After this compiling is the same as Linux.
 
 ````
-cd C:\exengine-testing (or wherever you've put this)
+cd C:\exengine (or wherever you've put this)
 cd src && make
 ````
 
@@ -92,14 +78,14 @@ the resulting .exe will be in src/build/
 
 #### OpenBSD
 Make sure you have the correct dependicies installed, the equivalent of linux using pkg_add.
-For OpenBSD specific you will need the 'gmake' and 'gcc', 'g++' packages.
-The gcc and g++ packages will install a more modern compiler as egcc and eg++ in your path.
+For OpenBSD specific you will need the 'gmake' and 'gcc' packages.
+The gcc package will install a more modern compiler as egcc in your path.
 
 ```
-doas pkg_add g++ glew openal glfwls
+doas pkg_add openal
 ```
 
-after this the compilation is almost the same as in linux, this time specificly using gmake(stands for GNU make).
+after this the compilation is almost the same as in linux, this time specificly using gmake (stands for GNU make).
 
 ````
 cd src && gmake
