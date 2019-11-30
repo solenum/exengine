@@ -32,6 +32,7 @@ Assuming you don't want to set up your own build system (I can't blame you), you
 * A C99 compiler, preferably gcc. Clang and others should also work
 * OpenGL 3.3+
 * OpenAL (Soon to be replaced)
+* SDL2
 
 ### Getting Started
 #### Documentation
@@ -47,7 +48,7 @@ Simply clone the repository and install the required libraries and compilers lis
 
 ````
 sudo apt-get update
-sudo apt-get install libopenal-dev
+sudo apt-get install build-essential libopenal-dev libsdl2-dev
 cd src && make
 ````
 
