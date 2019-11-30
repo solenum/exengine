@@ -87,17 +87,19 @@ void ex_vga_print(size_t x, size_t y, const char *str)
   x *= EX_VGA_FONT_WIDTH;
   y *= EX_VGA_FONT_HEIGHT;
 
-  if (x >= EX_VGA_WIDTH * EX_VGA_FONT_WIDTH)
-    x = 0;
-  if (y >= EX_VGA_HEIGHT * EX_VGA_FONT_HEIGHT)
-    y = 0;
-
   uint8_t *font = ex_vga_font_array;
   for (int i=0; i<strlen(str); i++) {
     size_t c = (str[i]*16);
     
     if (c > EX_VGA_FONT_DATA_LEN)
       c = 0;
+
+    if (x >= EX_VGA_WIDTH * EX_VGA_FONT_WIDTH) {
+      x = 0;
+      y += EX_VGA_FONT_HEIGHT;
+    }
+    if (y >= EX_VGA_HEIGHT * EX_VGA_FONT_HEIGHT)
+      y = 0;
 
     for (int j=0; j<16; j++) {
       size_t p = (EX_VGA_WIDTH * y) + x;
@@ -114,13 +116,6 @@ void ex_vga_print(size_t x, size_t y, const char *str)
     }
 
     x += EX_VGA_FONT_WIDTH;
-
-    if (x >= EX_VGA_WIDTH * EX_VGA_FONT_WIDTH) {
-      x = 0;
-      y += EX_VGA_FONT_HEIGHT;
-    }
-    if (y >= EX_VGA_HEIGHT * EX_VGA_FONT_HEIGHT)
-      y = 0;
   }
 }
 
