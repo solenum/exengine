@@ -1,5 +1,22 @@
 /* ini
+  A simple ini style config loader, strips all
+  white-space from the input file upon loading.
+
+  Supports two variable types, strings and floats,
+  make sure you cast values to your required type.
+  key=value pairs *must* be in a [section].
   
+  File extension doesn't matter, as long as its a
+  text file and not a binary.
+  
+  Example conf.cfg:
+
+  # [graphics]
+  # window_width = 1280
+  # quality = high
+  #
+  # [input]
+  # bind_left = a
 */
 #ifndef EX_INI_H
 #define EX_INI_H
