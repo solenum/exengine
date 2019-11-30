@@ -4,7 +4,7 @@ int ex_enable_ssao = 1;
 
 // user defined function callback pointers
 void (*ex_init_ptr)(void) = NULL;
-void (*ex_update_ptr)(double) = NULL;
+void (*ex_update_ptr)(double, double) = NULL;
 void (*ex_draw_ptr)(void) = NULL;
 void (*ex_exit_ptr)(void) = NULL;
 // non-essential user callbacks
@@ -132,7 +132,7 @@ void exengine(char **argv, uint8_t flags)
       ex_input_update();
 
       // user update callback
-      ex_update_ptr(phys_delta_time);
+      ex_update_ptr(phys_delta_time, delta_time);
 
       accumulator -= phys_delta_time;
     }

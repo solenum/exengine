@@ -22,5 +22,6 @@
 #include "render/texture.h"
 #include "render/window.h"
 #include "render/framebuffer.h"
+#include "render/vga.h"
 
 #endif // EX_RENDER_H

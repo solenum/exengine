@@ -47,7 +47,7 @@
   want to set these before you call exengine()
 */
 extern void (*ex_init_ptr)(void);
-extern void (*ex_update_ptr)(double);
+extern void (*ex_update_ptr)(double, double);
 extern void (*ex_draw_ptr)(void);
 extern void (*ex_exit_ptr)(void);
 // non-essential user callbacks

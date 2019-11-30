@@ -49,9 +49,11 @@ void game_init()
 
   // this aint it
   font = ex_font_load("data/fonts/OpenSans-Regular.ttf", "abcdefghijklmnopqrstuvwxyzHW!_");
+
+  ex_vga_init();
 }
 
-void game_update(double dt)
+void game_update(double dt, double ft)
 {
   ex_entity_update(e, dt);
   ex_entity_update(cube, dt);
@@ -175,19 +177,35 @@ ctrl_end:
   pl->position[1] += 1.0f;
   ex_scene_update(scene, dt);
   ex_fps_camera_update(camera);
+  
+  ex_vga_clear();
+
+  char buf[64];
+  ex_vga_setfg(255, 255, 255, 255);
+  ex_vga_setbg(0, 0, 0, 255);
+  sprintf(buf, "exengine dbg build %c", 1);
+  ex_vga_print(2, 1, buf);
+  
+  sprintf(buf, "framerate %.2f", 1.0 / ft);
+  ex_vga_setfg(255, 255, 0, 255);
+  ex_vga_setbg(255, 255, 255, 0);
+  ex_vga_print(2, 2, buf);
 }
 
 void game_draw()
 {
   ex_scene_draw(scene, 0, 0, 0, 0, &camera->matrices);
   ex_fps_camera_resize(camera);
+  
+  // ex_font_dbg(font);
 
-  ex_font_dbg(font);
+  ex_vga_render();
 }
 
 void game_exit()
 {
   ex_scene_destroy(scene);
+  ex_vga_destroy();
   printf("Exiting\n");
 }
 

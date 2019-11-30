@@ -15,7 +15,7 @@ void game_init();
 /**
  * [game_update the main game loop]
  */
-void game_update(double dt);
+void game_update(double dt, double ft);
 
 /**
  * [game_draw]

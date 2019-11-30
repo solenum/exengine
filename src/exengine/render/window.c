@@ -71,7 +71,8 @@ void ex_window_event(SDL_Event *event)
   switch (event->window.event) {
     case SDL_WINDOWEVENT_SIZE_CHANGED:
     case SDL_WINDOWEVENT_RESIZED: {
-      printf("asdasd\n");
+      display.width = event->window.data1;
+      display.height = event->window.data2;
       if (ex_resize_ptr)
         ex_resize_ptr(event->window.data1, event->window.data2);
       break;
