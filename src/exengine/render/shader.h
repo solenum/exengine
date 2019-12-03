@@ -45,5 +45,11 @@ GLint ex_uniform(GLuint shader, const char *str);
 
 GLuint ex_shader(const char *path);
 
+/**
+ * [ex_shader_use bind a shader for use assuming it is not already in use]
+ * @param shader [shader to use]
+ */
+void ex_shader_use(GLuint shader);
+
 
 #endif // EX_SHADER_H

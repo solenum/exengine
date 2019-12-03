@@ -16,6 +16,7 @@ extern GLuint ex_fbo_shader;
 
 typedef struct {
   GLuint fbo, rbo, colorbuffer;
+  GLuint vao, vbo;
   int width, height;
 } ex_framebuffer_t;
 

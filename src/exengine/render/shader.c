@@ -9,6 +9,8 @@ GLint ex_uniform_locations[256][256] = {{0}};
 ex_shader_t shader_list[EX_MAX_SHADERS];
 size_t shader_count = 0;
 
+GLuint active_shader = 0;
+
 inline GLint ex_uniform(GLuint shader, const char *str)
 {
   const char *string = str;
@@ -149,4 +151,12 @@ exit:
     printf("Max number of shaders reached!\n");
 
   return shader_program;
+}
+
+void ex_shader_use(GLuint shader)
+{
+  if (active_shader == shader)
+    return;
+
+  glUseProgram(shader);
 }

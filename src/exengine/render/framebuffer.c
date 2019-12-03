@@ -85,6 +85,9 @@ ex_framebuffer_t* ex_framebuffer_new(int width, int height)
     printf("Error! Framebuffer is not complete\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  fb->vao = fbo_vao;
+  fb->vbo = fbo_vbo;
+
   return fb;
 }
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "pointlight.h"
 #include "model.h"
+#include "camera.h"
 #include "math/mathlib.h"
 
 #define EX_RENDER_LIST_INC 32
@@ -27,6 +28,7 @@ typedef struct {
 typedef struct {
   ex_renderlist_t *models;
   ex_renderlist_t *point_lights;
+  ex_camera_matrices_t *camera;
 } ex_renderable_t;
 
 /**
@@ -81,5 +83,7 @@ void ex_render_model(ex_model_t *model, GLuint shader);
 void ex_render_mesh(ex_mesh_t *mesh, GLuint shader, size_t count);
 
 void ex_render_point_light_begin(ex_point_light_t *light, GLuint shader);
+
+void ex_render_point_light_draw(ex_point_light_t *light, GLuint shader, const char *prefix);
 
 #endif // EX_RENDERER_H
