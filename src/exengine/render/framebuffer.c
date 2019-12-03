@@ -8,7 +8,7 @@ GLuint ex_fbo_shader, fbo_vao, fbo_vbo;
 void ex_framebuffer_init()
 {
   // load the fbo shader
-  ex_fbo_shader = ex_shader_compile("fboshader.glsl");
+  ex_fbo_shader = ex_shader("fboshader.glsl");
   /* ------------------------- */
 
   /* -- screen quad -- */

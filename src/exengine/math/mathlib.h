@@ -92,6 +92,10 @@ LINMATH_H_DEFINE_VEC(2)
 LINMATH_H_DEFINE_VEC(3)
 LINMATH_H_DEFINE_VEC(4)
 
+typedef struct {
+  vec3 min, max;
+} rect_t;
+
 static inline double cross(vec2 a, vec2 b)
 {
   return a[0]*b[1] - a[1]*b[0];

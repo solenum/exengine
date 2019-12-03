@@ -35,7 +35,7 @@ void ex_vga_init()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     // load shader
-    shader = ex_shader_compile("vga.glsl");
+    shader = ex_shader("vga.glsl");
 
     // set up vao, vbo etc
     float w = EX_VGA_WIDTH;

@@ -18,6 +18,11 @@
 
 #include "util/exe_io.h"
 
+typedef struct {
+  GLuint ID;
+  char path[512];
+} ex_shader_t;
+
 /**
  * [ex_uniform cache and return shader uniform locations]
  * @param  shader [shader to be used]
@@ -30,7 +35,7 @@
 GLint ex_uniform(GLuint shader, const char *str);
 
 /**
- * [ex_shader_compile loads, attaches and links shaders into a shader program]
+ * [ex_shader (lazy) loads, attaches and links shaders into a shader program]
  * @param  path   [shader file path]
  * @return        [the shader program GLuint]
  *
@@ -38,7 +43,7 @@ GLint ex_uniform(GLuint shader, const char *str);
  * in the header.
  */
 
-GLuint ex_shader_compile(const char *path);
+GLuint ex_shader(const char *path);
 
 
 #endif // EX_SHADER_H

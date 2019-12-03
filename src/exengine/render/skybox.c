@@ -8,7 +8,7 @@ GLuint skybox_shader, skybox_vao, skybox_vbo;
 
 void ex_skybox_init()
 {
-  skybox_shader = ex_shader_compile("skyshader.glsl");
+  skybox_shader = ex_shader("skyshader.glsl");
 
   // vao for skybox
   glGenVertexArrays(1, &skybox_vao);

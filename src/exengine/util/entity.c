@@ -135,7 +135,7 @@ void ex_entity_collide_with_world(ex_entity_t *entity, vec3 e_position, vec3 e_v
 
 void ex_entity_check_collision(ex_entity_t *entity)
 {
-  ex_rect_t r;
+  rect_t r;
   vec3_sub(r.min, entity->position, entity->radius);
   vec3_sub(r.min, r.min, entity->radius);
   vec3_add(r.max, entity->position, entity->radius);
@@ -222,7 +222,7 @@ float raycast(ex_entity_t *entity, vec3 from, vec3 to, ex_plane_t *plane)
   memcpy(a, from, sizeof(vec3));
   vec3_add(b, from, to);
 
-  ex_rect_t r;
+  rect_t r;
   vec3_min(r.min, a, b);
   vec3_max(r.max, a, b);
   

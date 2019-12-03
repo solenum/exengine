@@ -1,8 +1,13 @@
 #include "render/shader.h"
 #include <string.h>
 
+#define EX_MAX_SHADERS 512
+
 GLint ex_uniform_map[256][256] = {{0}};
 GLint ex_uniform_locations[256][256] = {{0}};
+
+ex_shader_t shader_list[EX_MAX_SHADERS];
+size_t shader_count = 0;
 
 inline GLint ex_uniform(GLuint shader, const char *str)
 {
@@ -34,8 +39,13 @@ inline GLint ex_uniform(GLuint shader, const char *str)
   return value;
 }
 
-GLuint ex_shader_compile(const char *path)
+GLuint ex_shader(const char *path)
 {
+  // check if shader is already loaded
+  for (int i=0; i<EX_MAX_SHADERS; i++)
+    if (strcmp(shader_list[i].path, path) == 0)
+      return shader_list[i].ID;
+
   // prefix path with shader dir
   char real_path[256];
   io_prefix_str(real_path, path, EX_SHADER_LOC);
@@ -130,6 +140,13 @@ exit:
   }
 
   printf("Shaders (%s) successfully compiled\n", path);
+
+  shader_list[shader_count].ID = shader_program;
+  strcpy(shader_list[shader_count].path, path);
+  if (shader_count < EX_MAX_SHADERS)
+    shader_count++;
+  else
+    printf("Max number of shaders reached!\n");
 
   return shader_program;
 }

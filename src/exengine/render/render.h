@@ -2,6 +2,7 @@
 #define EX_RENDER_H
 
 #include "render/render.h"
+#include "render/renderer.h"
 #include "render/scene.h"
 #include "render/camera.h"
 #include "render/defaults.h"

@@ -31,9 +31,9 @@ ex_octree_t* ex_octree_new(uint8_t type)
   return o;
 }
 
-void ex_octree_init(ex_octree_t *o, ex_rect_t region, list_t *objects)
+void ex_octree_init(ex_octree_t *o, rect_t region, list_t *objects)
 {
-  memcpy(&o->region, &region, sizeof(ex_rect_t));
+  memcpy(&o->region, &region, sizeof(rect_t));
   for (int i=0; i<8; i++) {
     o->children[i] = NULL;
   }
@@ -76,7 +76,7 @@ void ex_octree_build(ex_octree_t *o)
   vec3_add(center, o->region.min, half);
 
   // octant regions
-  ex_rect_t octants[8];
+  rect_t octants[8];
   octants[0] = ex_rect_new(o->region.min, center);
   octants[1] = ex_rect_new((vec3){center[0], o->region.min[1], o->region.min[2]}, (vec3){o->region.max[0], center[1], center[2]});
   octants[2] = ex_rect_new((vec3){center[0], o->region.min[1], center[2]}, (vec3){o->region.max[0], center[1], o->region.max[2]});
@@ -257,7 +257,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
   return NULL;
 }
 
-void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count)
+void ex_octree_get_colliding_count(ex_octree_t *o, rect_t *bounds, int *count)
 {
   if (o == NULL)
     return;
@@ -277,7 +277,7 @@ void ex_octree_get_colliding_count(ex_octree_t *o, ex_rect_t *bounds, int *count
       ex_octree_get_colliding_count(o->children[i], bounds, count);
 }
 
-void ex_octree_get_colliding(ex_octree_t *o, ex_rect_t *bounds, ex_octree_data_t *data_list, int *index)
+void ex_octree_get_colliding(ex_octree_t *o, rect_t *bounds, ex_octree_data_t *data_list, int *index)
 {
   if (o == NULL)
     return;

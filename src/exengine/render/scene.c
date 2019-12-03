@@ -36,7 +36,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   memset(s->coll_tree->region.max, 0, sizeof(vec3));
 
   // primitive debug shader
-  s->primshader = ex_shader_compile("primshader.glsl");
+  s->primshader = ex_shader("primshader.glsl");
 
   // init ssao stuffs
   if (flags & EX_SCENE_SSAO) {
@@ -50,7 +50,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
     s->deferred = 1;
     s->defaultshader = ex_gshader;
   } else {
-    s->forwardshader = ex_shader_compile("forward.glsl");
+    s->forwardshader = ex_shader("forward.glsl");
     s->defaultshader = s->forwardshader;
   }
 
@@ -95,8 +95,8 @@ void ex_scene_build_collision(ex_scene_t *s)
   if (s->coll_tree == NULL || s->coll_vertices == NULL || s->coll_vertices_last == 0)
     return;
 
-  ex_rect_t region;
-  memcpy(&region, &s->coll_tree->region, sizeof(ex_rect_t));
+  rect_t region;
+  memcpy(&region, &s->coll_tree->region, sizeof(rect_t));
   for (int i=0; i<s->coll_vertices_last; i+=3) {
     vec3 tri[3];
     memcpy(tri[0], s->coll_vertices[i+0], sizeof(vec3));
@@ -117,7 +117,7 @@ void ex_scene_build_collision(ex_scene_t *s)
     list_add(s->coll_tree->obj_list, (void*)obj);
   }
 
-  memcpy(&s->coll_tree->region, &region, sizeof(ex_rect_t));
+  memcpy(&s->coll_tree->region, &region, sizeof(rect_t));
   ex_octree_build(s->coll_tree);
 
   s->collision_built = 1;

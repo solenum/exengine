@@ -20,7 +20,7 @@ mat4x4 projection;
 
 void ex_font_init()
 {
-  shader = ex_shader_compile("text.glsl");
+  shader = ex_shader("text.glsl");
 
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);

@@ -194,7 +194,7 @@ void main()
   vec3 diffuse = vec3(0.0f);
 
   if (u_ambient_pass) {
-    diffuse += texture(u_texture, uv).rgb * 0.125;
+    diffuse += texture(u_texture, uv).rgb * 0.025;
   } else {
     // shadow casters
     if (u_point_active && u_point_count <= 0)
