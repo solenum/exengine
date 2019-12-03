@@ -54,13 +54,6 @@ ex_mesh_t* ex_mesh_new(ex_vertex_t *vertices, size_t vcount, GLuint *indices, si
 ex_mesh_t* ex_mesh_copy(ex_mesh_t *mesh);
 
 /**
- * [ex_mesh_draw renders a mesh to the screen]
- * @param m              [ex_mesh_t pointer]
- * @param shader_program [shader program to use]
- */
-void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, int count);
-
-/**
  * [ex_mesh_destroy free any malloc'd data]
  * @param m [ex_mesh_t pointer]
  */

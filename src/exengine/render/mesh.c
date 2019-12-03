@@ -112,45 +112,6 @@ ex_mesh_t* ex_mesh_copy(ex_mesh_t *mesh)
   return m;
 }
 
-void ex_mesh_draw(ex_mesh_t* m, GLuint shader_program, int count)
-{
-  // bind vao/ebo/tex
-  glBindVertexArray(m->VAO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->EBO);
-  glUniform1i(ex_uniform(shader_program, "u_texture"), 4);
-  glUniform1i(ex_uniform(shader_program, "u_spec"), 5);
-  glUniform1i(ex_uniform(shader_program, "u_norm"), 6);
-
-  // diffuse  
-  glActiveTexture(GL_TEXTURE4);
-  if (m->texture < 1)
-    glBindTexture(GL_TEXTURE_2D, default_texture_diffuse);
-  else
-    glBindTexture(GL_TEXTURE_2D, m->texture);
-
-  // specular
-  glActiveTexture(GL_TEXTURE5);
-  if (m->texture_spec < 1)
-    glBindTexture(GL_TEXTURE_2D, default_texture_specular);
-  else
-    glBindTexture(GL_TEXTURE_2D, m->texture_spec);
-
-  // normal
-  glActiveTexture(GL_TEXTURE6);
-  if (m->texture_norm < 1)
-    glBindTexture(GL_TEXTURE_2D, default_texture_normal);
-  else
-    glBindTexture(GL_TEXTURE_2D, m->texture_norm);
-
-  // draw mesh
-  glDrawElementsInstanced(GL_TRIANGLES, m->icount, GL_UNSIGNED_INT, 0, count);
-
-  // unbind buffers
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-}
-
 void ex_mesh_destroy(ex_mesh_t* m)
 {
   glDeleteVertexArrays(1, &m->VAO);

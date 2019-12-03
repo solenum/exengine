@@ -108,13 +108,6 @@ void ex_model_init_instancing(ex_model_t *m, int count);
 void ex_model_update(ex_model_t *m, float delta_time);
 
 /**
- * [ex_model_draw render the model]
- * @param m      [the model to render]
- * @param shader [the shader to use]
- */
-void ex_model_draw(ex_model_t *m, GLuint shader);
-
-/**
  * [ex_model_destroy cleanup model data]
  * @param m [the model to destroy]
  */

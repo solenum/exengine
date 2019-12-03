@@ -155,48 +155,6 @@ void ex_model_update(ex_model_t *m, float delta_time)
   ex_model_update_matrices(m);
 }
 
-void ex_model_draw(ex_model_t *m, GLuint shader)
-{
-  // handle transformations
-  if (!m->use_transform && m->instance_count < 2) {
-    mat4x4_identity(m->transforms[0]);
-    mat4x4_translate_in_place(m->transforms[0], m->position[0], m->position[1], m->position[2]);
-    mat4x4_rotate_Y(m->transforms[0], m->transforms[0], rad(m->rotation[1]));
-    mat4x4_rotate_X(m->transforms[0], m->transforms[0], rad(m->rotation[0]));
-    mat4x4_rotate_Z(m->transforms[0], m->transforms[0], rad(m->rotation[2]));
-    mat4x4_scale_aniso(m->transforms[0], m->transforms[0], m->scale, m->scale, m->scale);
-  }
-
-  // pass bone data
-  GLuint has_skeleton_loc = ex_uniform(shader, "u_has_skeleton");
-  glUniform1i(has_skeleton_loc, 0);
-
-  if (m->bones != NULL && m->current_anim != NULL) {
-    glUniform1i(has_skeleton_loc, 1);
-    glUniformMatrix4fv(ex_uniform(shader, "u_bone_matrix"), m->bones_len, GL_TRUE, &m->skeleton[0][0][0]);
-  }
-
-  // update instancing matrix vbo
-  if (!m->is_static || m->is_static == 1) {
-    glBindBuffer(GL_ARRAY_BUFFER, m->instance_vbo);
-    GLvoid *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(ptr, &m->transforms[0], m->instance_count * sizeof(mat4x4));
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-    
-    if (m->is_static)
-      m->is_static = 2;
-  }
-
-  // render meshes
-  for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
-    if (m->meshes[i] == NULL)
-      continue;
-
-    glUniform1i(ex_uniform(shader, "u_is_lit"), m->is_lit);
-    ex_mesh_draw(m->meshes[i], shader, m->instance_count);
-  }
-}
-
 void ex_model_destroy(ex_model_t *m)
 {
   // cleanup meshes

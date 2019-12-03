@@ -109,8 +109,6 @@ void ex_render_forward(ex_renderable_t *renderables)
   glCullFace(GL_BACK);
 
   // do all non shadow casting lights in a single pass
-  // including the one directional light
-  // and lights outside of the shadow render range
   char buff[64];
   size_t pcount = 0;
   for (int i=0; i<point_lights->count; i++) {

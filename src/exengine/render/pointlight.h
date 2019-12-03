@@ -48,20 +48,6 @@ void ex_point_light_init();
 ex_point_light_t *ex_point_light_new(vec3 pos, vec3 color, int dynamic);
 
 /**
- * [ex_point_light_begin set as rendertarget]
- * @param l [pointlight to use]
- */
-void ex_point_light_begin(ex_point_light_t *l);
-
-/**
- * [ex_point_light_draw render the depth map, light values etc]
- * @param l      [pointlight to use]
- * @param shader [shader to use]
- * @param prefix [used for non shadowcasting sources]
- */
-void ex_point_light_draw(ex_point_light_t *l, GLuint shader, const char *prefix, int deferred);
-
-/**
  * [ex_point_light_destroy cleanup a pointlights data]
  * @param l [the pointlight to destroy]
  */
