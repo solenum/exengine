@@ -26,8 +26,8 @@ typedef struct {
 } ex_renderlist_t;
 
 typedef struct {
-  ex_renderlist_t *models;
-  ex_renderlist_t *point_lights;
+  ex_renderlist_t models;
+  ex_renderlist_t point_lights;
   ex_camera_matrices_t *camera;
 } ex_renderable_t;
 
@@ -53,7 +53,19 @@ static inline ex_rendernode_t *ex_rendernode_push(ex_renderlist_t *list) {
   return node;
 }
 
-static inline void ex_rendernode_pop(ex_renderlist_t *list, ex_rendernode_t *node) {
+static inline void ex_rendernode_pop(ex_renderlist_t *list, void *obj) {
+  ex_rendernode_t *node = NULL;
+
+  for (int i=0; i<list->count; i++) {
+    if (list->nodes[i].obj == obj) {
+      node = &list->nodes[i];
+      break;
+    }
+  }
+
+  if (!node)
+    return;
+
   // node is somewhere middle of list, pop from list
   if (node->index < list->count) {
     size_t index = node->index;
@@ -84,6 +96,10 @@ void ex_render_mesh(ex_mesh_t *mesh, GLuint shader, size_t count);
 
 void ex_render_point_light_begin(ex_point_light_t *light, GLuint shader);
 
-void ex_render_point_light_draw(ex_point_light_t *light, GLuint shader, const char *prefix);
+void ex_render_point_light(ex_point_light_t *light, GLuint shader, const char *prefix);
+
+void ex_render_resize(size_t width, size_t height);
+
+void ex_render_destroy();
 
 #endif // EX_RENDERER_H

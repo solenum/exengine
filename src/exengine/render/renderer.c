@@ -40,8 +40,8 @@ void ex_render(ex_renderer_e renderer, ex_renderable_t *renderables)
 
 
   /* -- LIGHT DEPTH MAPS -- */
-  ex_renderlist_t *point_lights = renderables->point_lights;
-  ex_renderlist_t *models       = renderables->models;
+  ex_renderlist_t *point_lights = &renderables->point_lights;
+  ex_renderlist_t *models       = &renderables->models;
 
   // render light depth maps
   glCullFace(GL_BACK);
@@ -56,7 +56,7 @@ void ex_render(ex_renderer_e renderer, ex_renderable_t *renderables)
       for (int j=0; j<models->count; j++) {
         ex_model_t *model = (ex_model_t*)models->nodes[j].obj;
 
-        if (!model->is_shadow)
+        if (model->is_shadow)
           ex_render_model(model, pointfbo_shader);
       }
     }
@@ -81,8 +81,8 @@ void ex_render(ex_renderer_e renderer, ex_renderable_t *renderables)
 void ex_render_forward(ex_renderable_t *renderables)
 {
   // render lists
-  ex_renderlist_t *point_lights = renderables->point_lights;
-  ex_renderlist_t *models       = renderables->models;
+  ex_renderlist_t *point_lights = &renderables->point_lights;
+  ex_renderlist_t *models       = &renderables->models;
 
   // bind main framebuffer
   glViewport(0, 0, framebuffer->width, framebuffer->height);
@@ -116,9 +116,9 @@ void ex_render_forward(ex_renderable_t *renderables)
   for (int i=0; i<point_lights->count; i++) {
     ex_point_light_t *light = (ex_point_light_t*)point_lights->nodes[i].obj;
   
-    if (light->is_visible) {
-      sprintf(buff, "u_point_lights[%ul]", (uint32_t)pcount++);
-      ex_render_point_light_draw(light, forward_shader, buff);
+    if (light->is_visible && !light->is_shadow) {
+      sprintf(buff, "u_point_lights[%u]", (uint32_t)pcount++);
+      ex_render_point_light(light, forward_shader, buff);
     }
   }
 
@@ -127,9 +127,7 @@ void ex_render_forward(ex_renderable_t *renderables)
   glUniform1i(ex_uniform(forward_shader, "u_ambient_pass"), 1);
   for (int i=0; i<models->count; i++) {
     ex_model_t *model = (ex_model_t*)models->nodes[i].obj;
-
-    if (!model->is_shadow)
-      ex_render_model(model, forward_shader);
+    ex_render_model(model, forward_shader);
   }
   glUniform1i(ex_uniform(forward_shader, "u_ambient_pass"), 0);
   glUniform1i(ex_uniform(forward_shader, "u_point_count"), 0);
@@ -146,13 +144,12 @@ void ex_render_forward(ex_renderable_t *renderables)
     if (!light->is_shadow || !light->is_visible)
       continue;
 
-    ex_render_point_light_draw(light, forward_shader, NULL);
+    ex_render_point_light(light, forward_shader, NULL);
     for (int i=0; i<models->count; i++) {
       ex_model_t *model = (ex_model_t*)models->nodes[i].obj;
       ex_render_model(model, forward_shader);
     }
   }
-  glUniform1i(ex_uniform(forward_shader, "u_point_active"), 0);
   glDisable(GL_BLEND);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -306,7 +303,7 @@ void ex_render_point_light_begin(ex_point_light_t *light, GLuint shader)
   glUniform3fv(ex_uniform(shader, "u_light_pos"), 1, light->position);
 }
 
-void ex_render_point_light_draw(ex_point_light_t *light, GLuint shader, const char *prefix)
+void ex_render_point_light(ex_point_light_t *light, GLuint shader, const char *prefix)
 {
   if (light->is_shadow) {
     glUniform1i(ex_uniform(shader, "u_point_light.is_shadow"), 1);
@@ -335,4 +332,14 @@ void ex_render_point_light_draw(ex_point_light_t *light, GLuint shader, const ch
     glUniform3fv(ex_uniform(shader, "u_point_light.position"), 1, light->position);
     glUniform3fv(ex_uniform(shader, "u_point_light.color"), 1, light->color);
   }
+}
+
+void ex_render_resize(size_t width, size_t height)
+{
+  framebuffer = ex_framebuffer_resize(framebuffer, width, height);
+}
+
+void ex_render_destroy()
+{
+  ex_framebuffer_destroy(framebuffer);
 }

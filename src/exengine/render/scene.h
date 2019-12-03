@@ -27,6 +27,7 @@
 #include "render/spotlight.h"
 #include "render/reflectionprobe.h"
 #include "render/framebuffer.h"
+#include "render/renderer.h"
 #include "math/octree.h"
 
 #include "glad/glad.h"
@@ -55,25 +56,13 @@ typedef struct {
   list_t *coll_list;
   ex_skybox_t *skybox;
   vec3 gravity;
-  ex_model_t *models[EX_SCENE_MAX_MODELS];
-  ex_point_light_t *point_lights[EX_MAX_POINT_LIGHTS];
-  ex_spot_light_t *spot_lights[EX_MAX_SPOT_LIGHTS];
-  ex_dir_light_t *dir_light;
-  ex_reflection_t *reflection_probes[EX_MAX_REFLECTIONS];
   
   ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;
   size_t coll_vertices_last;
 
-  /* dbug vars */
-  int dynplightc, shdplightc, plightc, dlightc, slightc, modelc;
-  
-  ex_framebuffer_t *framebuffer;
-
-  /* rendering features */
-  int ssao;
-  int deferred;
+  ex_renderable_t renderables;
 } ex_scene_t;
 
 /**
@@ -121,20 +110,6 @@ void ex_scene_remove_model(ex_scene_t *s, ex_model_t *m);
 void ex_scene_add_pointlight(ex_scene_t *s, ex_point_light_t *pl);
 
 /**
- * [ex_scene_add_spotlight]
- * @param s  [the scene to use]
- * @param pl [the spotlight to add]
- */
-void ex_scene_add_spotlight(ex_scene_t *s, ex_spot_light_t *pl);
-
-/**
- * [ex_scene_add_reflection]
- * @param s [the scene to use]
- * @param r [the relfection probe to add]
- */
-void ex_scene_add_reflection(ex_scene_t *s, ex_reflection_t *r);
-
-/**
  * [ex_scene_update builds collision, updates models etc]
  * @param s          [the scene to use]
  * @param delta_time []
@@ -151,52 +126,6 @@ void ex_scene_update(ex_scene_t *s, float delta_time);
  * @param matrices [the camera matrices]
  */
 void ex_scene_draw(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
-
-/**
- * [ex_scene_render_deferred]
- * @param s        [the scene to use]
- * @param x        [x offset]
- * @param y        [y offset]
- * @param width    [render width]
- * @param height   [render height]
- * @param matrices [the camera matrices]
- */
-void ex_scene_render_deferred(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
-
-/**
- * [ex_scene_render_forward]
- * @param s        [the scene to use]
- * @param x        [x offset]
- * @param y        [y offset]
- * @param width    [render width]
- * @param height   [render height]
- * @param matrices [the camera matrices]
- */
-void ex_scene_render_forward(ex_scene_t *s, int x, int y, int width, int height, ex_camera_matrices_t *matrices);
-
-/**
- * [ex_scene_manage_lights cull lights]
- * @param s [the scene to use]
- *
- * Currently broken-ish, isn't very good
- * anyway.  Needs to be replaced with
- * generic frustrum culling.
- */
-void ex_scene_manage_lights(ex_scene_t *s);
-
-/**
- * [ex_scene_dbgui renders debug gui]
- * @param s [the scene to use]
- */
-void ex_scene_dbgui(ex_scene_t *s);
-
-/**
- * [ex_scene_render_models renders all scene models]
- * @param s       [the scene to use]
- * @param shader  [the shader to use]
- * @param shadows [1 if rendering shadow-casting models only]
- */
-void ex_scene_render_models(ex_scene_t *s, GLuint shader, int shadows);
 
 /**
  * [ex_scene_resize resize internal frambuffers]
