@@ -60,7 +60,6 @@ void exengine(char **argv, uint8_t flags)
 
   // init rendering modules
   ex_defaults_textures();
-  ex_framebuffer_init();
   ex_font_init();
   
   // user init callback
@@ -152,7 +151,6 @@ void exengine(char **argv, uint8_t flags)
   ex_window_destroy();
   PHYSFS_deinit();
   ex_cache_flush();
-  ex_framebuffer_cleanup();
   if (flags & EX_ENGINE_SOUND)
     ex_sound_exit();
 

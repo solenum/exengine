@@ -17,28 +17,73 @@ GLuint pointfbo_shader    = 0;
 GLuint forward_shader     = 0;
 GLuint framebuffer_shader = 0;
 
+// buffers
+GLuint screenquad_vao, screenquad_vbo;
+
 // framebuffers
-ex_framebuffer_t *framebuffer = NULL;
+typedef struct {
+  GLuint fbo, rbo, cbo;
+  GLuint vao, vbo;
+  size_t width, height;
+} ex_framebuffer_t;
+ex_framebuffer_t framebuffer;
+
+void ex_render_init()
+{
+  /* -- SHADERS -- */
+  pointfbo_shader  = ex_shader("pointfbo.glsl");
+  framebuffer_shader = ex_shader("fboshader.glsl");
+
+  // set up a 90 degree projection
+  // mostly for omni-directional lights
+  float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
+  mat4x4_perspective(projection_90deg, rad(90.0f), aspect, 0.1f, EX_POINT_FAR_PLANE);
+  /* ------------- */
+
+
+  /* -- SCREEN QUAD -- */
+  GLfloat vertices[] = {
+    // pos         // uv
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+  };
+
+  glGenVertexArrays(1, &screenquad_vao);
+  glGenBuffers(1, &screenquad_vbo);
+  glBindVertexArray(screenquad_vao);
+
+  // vertices
+  glBindBuffer(GL_ARRAY_BUFFER, screenquad_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+  // position
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)0);
+  glEnableVertexAttribArray(0);
+
+  // tex coords
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*4, (GLvoid*)(2 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(1);
+  glBindVertexArray(0);
+  /* ----------------- */
+
+
+  /* -- FRAMEBUFFER -- */
+  glGenFramebuffers(1, &framebuffer.fbo);
+  glGenRenderbuffers(1, &framebuffer.rbo);
+  glGenTextures(1, &framebuffer.cbo);
+  framebuffer.vao = screenquad_vao;
+  framebuffer.vbo = screenquad_vbo;
+
+  ex_render_resize(display.width, display.height);
+  /* ----------------- */
+}
 
 void ex_render(ex_renderer_e renderer, ex_renderable_t *renderables)
 {
-  /* -- FIRST RUN -- */
-  if (!pointfbo_shader) {
-    // set up a 90 degree projection
-    // mostly for omni-directional lights
-    float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-    mat4x4_perspective(projection_90deg, rad(90.0f), aspect, 0.1f, EX_POINT_FAR_PLANE);
-
-    // load shaders
-    pointfbo_shader  = ex_shader("pointfbo.glsl");
-    framebuffer_shader = ex_shader("fboshader.glsl");
-  
-    // main framebuffer used by all renderers
-    framebuffer = ex_framebuffer_new(0, 0);
-  }
-  /* --------------- */
-
-
   /* -- LIGHT DEPTH MAPS -- */
   ex_renderlist_t *point_lights = &renderables->point_lights;
   ex_renderlist_t *models       = &renderables->models;
@@ -80,13 +125,14 @@ void ex_render(ex_renderer_e renderer, ex_renderable_t *renderables)
 
 void ex_render_forward(ex_renderable_t *renderables)
 {
+  /* INIT SOME STUFF */
   // render lists
   ex_renderlist_t *point_lights = &renderables->point_lights;
   ex_renderlist_t *models       = &renderables->models;
 
   // bind main framebuffer
-  glViewport(0, 0, framebuffer->width, framebuffer->height);
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->fbo);
+  glViewport(0, 0, framebuffer.width, framebuffer.height);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
@@ -95,7 +141,10 @@ void ex_render_forward(ex_renderable_t *renderables)
 
   if (!forward_shader)
     forward_shader = ex_shader("forward.glsl");
+  /* --------------- */
 
+
+  /* FIRST PASS */
   ex_shader_use(forward_shader);
 
   // send camera vars to shader
@@ -129,7 +178,10 @@ void ex_render_forward(ex_renderable_t *renderables)
   }
   glUniform1i(ex_uniform(forward_shader, "u_ambient_pass"), 0);
   glUniform1i(ex_uniform(forward_shader, "u_point_count"), 0);
+  /* ------------ */
+  
 
+  /* SECOND PASS */
   // enable blending for second pass onwards
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -149,23 +201,25 @@ void ex_render_forward(ex_renderable_t *renderables)
     }
   }
   glDisable(GL_BLEND);
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  /* ----------- */
 
-  // render screen quad
+
+  /* RENDER TO SCREEN */
   glViewport(0, 0, display.width, display.height);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_FRAMEBUFFER_SRGB);
 
   ex_shader_use(framebuffer_shader);
 
-  glBindVertexArray(framebuffer->vao);
+  glBindVertexArray(framebuffer.vao);
   glActiveTexture(GL_TEXTURE0);
   glUniform1i(ex_uniform(framebuffer_shader, "u_texture"), 0);
-  glBindTexture(GL_TEXTURE_2D, framebuffer->colorbuffer);
+  glBindTexture(GL_TEXTURE_2D, framebuffer.cbo);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
+  /* ---------------- */
 }
 
 void ex_render_model(ex_model_t *model, GLuint shader)
@@ -334,10 +388,44 @@ void ex_render_point_light(ex_point_light_t *light, GLuint shader, const char *p
 
 void ex_render_resize(size_t width, size_t height)
 {
-  framebuffer = ex_framebuffer_resize(framebuffer, width, height);
+  /* -- resze framebuffer -- */
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
+
+  framebuffer.width = display.width;
+  framebuffer.height = display.height;
+     
+  glBindTexture(GL_TEXTURE_2D, framebuffer.cbo);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, framebuffer.width, framebuffer.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
+  glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, border);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.cbo, 0);
+
+  // depth buffer
+  glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.rbo);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer.rbo);
+
+  // test framebuffer
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    printf("Error! Framebuffer is not complete\n");
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  /* ----------------- */
 }
 
 void ex_render_destroy()
 {
-  ex_framebuffer_destroy(framebuffer);
+  glDeleteRenderbuffers(1, &framebuffer.rbo);
+  glDeleteFramebuffers(1, &framebuffer.fbo);
+  glDeleteTextures(1, &framebuffer.cbo);
+
+  glDeleteBuffers(1, &screenquad_vbo);
+  glDeleteVertexArrays(1, &screenquad_vao);
 }

@@ -301,9 +301,6 @@ ex_model_t *ex_iqm_load_model(ex_scene_t *scene, const char *path, uint8_t flags
   free(indices);
   free(data);
 
-  if (scene != NULL)
-    model->shader = scene->defaultshader;
-
   // store the model in the cache and return an instance of it
   ex_cache_model(model);
   return ex_cache_get_model(path);

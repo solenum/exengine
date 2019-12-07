@@ -26,6 +26,8 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   s->renderables.point_lights.count  = 0;
   s->renderables.point_lights.length = 0;
 
+  ex_render_init();
+
   return s;
 }
 

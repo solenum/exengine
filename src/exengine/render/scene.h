@@ -17,17 +17,8 @@
 #ifndef EX_SCENE_H
 #define EX_SCENE_H
 
+#include "render/render.h"
 #include "util/exe_list.h"
-#include "render/texture.h"
-#include "render/shader.h"
-#include "render/skybox.h"
-#include "render/camera.h"
-#include "render/pointlight.h"
-#include "render/dirlight.h"
-#include "render/spotlight.h"
-#include "render/reflectionprobe.h"
-#include "render/framebuffer.h"
-#include "render/renderer.h"
 #include "math/octree.h"
 
 #include "glad/glad.h"
@@ -52,11 +43,9 @@
 #define EX_SCENE_DEFERRED 2
 
 typedef struct {
-  GLuint shader, primshader, forwardshader, defaultshader;
-  list_t *coll_list;
-  ex_skybox_t *skybox;
   vec3 gravity;
   
+  list_t *coll_list;
   ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;
