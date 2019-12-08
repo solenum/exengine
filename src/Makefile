@@ -1,11 +1,11 @@
 # Example Makefile
 
 # -- Dirs -- #
-CC 			=gcc
+CC 		=gcc
 EDIR    =exengine
-LDIR		=lib
-BDIR		=build
-ODIR 		=obj
+LDIR	=lib
+BDIR	=build
+ODIR 	=obj
 IDIR    =inc
 EDATA   =exengine
 DATA    =data
@@ -22,16 +22,17 @@ CFLAGS +=-std=c99 -O2
 
 # -- Windows -- #
 ifeq ($(OS),Windows_NT)
-CC 			=x86_64-w64-mingw32-gcc
+CC 		=x86_64-w64-mingw32-gcc
 FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ \
--Llib/win -lopengl32 -lSDL2 -lopenal32 -I. $(IDIRS)
+-Llib/win -lopengl32 -lSDL2main -lSDL2 -lopenal32 -I. $(IDIRS)
+FLAGS  +=-Llib/win/dll
 #
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
 endif
 
 # -- MacOS -- #
-UNAME = $(shell uname -s)
+UNAME   = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation \
 -framework IOKit -lSDL2 -lphysfs -framework OpenAL \

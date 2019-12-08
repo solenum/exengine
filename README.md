@@ -61,18 +61,25 @@ Download and install [Cygwin](https://www.cygwin.com/) with the following packag
 
 ````
 mingw64-x86_64-gcc
-mingw64-x86_64-gcc-g++
 make
 zip
 ````
 
 Alternatively switch to category view and set ['Devel' to install.](https://i.stack.imgur.com/2uzkB.jpg)  *This method takes up 1-2GB of space*
 
-After this compiling is the same as Linux.
+**You can also install the [Linux subsystem for Windows 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10)**, after which you just need to run the following.
 
 ````
-cd C:\exengine (or wherever you've put this)
-cd src && make
+sudo apt update
+sudo apt install mingw-w64 make zip
+cd /mnt/c/Users/MyUsername/Desktop/exengine/src
+````
+
+After this compiling is the same as Linux, except for the addition of setting the OS variable.
+
+````
+cd C:\exengine\src (or wherever you've put this)
+OS=Windows_NT make
 ````
 
 the resulting .exe will be in src/build/
