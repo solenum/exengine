@@ -64,8 +64,9 @@ extern void (*ex_event_handler_full)(SDL_Event*);
 /**
  * [exengine starts the internal engine loop]
  * @param argv  []
+ * @param appname [custom application name]
  * @param flags [defines what modules to enable]
  */
-void exengine(char **argv, uint8_t flags);
+void exengine(char **argv, const char *appname, uint8_t flags);
 
 #endif // EX_ENGINE_H

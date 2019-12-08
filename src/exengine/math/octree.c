@@ -17,7 +17,7 @@ ex_octree_t* ex_octree_new(uint8_t type)
   o->rendered = 0;
   o->built    = 0;
   o->first    = 1;
-  o->obj_list = list_new();
+  o->obj_list = ex_list_new();
   ex_octree_min_size = ex_octree_min_size;
 
   o->data_len    = 0;
@@ -31,7 +31,7 @@ ex_octree_t* ex_octree_new(uint8_t type)
   return o;
 }
 
-void ex_octree_init(ex_octree_t *o, rect_t region, list_t *objects)
+void ex_octree_init(ex_octree_t *o, rect_t region, ex_list_t *objects)
 {
   memcpy(&o->region, &region, sizeof(rect_t));
   for (int i=0; i<8; i++) {
@@ -87,23 +87,23 @@ void ex_octree_build(ex_octree_t *o)
   octants[7] = ex_rect_new((vec3){o->region.min[0], center[1], center[2]}, (vec3){center[0], o->region.max[1], o->region.max[2]});
 
   // object lists
-  list_t *obj_lists[8];
+  ex_list_t *obj_lists[8];
   size_t  obj_lenghts[8];
   for (int i=0; i<8; i++) {
-    obj_lists[i]   = list_new();
+    obj_lists[i]   = ex_list_new();
     obj_lenghts[i] = 0;
   }
 
   // add objects to appropriate octant
   size_t obj_count = 0;
-  list_node_t *n = o->obj_list;
+  ex_list_node_t *n = o->obj_list;
   while (n->data != NULL) {
     int found = 0;
 
     for (int j=0; j<8; j++) {
       ex_octree_obj_t *obj = (ex_octree_obj_t*)n->data;
       if (ex_aabb_inside(octants[j], obj->box)) {
-        list_add(obj_lists[j], (void*)n->data);
+        ex_list_add(obj_lists[j], (void*)n->data);
         obj_lenghts[j]++;
         found = 1;
         break;
@@ -112,8 +112,8 @@ void ex_octree_build(ex_octree_t *o)
 
     // remove obj from this list
     if (found) {
-      list_t *next = n->next;
-      o->obj_list = list_remove(o->obj_list, (void*)n->data);
+      ex_list_t *next = n->next;
+      o->obj_list = ex_list_remove(o->obj_list, (void*)n->data);
       if (next != NULL) {
         n = next;
         continue;
@@ -151,7 +151,7 @@ void ex_octree_finalize(ex_octree_t *o)
 {
   // move object data into a flat array
   int i = 0;
-  list_node_t *n = o->obj_list;
+  ex_list_node_t *n = o->obj_list;
   while (n->data != NULL) {
     ex_octree_obj_t *data = n->data;
 
@@ -194,7 +194,7 @@ void ex_octree_finalize(ex_octree_t *o)
 
   // destroy our temp list
   if (o->obj_list != NULL) {
-    list_destroy(o->obj_list);
+    ex_list_destroy(o->obj_list);
     o->obj_list = NULL;
   }
 
@@ -211,7 +211,7 @@ ex_octree_t* ex_octree_reset(ex_octree_t *o)
       ex_octree_reset(o->children[i]);
 
   if (o->obj_list != NULL) {
-    list_destroy(o->obj_list);
+    ex_list_destroy(o->obj_list);
     o->obj_list = NULL;
   }
 

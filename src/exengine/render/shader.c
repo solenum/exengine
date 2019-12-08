@@ -50,9 +50,9 @@ GLuint ex_shader(const char *path)
 
   // prefix path with shader dir
   char real_path[256];
-  io_prefix_str(real_path, path, EX_SHADER_LOC);
+  ex_io_prefix_str(real_path, path, EX_SHADER_LOC);
 
-  char *str = io_read_file(real_path, "r", NULL);
+  char *str = ex_io_read(real_path, "r", NULL);
   char *shaders[3] = {NULL, NULL, NULL};
   const char *types[][2] = {
     {"#START VS", "#END VS"},

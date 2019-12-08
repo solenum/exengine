@@ -16,7 +16,7 @@
 
 #include "glad/glad.h"
 
-#include "util/exe_io.h"
+#include "util/io.h"
 
 typedef struct {
   GLuint ID;

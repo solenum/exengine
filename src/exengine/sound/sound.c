@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <physfs.h>
-#include "util/exe_io.h"
+#include "util/io.h"
 #include "sound/sound.h"
 #include "sound/stb_vorbis.c"
 
@@ -44,7 +44,7 @@ ex_source_t* ex_sound_load_source(const char *path, ex_sound_e format, int loop)
   if (format == EX_SOUND_OGG) {
     printf("Decoding ogg format\n");
     size_t len = 0;
-    uint8_t *file_data = (uint8_t*)io_read_file(path, "rb", &len);
+    uint8_t *file_data = (uint8_t*)ex_io_read(path, "rb", &len);
 
     decode_len = stb_vorbis_decode_memory(file_data, len, &channels, &rate, &data);
     

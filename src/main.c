@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   ex_mousewheel_ptr = game_mousewheel;
   ex_resize_ptr = game_resize;
 
-  exengine(argv, EX_ENGINE_SOUND);
+  exengine(argv, "exengine-dev", EX_ENGINE_SOUND);
 
   return EXIT_SUCCESS;
 }

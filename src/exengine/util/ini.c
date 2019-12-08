@@ -1,12 +1,12 @@
 #include "ini.h"
-#include "exe_io.h"
+#include "io.h"
 
 int ex_ini_load(ex_ini_t *ini, const char *path)
 {
   printf("Loading config file %s\n", path);
 
   // read config file contents
-  char *buff = io_read_file(path, "r", NULL);
+  char *buff = ex_io_read(path, "r", NULL);
   if (buff == NULL)
     return 0;
 
@@ -112,6 +112,11 @@ int ex_ini_load(ex_ini_t *ini, const char *path)
 
   free(buff);
   return 1;
+}
+
+void ex_ini_save(ex_ini_i *ini, const char *path)
+{
+  
 }
 
 ex_ini_var_t *ex_ini_get_var(ex_ini_t *ini, const char *sec, const char *key)

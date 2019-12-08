@@ -10,7 +10,7 @@ ex_scene_t* ex_scene_new(uint8_t flags)
   // init physics shiz
   memset(s->gravity, 0, sizeof(vec3));
   s->coll_tree = ex_octree_new(OBJ_TYPE_UINT);
-  s->coll_list = list_new();
+  s->coll_list = ex_list_new();
   s->coll_vertices   = NULL;
   s->collision_built = 0;
   s->coll_vertices_last = 0;
@@ -35,7 +35,7 @@ void ex_scene_add_collision(ex_scene_t *s, ex_model_t *model)
 {
   if (model != NULL) {
     if (model->vertices != NULL && model->num_vertices > 0) {
-      list_add(s->coll_list, (void*)model);
+      ex_list_add(s->coll_list, (void*)model);
       s->collision_built = 0;
 
       if (s->coll_vertices != NULL) {
@@ -85,7 +85,7 @@ void ex_scene_build_collision(ex_scene_t *s)
 
     obj->data_uint    = i;
     obj->box          = ex_rect_from_triangle(tri);
-    list_add(s->coll_tree->obj_list, (void*)obj);
+    ex_list_add(s->coll_tree->obj_list, (void*)obj);
   }
 
   memcpy(&s->coll_tree->region, &region, sizeof(rect_t));

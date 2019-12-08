@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "render/text.h"
 #include "render/shader.h"
-#include "util/exe_io.h"
+#include "util/io.h"
 #include "math/mathlib.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -45,7 +45,7 @@ ex_font_t* ex_font_load(const char *path, const char *letters)
 {
   // load the ttf data
   size_t length;
-  uint8_t *data = (uint8_t*)io_read_file(path, "rb", &length);
+  uint8_t *data = (uint8_t*)ex_io_read(path, "rb", &length);
   if (!data) {
     printf("[TEXT] Failed generating font %s\n", path);
     return NULL;

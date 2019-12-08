@@ -231,6 +231,6 @@ void game_mousewheel(int32_t x, int32_t y)
 
 void game_resize(uint32_t width, uint32_t height)
 {
-  printf("resize x: %i y: %i\n", width, height);
+  // printf("resize x: %i y: %i\n", width, height);
   ex_scene_resize(scene, width, height);
 }

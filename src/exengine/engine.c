@@ -18,14 +18,23 @@ void (*ex_event_handler_full)(SDL_Event*) = NULL;
 
 ex_ini_t *conf;
 
-void exengine(char **argv, uint8_t flags)
+void exengine(char **argv, const char *appname, uint8_t flags)
 {
   /* -- INIT ENGINE -- */
   // init physfs filesystem
   PHYSFS_init(argv[0]);
-  printf("%s\n", argv[0]);
-  PHYSFS_mount(EX_DATA_FILE, NULL, 1);
   
+  // set the safe writing dir
+  const char *write_path = PHYSFS_getPrefDir(appname, appname);
+  if (write_path != NULL)
+    PHYSFS_setWriteDir(write_path);
+  else
+    printf("PhysFS was unable to set the write directory!\n");
+
+  // append data and write paths to search paths
+  PHYSFS_mount(EX_DATA_FILE, NULL, 1);
+  PHYSFS_mount(write_path, NULL, 1);
+
   // init engine file data cache
   ex_cache_init();
 

@@ -64,8 +64,8 @@ texture.h window.h vga.h vga_font.h renderer.h
 # sound
 _EDEPS_SO = sound.h
 # util
-_EDEPS_UT = util.h cache.h entity.h ini.h exe_io.h \
-exe_list.h iqm.h vertices.h
+_EDEPS_UT = util.h cache.h entity.h ini.h io.h list.h iqm.h \
+vertices.h
 EDEPS	  =$(patsubst %,$(EDIR)/%,$(_EDEPS_EN))
 EDEPS	 +=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
 EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))

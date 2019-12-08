@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include "util/exe_list.h"
+#include "util/list.h"
 #include "math/mathlib.h" 
 
 #define EX_OCTREE_DEFAULT_MIN_SIZE 5.0f
@@ -50,7 +50,7 @@ struct ex_octree_t {
   rect_t region;
   ex_octree_t *children[8];
   int max_life, cur_life;
-  list_t *obj_list;
+  ex_list_t *obj_list;
   // flags etc
   uint8_t rendered  : 1;
   uint8_t built     : 1;
@@ -83,7 +83,7 @@ ex_octree_t* ex_octree_new(uint8_t type);
  * @param region  [the max region]
  * @param objects [list of objects to add]
  */
-void ex_octree_init(ex_octree_t *o, rect_t region, list_t *objects);
+void ex_octree_init(ex_octree_t *o, rect_t region, ex_list_t *objects);
 
 /**
  * [ex_octree_build]

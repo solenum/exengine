@@ -18,7 +18,7 @@
 #define EX_SCENE_H
 
 #include "render/render.h"
-#include "util/exe_list.h"
+#include "util/list.h"
 #include "math/octree.h"
 
 #include "glad/glad.h"
@@ -45,7 +45,7 @@
 typedef struct {
   vec3 gravity;
   
-  list_t *coll_list;
+  ex_list_t *coll_list;
   ex_octree_t *coll_tree;
   int collision_built;
   vec3 *coll_vertices;

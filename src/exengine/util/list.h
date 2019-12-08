@@ -1,29 +1,28 @@
-/**
-* exe_list.h
+/* list
 * A simple arbitrary linked-list implementation.
 */
 
-#ifndef EXE_LIST_H
-#define EXE_LIST_H
+#ifndef EX_LIST_H
+#define EX_LIST_H
 
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct list_node_t list_node_t;
-typedef list_node_t list_t;
+typedef struct ex_list_node_t ex_list_node_t;
+typedef ex_list_node_t ex_list_t;
 
-struct list_node_t {
+struct ex_list_node_t {
   void *data;
-  struct list_node_t *next, *prev;
+  struct ex_list_node_t *next, *prev;
 };
 
 /**
- * [list_new initialize a new list]
- * @return [list_t pointer]
+ * [ex_list_new initialize a new list]
+ * @return [ex_list_t pointer]
  */
-static list_node_t* list_new()
+static ex_list_node_t* ex_list_new()
 {
-  list_node_t *n = malloc(sizeof(list_node_t));
+  ex_list_node_t *n = malloc(sizeof(ex_list_node_t));
   n->prev = NULL;
   n->next = NULL;
   n->data = NULL;
@@ -32,11 +31,11 @@ static list_node_t* list_new()
 }
 
 /**
- * [list_add add a new element to the list]
- * @param n    [list_t to add element]
+ * [ex_list_add add a new element to the list]
+ * @param n    [ex_list_t to add element]
  * @param data [void pointer of data to add]
  */
-static void list_add(list_node_t *n, void *data)
+static void ex_list_add(ex_list_node_t *n, void *data)
 {
   // get next empty node
   while (n->data != NULL) {
@@ -48,21 +47,21 @@ static void list_add(list_node_t *n, void *data)
 
   // set data and add new node
   n->data = data;
-  n->next = malloc(sizeof(list_node_t));
+  n->next = malloc(sizeof(ex_list_node_t));
   n->next->prev = n;
   n->next->next = NULL;
   n->next->data = NULL;
 }
 
 /**
- * [list_remove remove an element from the list]
- * @param  n    [list_t to remove element]
+ * [ex_list_remove remove an element from the list]
+ * @param  n    [ex_list_t to remove element]
  * @param  data [void pointer of data to remove]
- * @return      [restructured list_t pointer]
+ * @return      [restructured ex_list_t pointer]
  */
-static list_t* list_remove(list_node_t *n, void *data)
+static ex_list_t* ex_list_remove(ex_list_node_t *n, void *data)
 {
-  list_t *root = n;
+  ex_list_t *root = n;
 
   // find node with matching data addr
   while (n->data != data) {
@@ -94,16 +93,16 @@ static list_t* list_remove(list_node_t *n, void *data)
 }
 
 /**
- * [list_destroy cleanup mallocs etc]
- * @param n [list_t pointer to delete]
+ * [ex_list_destroy cleanup mallocs etc]
+ * @param n [ex_list_t pointer to delete]
  */
-static void list_destroy(list_node_t *n)
+static void ex_list_destroy(ex_list_node_t *n)
 {
   if (n == NULL)
     return;
 
   // remove first node
-  list_node_t *next = n->next;
+  ex_list_node_t *next = n->next;
   free(n);
 
   // remove the remaining nodes
@@ -114,4 +113,4 @@ static void list_destroy(list_node_t *n)
   }
 }
 
-#endif // EXE_LIST_H
+#endif // EX_LIST_H
