@@ -5,7 +5,6 @@
 #include "render/renderer.h"
 #include "render/scene.h"
 #include "render/camera.h"
-#include "render/defaults.h"
 #include "render/mesh.h"
 #include "render/model.h"
 #include "render/msdf.h"

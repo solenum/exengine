@@ -1,6 +1,4 @@
 #include "engine.h"
-// renderer feature toggles
-int ex_enable_ssao = 1;
 
 // user defined function callback pointers
 void (*ex_init_ptr)(void) = NULL;
@@ -59,7 +57,6 @@ void exengine(char **argv, uint8_t flags)
   }
 
   // init rendering modules
-  ex_defaults_textures();
   ex_font_init();
   
   // user init callback

@@ -1,14 +1,6 @@
 #include "render.h"
 #include "math/mathlib.h"
 
-/*
-  The shadow map resolution, this
-  needs to be changed so that the user
-  can specify a different resolution
-  without modifying this header.
-*/
-#define SHADOW_MAP_SIZE 1024
-
 // projections
 mat4x4 projection_90deg;
 
@@ -28,6 +20,11 @@ typedef struct {
 } ex_framebuffer_t;
 ex_framebuffer_t framebuffer;
 
+// some default textures
+GLuint default_texture_diffuse;
+GLuint default_texture_normal;
+GLuint default_texture_specular;
+
 void ex_render_init()
 {
   /* -- SHADERS -- */
@@ -39,6 +36,28 @@ void ex_render_init()
   float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
   mat4x4_perspective(projection_90deg, rad(90.0f), aspect, 0.1f, EX_POINT_FAR_PLANE);
   /* ------------- */
+
+
+  /* -- DEFAULTS -- */
+  GLuint *textures[] = {
+    &default_texture_diffuse,
+    &default_texture_normal,
+    &default_texture_specular
+  };
+  
+  char colors[][4] = {
+    {0,0,0,255},
+    {128,127,255,255},
+    {0,0,0,255}
+  };
+
+  for (int i=0; i<3; i++) {
+    glGenTextures(1, textures[i]);
+    glBindTexture(GL_TEXTURE_2D, *textures[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &colors[i][0]);
+  }
+  glBindTexture(GL_TEXTURE_2D, 0);
+  /* -------------- */
 
 
   /* -- SCREEN QUAD -- */

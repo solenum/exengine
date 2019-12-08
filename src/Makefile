@@ -57,9 +57,9 @@ _EDEPS_IN = input.h scancodes.h
 # math
 _EDEPS_MA = math.h collision.h mathlib.h octree.h
 # render
-_EDEPS_RE = render.h scene.h camera.h defaults.h mesh.h \
-model.h msdf.h pointlight.h shader.h stb_image.h stb_truetype.h \
-text.h texture.h window.h vga.h vga_font.h renderer.h
+_EDEPS_RE = render.h scene.h camera.h mesh.h model.h msdf.h \
+pointlight.h shader.h stb_image.h stb_truetype.h text.h \
+texture.h window.h vga.h vga_font.h renderer.h
 # sound
 _EDEPS_SO = sound.h
 # util
@@ -75,8 +75,8 @@ EDEPS	 +=$(patsubst %,$(EDIR)/util/%,$(_EDEPS_UT))
 # engine srcs
 ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
 pointlight.o scene.o model.o collision.o entity.o octree.o \
-engine.o shader.o defaults.o input.o sound.o cache.o text.o \
-msdf.o ini.o vga.o renderer.o
+engine.o shader.o input.o sound.o cache.o text.o msdf.o \
+ini.o vga.o renderer.o
 
 # lib deps
 _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h \

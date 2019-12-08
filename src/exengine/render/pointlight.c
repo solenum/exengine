@@ -3,18 +3,6 @@
 #include "render/pointlight.h"
 #include "render/shader.h"
 
-mat4x4 point_shadow_projection;
-GLuint point_light_shader;
-
-void ex_point_light_init()
-{
-  // compile the shaders
-  point_light_shader = ex_shader("pointfbo.glsl");
-
-  float aspect = (float)SHADOW_MAP_SIZE/(float)SHADOW_MAP_SIZE;
-  mat4x4_perspective(point_shadow_projection, rad(90.0f), aspect, 0.1f, EX_POINT_FAR_PLANE); 
-}
-
 ex_point_light_t *ex_point_light_new(vec3 pos, vec3 color, int dynamic)
 {
   ex_point_light_t *l = malloc(sizeof(ex_point_light_t));
@@ -48,7 +36,6 @@ ex_point_light_t *ex_point_light_new(vec3 pos, vec3 color, int dynamic)
     printf("Error! Point light framebuffer is not complete!\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  l->shader     = point_light_shader;
   l->dynamic    = dynamic;
   l->update     = 1;
   l->is_shadow  = 1;

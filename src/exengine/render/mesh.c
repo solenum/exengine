@@ -3,7 +3,7 @@
 #include <string.h>
 #include "render/mesh.h"
 #include "render/shader.h"
-#include "render/defaults.h"
+#include "render/renderer.h"
 
 ex_mesh_t* ex_mesh_new(ex_vertex_t* vertices, size_t vcount, GLuint *indices, size_t icount, GLuint texture)
 {

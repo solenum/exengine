@@ -68,8 +68,6 @@ typedef struct {
   size_t instance_count;
   int    is_static;
 
-  GLuint shader;
-
   char path[512];
 } ex_model_t;
 

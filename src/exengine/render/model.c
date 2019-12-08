@@ -1,6 +1,5 @@
 #include <string.h>
 #include "render/model.h"
-#include "render/shader.h"
 
 ex_model_t* ex_model_new()
 {
@@ -36,8 +35,6 @@ ex_model_t* ex_model_copy(ex_model_t *model)
 {
   // do a deep copy
   ex_model_t *m = ex_model_new();
-  
-  m->shader = model->shader;
 
   // copy meshes
   for (int i=0; i<EX_MODEL_MAX_MESHES; i++) {
@@ -255,7 +252,10 @@ void ex_model_set_anim(ex_model_t *m, char *id)
 
 void ex_model_get_ex_bone_transform(ex_model_t *m, const char *name, mat4x4 transform)
 {
-  mat4x4 temp;
+  return;
+
+  // entirely broken
+  /*mat4x4 temp;
   mat4x4_identity(transform);
   mat4x4_identity(temp);
 
@@ -288,7 +288,7 @@ void ex_model_get_ex_bone_transform(ex_model_t *m, const char *name, mat4x4 tran
       // mat4x4_mul(transform, transform, m->inverse_base[i]);
       return;
     }
-  }
+  }*/
 }
 
 void ex_calc_bone_matrix(mat4x4 m, vec3 pos, quat rot, vec3 scale)
