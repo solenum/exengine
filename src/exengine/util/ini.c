@@ -136,6 +136,38 @@ void ex_ini_save(ex_ini_t *ini, const char *path)
   }
 }
 
+ex_ini_var_t *ex_ini_new_var(ex_ini_t *ini, const char *sec, const char *key)
+{
+  ex_ini_section_t *section = NULL;
+  ex_ini_var_t *var = NULL;
+
+  // see if section already exists
+  for (int i=0; i<ini->length; i++) {
+    if (strcmp(ini->sections[i].name, sec) == 0) {
+      section = &ini->sections[i];
+      break;
+    }
+  }
+
+  // no section found, make it
+  if (!section) {
+    strcpy(ini->sections[ini->length].name, sec);
+    ini->sections[ini->length].length = 0;
+    ini->length++;
+  }
+
+  // something bad happened
+  if (!section)
+    return NULL;
+  
+  // add the key
+  var = &section->vars[section->length];
+  strcpy(var->key, key);
+  section->length++;
+
+  return var;
+}
+
 ex_ini_var_t *ex_ini_get_var(ex_ini_t *ini, const char *sec, const char *key)
 {
   for (int i=0; i<ini->length; i++) {
@@ -152,7 +184,8 @@ ex_ini_var_t *ex_ini_get_var(ex_ini_t *ini, const char *sec, const char *key)
     }
   }
 
-  return NULL;
+  // no var found, make one
+  return ex_ini_new_var(ini, sec, key);
 }
 
 char *ex_ini_get_string(ex_ini_t *ini, const char *sec, const char *key)
@@ -173,4 +206,24 @@ float ex_ini_get_float(ex_ini_t *ini, const char *sec, const char *key)
     return var->f;
 
   return 0.0f;
+}
+
+void ex_ini_set_string(ex_ini_t *ini, const char *sec, const char *key, const char *value)
+{
+  ex_ini_var_t *var = ex_ini_get_var(ini, sec, key);
+
+  if (var) {
+    var->type = ex_ini_type_string;
+    strcpy(var->s, value);
+  }
+}
+
+void ex_ini_set_float(ex_ini_t *ini, const char *sec, const char *key, const float value)
+{
+  ex_ini_var_t *var = ex_ini_get_var(ini, sec, key);
+
+  if (var) {
+    var->type = ex_ini_type_float;
+    var->f = value;
+  }
 }

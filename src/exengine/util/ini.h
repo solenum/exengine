@@ -9,7 +9,7 @@
   File extension doesn't matter, as long as its a
   text file and not a binary.
   
-  Example conf.cfg:
+  Example conf.ini:
 
   # [graphics]
   # window_width = 1280
@@ -93,5 +93,23 @@ char *ex_ini_get_string(ex_ini_t *ini, const char *sec, const char *key);
  * @return     [float value]
  */
 float ex_ini_get_float(ex_ini_t *ini, const char *sec, const char *key);
+
+/**
+ * [ex_ini_set_string set a string variable]
+ * @param ini   [ini instance to use]
+ * @param sec   [variable section]
+ * @param key   [variable key]
+ * @param value [string value]
+ */
+void ex_ini_set_string(ex_ini_t *ini, const char *sec, const char *key, const char *value);
+
+/**
+ * [ex_ini_set_float set a float variable]
+ * @param ini   [ini instance to use]
+ * @param sec   [variable section]
+ * @param key   [variable key]
+ * @param value [float value]
+ */
+void ex_ini_set_float(ex_ini_t *ini, const char *sec, const char *key, const float value);
 
 #endif // EX_INI_H
