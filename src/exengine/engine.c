@@ -25,6 +25,9 @@ void exengine(char **argv, const char *appname, uint8_t flags)
   PHYSFS_init(argv[0]);
   
   // set the safe writing dir
+  // most often these directories will be..
+  // linux: ~/.local/share/appname
+  // windows: AppData\\Roaming\\appname\\appname
   const char *write_path = PHYSFS_getPrefDir(appname, appname);
   if (write_path != NULL)
     PHYSFS_setWriteDir(write_path);
@@ -32,8 +35,8 @@ void exengine(char **argv, const char *appname, uint8_t flags)
     printf("PhysFS was unable to set the write directory!\n");
 
   // append data and write paths to search paths
-  PHYSFS_mount(EX_DATA_FILE, NULL, 1);
   PHYSFS_mount(write_path, NULL, 1);
+  PHYSFS_mount(EX_DATA_FILE, NULL, 1);
 
   // init engine file data cache
   ex_cache_init();
@@ -47,12 +50,21 @@ void exengine(char **argv, const char *appname, uint8_t flags)
   const double slowest_frame = 1.0 / 15.0;
   double delta_time, accumulator = 0.0;
 
-  // load user defined config
+  // load engine config file
   conf = malloc(sizeof(ex_ini_t));
   conf->length = 0;
-  if (!ex_ini_load(conf, "data/conf.cfg")) {
+  if (!ex_ini_load(conf, "data/conf.ini")) {
     printf("Failed loading engine config.\n");
   }
+  
+  // load user config file
+  // overwrites any matching variables already loaded
+  // from the engine config file
+  ex_ini_load(conf, "conf.ini");
+
+  // save the combined user and engine configs
+  // to the save location
+  ex_ini_save(conf, "conf.ini");
 
   // load config vars
   uint32_t width = 0, height = 0;

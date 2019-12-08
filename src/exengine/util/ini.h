@@ -61,6 +61,13 @@ typedef struct {
 int ex_ini_load(ex_ini_t *ini, const char *path);
 
 /**
+ * [ex_ini_save saves the ini structure to a file]
+ * @param ini  [ini to save]
+ * @param path [file path]
+ */
+void ex_ini_save(ex_ini_t *ini, const char *path);
+
+/**
  * [ex_ini_get_var get a key-value variable]
  * @param  ini [ini instance to use]
  * @param  sec [variable section]

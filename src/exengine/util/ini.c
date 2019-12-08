@@ -90,33 +90,50 @@ int ex_ini_load(ex_ini_t *ini, const char *path)
     token = strtok(NULL, "\t\n");
   }
 
-  /*for (int i=0; i<ini->length; i++) {
+  free(buff);
+  return 1;
+}
+
+void ex_ini_save(ex_ini_t *ini, const char *path)
+{
+  // empty the file
+  ex_io_write(path, "", 0, 0);
+
+  printf("Saving configuration file to %s\n", path);
+ 
+  // now save the actual data
+  char buf[1024];
+  for (int i=0; i<ini->length; i++) {
     ex_ini_section_t *section = &ini->sections[i];
+
+    // write section
+    sprintf(buf, "[%s]\n", section->name);
+    ex_io_write(path, buf, strlen(buf), 1);
+
     for (int j=0; j<section->length; j++) {
       ex_ini_var_t *var = &section->vars[j];
+
+      // format a buffer for writing
       switch (var->type) {
         case ex_ini_type_string: {
-          printf("%s[%s] = %s\n", section->name, var->key, var->s);
+          sprintf(buf, "%s = %s\n", var->key, var->s);
           break;
         }
         case ex_ini_type_float: {
-          printf("%s[%s] = %f\n", section->name, var->key, var->f);
+          sprintf(buf, "%s = %.2f\n", var->key, var->f);
           break;
         }
         case ex_ini_type_undefined: {
           break;
         }
       }
+
+      // write a key-value pair
+      ex_io_write(path, buf, strlen(buf), 1);
     }
-  }*/
 
-  free(buff);
-  return 1;
-}
-
-void ex_ini_save(ex_ini_i *ini, const char *path)
-{
-  
+    ex_io_write(path, "\n", 1, 1);
+  }
 }
 
 ex_ini_var_t *ex_ini_get_var(ex_ini_t *ini, const char *sec, const char *key)
