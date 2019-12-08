@@ -7,14 +7,14 @@ exengine is a 3d engine that takes a slightly different approach than other libr
 
 This approach allows easy and direct access to the engine back-end should you want to make modifications to suit your specific needs, so think of it as more of a template.
 
-Assuming you don't want to set up your own build system (I can't blame you), you can clone the repo and use the existing build system and file structure as a starting template.  It compiles on Linux and Windows.
+Assuming you don't want to set up your own build system (I can't blame you), you can clone the repo and use the existing build system and file structure as a starting template.  It compiles on Linux, BSD, and Windows. It *might* compile and run on MacOS, but this isn't [directly supported any more.](https://news.ycombinator.com/item?id=17231593)
 
 **The contents of main.c/game.c are only supplied as examples to showcase how one might use the engine.**
 
 ### What are the features?
 * *Simple* and small
 * A straight-forward C99 codebase
-* A deferred and forward renderer
+* A deferred[*](https://github.com/exezin/exengine/commit/c28d1a8e2f3d99ef4a87253ae3166f2f67e33fbc) and forward renderer
 * Various light casters
 * Smooth shadow mapping
 * Normal & specular mapping
@@ -26,7 +26,7 @@ Assuming you don't want to set up your own build system (I can't blame you), you
 * Polygon soup collision detection
 * Smooth collision response
 * Various cameras
-* More to come..
+* [More to come..](https://github.com/exezin/exengine/projects/1)
 
 ### Depends
 * A C99 compiler, preferably gcc. Clang and others should also work
@@ -44,7 +44,9 @@ Simply clone the repository and install the required libraries and compilers lis
 
 **This only applies to those wanting to use the current build system and game code as a starting template, and not those wanting to include exengine into an existing project or build system.**
 
-#### Linux
+
+----
+### Linux
 
 ````
 sudo apt-get update
@@ -54,18 +56,18 @@ cd src && make
 
 The resulting binary will be in src/build/
 
-
-#### Windows
+----
+### Windows
 
 Download and install [Cygwin](https://www.cygwin.com/) with the following packages.  *All required libraries for Windows are included in the codebase.*
+
+Alternatively switch to category view and set ['Devel' to install.](https://i.stack.imgur.com/2uzkB.jpg)  *This method takes up 1-2GB of space*
 
 ````
 mingw64-x86_64-gcc
 make
 zip
 ````
-
-Alternatively switch to category view and set ['Devel' to install.](https://i.stack.imgur.com/2uzkB.jpg)  *This method takes up 1-2GB of space*
 
 **You can also install the [Linux subsystem for Windows 10](https://docs.microsoft.com/en-us/windows/wsl/install-win10)**, after which you just need to run the following.
 
@@ -84,7 +86,8 @@ OS=Windows_NT make
 
 the resulting .exe will be in src/build/
 
-#### OpenBSD
+----
+### OpenBSD
 Make sure you have the correct dependicies installed, the equivalent of linux using pkg_add.
 For OpenBSD specific you will need the 'gmake' and 'gcc' packages.
 The gcc package will install a more modern compiler as egcc in your path.
@@ -99,10 +102,12 @@ after this the compilation is almost the same as in linux, this time specificly 
 cd src && gmake
 ````
 
-#### Stand-alone (*recommended*)
+----
+### Stand-alone (*recommended*)
 
 Alternatively you can drop the exengine/ directory right into your own project and use it with your own build system.  This method obviously takes more work and time.
 
+----
 ### Gallery
 ![scrot](http://i.imgur.com/4NGlapU.png)
 ![scrot](https://i.imgur.com/vTKB3T8.png)
