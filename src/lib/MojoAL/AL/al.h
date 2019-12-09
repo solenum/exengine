@@ -649,6 +649,13 @@ typedef void          (AL_APIENTRY *LPALDOPPLERVELOCITY)(ALfloat value);
 typedef void          (AL_APIENTRY *LPALSPEEDOFSOUND)(ALfloat value);
 typedef void          (AL_APIENTRY *LPALDISTANCEMODEL)(ALenum distanceModel);
 
+#define AL_EXT_TRACE_INFO 1
+typedef void          (AL_APIENTRY *LPALTRACEPUSHSCOPE)(const ALchar *str);
+typedef void          (AL_APIENTRY *LPALTRACEPOPSCOPE)(void);
+typedef void          (AL_APIENTRY *LPALTRACEMESSAGE)(const ALchar *str);
+typedef void          (AL_APIENTRY *LPALTRACEBUFFERLABEL)(ALuint name, const ALchar *str);
+typedef void          (AL_APIENTRY *LPALTRACESOURCELABEL)(ALuint name, const ALchar *str);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

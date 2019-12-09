@@ -19,8 +19,8 @@
 #define EX_SOUND_H
 
 #include <inttypes.h>
-#include <AL/al.h>
-#include <AL/alc.h>
+#include "AL/al.h"
+#include "AL/alc.h"
 
 typedef struct {
   ALCdevice *device;

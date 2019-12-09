@@ -230,6 +230,10 @@ typedef void           (ALC_APIENTRY *LPALCCAPTURESTART)(ALCdevice *device);
 typedef void           (ALC_APIENTRY *LPALCCAPTURESTOP)(ALCdevice *device);
 typedef void           (ALC_APIENTRY *LPALCCAPTURESAMPLES)(ALCdevice *device, ALCvoid *buffer, ALCsizei samples);
 
+#define ALC_EXT_TRACE_INFO 1
+typedef void          (AL_APIENTRY *LPALCTRACEDEVICELABEL)(ALCdevice *device, const ALCchar *str);
+typedef void          (AL_APIENTRY *LPALCTRACECONTEXTLABEL)(ALCcontext *ctx, const ALCchar *str);
+
 #if defined(__cplusplus)
 }
 #endif

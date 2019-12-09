@@ -1,31 +1,30 @@
 # Example Makefile
 
 # -- Dirs -- #
-CC 		=gcc
+CC      =gcc
 EDIR    =exengine
-LDIR	=lib
-BDIR	=build
+LDIR    =lib
+BDIR    =build
 BNAME   =game
-ODIR 	=obj
+ODIR    =obj
 IDIR    =inc
 EDATA   =exengine
 DATA    =data
-_IDIRS  =lib inc lib/physfs exengine
+_IDIRS  =lib inc lib/physfs lib/MojoAL lib/SDL2 exengine
 IDIRS   =$(patsubst %,-I%/,$(_IDIRS))
 
 # -- Flags -- #
-FLAGS 	=-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ \
--lGL -lSDL2 -lopenal -I. $(IDIRS) \
-'-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
+FLAGS   =-g -lm -ldl -Wall -Wno-unused -Wno-uninitialized -lstdc++ \
+-lGL -lSDL2 -I. $(IDIRS) '-Wl,-z,origin' '-Wl,-rpath,$$ORIGIN/lib'
 #
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
 
 # -- Windows -- #
 ifeq ($(OS),Windows_NT)
-CC 		=x86_64-w64-mingw32-gcc
-FLAGS 	=-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ \
--Llib/win -lopengl32 -lSDL2main -lSDL2 -lopenal32 -I. $(IDIRS)
+CC    =x86_64-w64-mingw32-gcc
+FLAGS   =-g -lm -static -static-libgcc -static-libstdc++ -lstdc++ \
+-Llib/win -lopengl32 -lSDL2main -lSDL2 -I. $(IDIRS)
 FLAGS  +=-Llib/win/dll
 #
 CFLAGS  =$(FLAGS)
@@ -37,7 +36,7 @@ endif
 UNAME   = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation \
--framework IOKit -lSDL2 -lphysfs -framework OpenAL \
+-framework IOKit -lSDL2 \
 -I. $(IDIRS) -Wno-unused-command-line-argument
 #
 CFLAGS  =$(FLAGS)
@@ -68,12 +67,12 @@ _EDEPS_SO = sound.h
 # util
 _EDEPS_UT = util.h cache.h entity.h ini.h io.h list.h iqm.h \
 vertices.h
-EDEPS	  =$(patsubst %,$(EDIR)/%,$(_EDEPS_EN))
-EDEPS	 +=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
-EDEPS	 +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
-EDEPS	 +=$(patsubst %,$(EDIR)/render/%,$(_EDEPS_RE))
-EDEPS	 +=$(patsubst %,$(EDIR)/sound/%,$(_EDEPS_SO))
-EDEPS	 +=$(patsubst %,$(EDIR)/util/%,$(_EDEPS_UT))
+EDEPS   =$(patsubst %,$(EDIR)/%,$(_EDEPS_EN))
+EDEPS  +=$(patsubst %,$(EDIR)/input/%,$(_EDEPS_IN))
+EDEPS  +=$(patsubst %,$(EDIR)/math/%,$(_EDEPS_MA))
+EDEPS  +=$(patsubst %,$(EDIR)/render/%,$(_EDEPS_RE))
+EDEPS  +=$(patsubst %,$(EDIR)/sound/%,$(_EDEPS_SO))
+EDEPS  +=$(patsubst %,$(EDIR)/util/%,$(_EDEPS_UT))
 
 # engine srcs
 ENGINEOBJ = window.o glad.o mesh.o camera.o texture.o iqm.o \
@@ -86,8 +85,11 @@ _PHYSFS_DEPS =physfs_casefolding.h  physfs.h  physfs_internal.h \
 physfs_lzmasdk.h  physfs_miniz.h  physfs_platforms.h
 PHYSFS_DEPS  =$(patsubst %,$(LDIR)/physfs/%,$(_PHYSFS_DEPS))
 
+_MOJOAL_DEPS =alc.h al.h
+MOJOAL_DEPS  =$(patsubst %,$(LDIR)/MojoAL/AL/%,$(_MOJOAL_DEPS))
+
 # lib srcs
-LOBJ		= physfs_archiver_7z.o physfs_archiver_mvl.o \
+LOBJ    = physfs_archiver_7z.o physfs_archiver_mvl.o \
 physfs_archiver_wad.o physfs_platform_posix.o \
 physfs_archiver_dir.o physfs_archiver_qpak.o \
 physfs_archiver_zip.o physfs_platform_qnx.o \
@@ -95,21 +97,22 @@ physfs_archiver_grp.o physfs_archiver_slb.o \
 physfs_byteorder.o physfs_platform_unix.o \
 physfs_archiver_hog.o physfs_archiver_unpacked.o physfs.o \
 physfs_platform_windows.o physfs_archiver_iso9660.o \
-physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o
+physfs_archiver_vdf.o physfs_platform_os2.o physfs_unicode.o \
+mojoal.o
 
 ifeq ($(UNAME),Darwin)
 LOBJ += physfs_platform_apple.o
 endif
 
 # usr srcs (add yours here)
-_OBJ		=main.o game.o
+_OBJ    =main.o game.o
 _OBJ   +=$(LOBJ)
 _OBJ   +=$(ENGINEOBJ)
-OBJ 		=$(patsubst %,$(ODIR)/%,$(_OBJ))
+OBJ     =$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 # user deps
-_DEPS		=game.h
-DEPS		=$(patsubst %,$(IDIR)/%,$(_DEPS))
+_DEPS   =game.h
+DEPS    =$(patsubst %,$(IDIR)/%,$(_DEPS))
 
 all: files game
 
@@ -131,6 +134,10 @@ ifeq ($(UNAME),Darwin)
 $(ODIR)/%.o: $(LDIR)/physfs/%.m $(PHYSFS_DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 endif
+
+# mojoal src
+$(ODIR)/%.o: $(LDIR)/MojoAL/%.c $(MOJOAL_DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 game: $(OBJ)
 	$(CC) -o $(BDIR)/$(BNAME) $^ $(CFLAGS)
@@ -154,10 +161,10 @@ release-linux:
 
 #release:
 #ifeq ($(OS),Windows_NT)
-#	copy /b $(BDIR)/game.exe+$(BDIR)/data.exe $(BDIR)/release.exe
+# copy /b $(BDIR)/game.exe+$(BDIR)/data.exe $(BDIR)/release.exe
 #else
-#	cat $(BDIR)/game $(BDIR)/data.ex > $(BDIR)/release
-#	chmod +x $(BDIR)/release
+# cat $(BDIR)/game $(BDIR)/data.ex > $(BDIR)/release
+# chmod +x $(BDIR)/release
 #endif
 
 .PHONY: clean release-linux
