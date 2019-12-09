@@ -29,7 +29,7 @@ void game_init()
   e->position[2] = 0.0f;
 
   // load a sound
-  sound = ex_sound_load_source("data/sound.ogg", EX_SOUND_OGG, 0);
+  sound = ex_sound_load("data/sound.ogg", 0);
   ex_sound_master_volume(0.5f);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.1f, 0.1f, 0.1f}, 0);

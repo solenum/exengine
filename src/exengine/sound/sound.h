@@ -18,12 +18,14 @@
 #ifndef EX_SOUND_H
 #define EX_SOUND_H
 
+#define EX_DEVICE_LEN 32
+
 #include <inttypes.h>
 #include "AL/al.h"
 #include "AL/alc.h"
 
 typedef struct {
-  ALCdevice *device;
+  ALCdevice *output, *input;
   ALCcontext *context;
 } ex_sound_t;
 
@@ -38,19 +40,36 @@ typedef enum {
 
 extern ex_sound_t ex_sound;
 
+typedef struct {
+  ALCchar names[EX_DEVICE_LEN][512];
+  size_t len;
+} ex_sound_devices_t;
+
 /**
  * [ex_sound_init init the sound module]
  */
 void ex_sound_init();
 
 /**
+ * [ex_sound_list_devices description]
+ * @param list  [description]
+ * @param param [description]
+ */
+void ex_sound_list_devices(ex_sound_devices_t *list, const ALenum param);
+
+/**
+ * [ex_sound_set_output description]
+ * @param device [description]
+ */
+void ex_sound_set_output(const ALCchar *device);
+
+/**
  * [ex_sound_load_source load and decode a source into memory]
  * @param  path   [the sound file to load]
- * @param  format [the format, ogg only currently]
  * @param  loop   [1 if the sound is looping]
  * @return        [the new sound]
  */
-ex_source_t* ex_sound_load_source(const char *path, ex_sound_e format, int loop);
+ex_source_t* ex_sound_load(const char *path, int loop);
 
 /**
  * [ex_sound_destroy cleanup a sound source]
