@@ -5,6 +5,7 @@ CC 		=gcc
 EDIR    =exengine
 LDIR	=lib
 BDIR	=build
+BNAME   =game
 ODIR 	=obj
 IDIR    =inc
 EDATA   =exengine
@@ -29,6 +30,7 @@ FLAGS  +=-Llib/win/dll
 #
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99
+BNAME   =game.exe
 endif
 
 # -- MacOS -- #
@@ -131,7 +133,7 @@ $(ODIR)/%.o: $(LDIR)/physfs/%.m $(PHYSFS_DEPS)
 endif
 
 game: $(OBJ)
-	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
+	$(CC) -o $(BDIR)/$(BNAME) $^ $(CFLAGS)
 	@echo "**success**"
 
 files:
@@ -141,7 +143,7 @@ files:
 	(cd $(EDATA); zip -ur ../build/data.ex $(DATA) || true)
 	(zip -ur build/data.ex $(DATA) || true)
 ifeq ($(OS),Windows_NT)
-	cp lib/win/dll/* build
+	cp lib/win/dll/*.dll $(BDIR)/
 endif
 
 release-linux:
