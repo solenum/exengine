@@ -31,7 +31,6 @@ Assuming you don't want to set up your own build system (I can't blame you), you
 ### Depends
 * A C99 compiler, preferably gcc. Clang and others should also work
 * OpenGL 3.3+
-* OpenAL (Soon to be replaced)
 * SDL2
 
 ### Getting Started
@@ -50,7 +49,7 @@ Simply clone the repository and install the required libraries and compilers lis
 
 ````
 sudo apt-get update
-sudo apt-get install build-essential libopenal-dev libsdl2-dev
+sudo apt-get install build-essential libsdl2-dev
 cd src && make
 ````
 
@@ -91,10 +90,6 @@ the resulting .exe will be in src/build/
 Make sure you have the correct dependicies installed, the equivalent of linux using pkg_add.
 For OpenBSD specific you will need the 'gmake' and 'gcc' packages.
 The gcc package will install a more modern compiler as egcc in your path.
-
-```
-doas pkg_add openal
-```
 
 after this the compilation is almost the same as in linux, this time specificly using gmake (stands for GNU make).
 
