@@ -24,13 +24,23 @@
 #include "AL/al.h"
 #include "AL/alc.h"
 
+typedef enum {
+  EX_SOURCE_STATIC = 0,
+  EX_SOURCE_STREAMING = 1,
+  EX_SOURCE_LEN
+} ex_source_type_e;
+
 typedef struct {
   ALCdevice *output, *input;
   ALCcontext *context;
 } ex_sound_t;
 
 typedef struct {
-  ALuint id, buffer;
+  ALuint id, buffers[3];
+  ALint  ready_buffers[3];
+  void *decoder;
+  int streaming, channels, rate, looping;
+  size_t sample, samples, last_buffer;
 } ex_source_t;
 
 typedef enum {
@@ -69,7 +79,13 @@ void ex_sound_set_output(const ALCchar *device);
  * @param  loop   [1 if the sound is looping]
  * @return        [the new sound]
  */
-ex_source_t* ex_sound_load(const char *path, int loop);
+ex_source_t* ex_sound_load(const char *path, int type);
+
+/**
+ * [ex_sound_play play a sound source]
+ * @param s [source to play]
+ */
+void ex_sound_play(ex_source_t *s);
 
 /**
  * [ex_sound_destroy cleanup a sound source]

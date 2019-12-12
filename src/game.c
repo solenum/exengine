@@ -29,7 +29,7 @@ void game_init()
   e->position[2] = 0.0f;
 
   // load a sound
-  sound = ex_sound_load("data/sound.ogg", 0);
+  sound = ex_sound_load("data/ambient.ogg", EX_SOURCE_STREAMING);
   ex_sound_master_volume(0.5f);
 
   pl = ex_point_light_new((vec3){0.0f, 0.0f, 0.0f}, (vec3){0.1f, 0.1f, 0.1f}, 0);
@@ -168,10 +168,12 @@ ctrl_end:
   if (ex_keys_down[SDL_SCANCODE_SPACE] && e->grounded == 1) {
     e->velocity[1] = 20.0f;
     if (e->grounded && !ex_sound_playing(sound)) {
-      alSourcePlay(sound->id);
+      // alSourcePlay(sound->id);
     }
   }
   move_speed = 100.0f;
+    
+  ex_sound_play(sound);
 
   memcpy(pl->position, e->position, sizeof(vec3));
   pl->position[1] += 1.0f;

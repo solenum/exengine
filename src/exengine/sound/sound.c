@@ -88,12 +88,13 @@ void ex_sound_set_output(const ALCchar *device)
   printf("Output device set as %s\n", device);
 }
 
-ex_source_t* ex_sound_load(const char *path, int loop)
+ex_source_t* ex_sound_load(const char *path, int type)
 {
   printf("Loading audio file %s\n", path);
   int channels, rate;
   short *data = NULL;
   int32_t decode_len = 0;
+  stb_vorbis *decoder = NULL;
 
   // get file extension
   char buf[512];
@@ -105,49 +106,154 @@ ex_source_t* ex_sound_load(const char *path, int loop)
     size_t len = 0;
     uint8_t *file_data = (uint8_t*)ex_io_read(path, "rb", &len);
 
-    decode_len = stb_vorbis_decode_memory(file_data, len, &channels, &rate, &data);
+    if (type == EX_SOURCE_STATIC) {
+      // static source
+      // decode all at once
+      decode_len = stb_vorbis_decode_memory(file_data, len, &channels, &rate, &data);
 
-    free(file_data);
+      free(file_data);
     
-    // loading failed
-    if (decode_len <= 0) {
-      printf("Failed decoding ogg file %s\n", path);
-      return NULL;
+      // loading failed
+      if (decode_len <= 0) {
+        printf("Failed decoding ogg file %s\n", path);
+        return NULL;
+      }
+    } else {
+      // streaming source
+      // create a vorbis decoder
+      int error;
+      decoder = stb_vorbis_open_memory(file_data, len, &error, NULL);
+
+      if (decoder == NULL)
+        printf("Failed to create ogg decoder for streaming source %s\n", path);
     }
   } else {
+    // unsupported file format
     printf("Failed loading sound file %s\n", path);
     printf("Format \"%s\" is not currently supported\n", buf);
     return NULL;
   }
 
-  // init the al source
+  // create the source container
   ex_source_t *s = malloc(sizeof(ex_source_t));
-  alGenSources(1, &s->id);
+  s->channels    = channels;
+  s->rate        = rate;
+  s->sample      = 0;
+  s->streaming   = type;
+  s->last_buffer = 0;
+  s->looping     = AL_FALSE;
 
-  // set default source values
+  // init the al source
+  alGenSources(1, &s->id);
   alSourcef(s->id, AL_PITCH, 1);
-  alSourcef(s->id, AL_GAIN, 1);
+  alSourcef(s->id, AL_GAIN, 0.05);
   alSource3f(s->id, AL_POSITION, 0, 0, 0);
   alSource3f(s->id, AL_VELOCITY, 0, 0, 0);
-  alSourcei(s->id, AL_LOOPING, loop);
+  alSourcei(s->id, AL_LOOPING, s->looping);
+  alSourcei(s->id, AL_SOURCE_TYPE, AL_STREAMING);
 
-  // buffer
-  uint32_t length = decode_len * channels * (sizeof(int16_t) / sizeof(uint8_t));
-  alGenBuffers(1, &s->buffer);
-  alBufferData(s->buffer, AL_FORMAT_STEREO16, data, length, rate);
+  if (s->streaming) {
+    // 3 buffer queue
+    alGenBuffers(3, &s->buffers[0]);
+    s->ready_buffers[0]  = s->buffers[0];
+    s->ready_buffers[1]  = s->buffers[1];
+    s->ready_buffers[2]  = s->buffers[2];
 
-  // bind buffer to source
-  alSourcei(s->id, AL_BUFFER, s->buffer);
+    // set decoder
+    s->decoder = (void*)decoder;
+
+    // seek to start
+    stb_vorbis_seek((stb_vorbis*)s->decoder, 0);
+
+    // get PCM info
+    stb_vorbis_info info;
+    info = stb_vorbis_get_info((stb_vorbis*)s->decoder);
+
+    // set some vars
+    s->samples  = stb_vorbis_stream_length_in_samples((stb_vorbis*)s->decoder);
+    s->rate     = info.sample_rate / 2;
+    s->channels = info.channels;
+  } else {
+    // single buffer
+    uint32_t length = decode_len * channels * (sizeof(int16_t) / sizeof(uint8_t));
+    alGenBuffers(1, &s->buffers[0]);
+    alBufferData(s->buffers[0], AL_FORMAT_STEREO16, data, length, rate);
+    
+    // bind buffer to source
+    alSourcei(s->id, AL_BUFFER, s->buffers[0]);
+  }
 
   free(data);
 
   return s;
 }
 
+void ex_sound_play(ex_source_t *s)
+{
+  if (!ex_sound_playing(s))
+    alSourcePlay(s->id);
+
+  // find out how many buffers are done
+  ALint buffers_done = 0;
+  alGetSourcei(s->id, AL_BUFFERS_PROCESSED, &buffers_done);
+
+  // unqueue those buffers
+  ALuint buffers[3];
+  alSourceUnqueueBuffers(s->id, buffers_done, buffers);
+
+  // add done buffers back to ready buffers
+  for (int i=0; i<buffers_done; i++) {
+    for (int j=0; j<3; j++) {
+      if (s->ready_buffers[j] == -1) {
+        s->ready_buffers[j] = buffers[i];
+        break;
+      }
+    }
+  }
+
+  // buffer to decode into
+  size_t shorts = 0x4000;
+  size_t len = shorts * sizeof(short);
+  short *data = malloc(len);
+
+  // decode and queue more PCM data
+  for (int i=0; i<3; i++) {
+    if (s->ready_buffers[i] == -1)
+      continue;
+
+    // get buffer to fill
+    ALuint buff = s->ready_buffers[i];
+    s->ready_buffers[i] = -1;
+
+    // decode some data
+    stb_vorbis_seek((stb_vorbis*)s->decoder, s->sample);
+    s->sample += stb_vorbis_get_samples_short_interleaved((stb_vorbis*)s->decoder, s->channels, data, shorts);
+    alBufferData(buff, AL_FORMAT_STEREO16, data, len, s->rate);
+
+    // end of stream
+    if (s->sample >= s->samples) {
+      if (s->looping)
+        s->sample = 0;
+      else
+        alSourceStop(s->id);
+    }
+
+    // queue buffer
+    alSourceQueueBuffers(s->id, 1, &buff);
+  }
+
+  free(data);
+}
+
 void ex_sound_destroy(ex_source_t *s)
 {
   alDeleteSources(1, &s->id);
-  alDeleteBuffers(1, &s->buffer);
+  
+  if (s->streaming)
+    alDeleteBuffers(1, &s->buffers[0]);
+  else
+    alDeleteBuffers(3, &s->buffers[0]);
+
   free(s);
   s = NULL;
 }
