@@ -156,9 +156,10 @@ ex_source_t* ex_sound_load(const char *path, int type, int looping)
   if (s->streaming) {
     // 3 buffer queue
     alGenBuffers(3, &s->buffers[0]);
-    s->ready_buffers[0]  = s->buffers[0];
-    s->ready_buffers[1]  = s->buffers[1];
-    s->ready_buffers[2]  = s->buffers[2];
+    
+    // set the buffers ready for data
+    for (int i=0; i<3; i++)
+      s->ready_buffers[i] = s->buffers[i];
 
     // set decoder
     s->decoder = (void*)decoder;
@@ -210,15 +211,8 @@ void ex_sound_restart(ex_source_t *s)
     ALuint buffers[3];
     alSourceUnqueueBuffers(s->id, buffers_done, buffers);
 
-    // add done buffers back to ready buffers
-    for (int i=0; i<buffers_done; i++) {
-      for (int j=0; j<3; j++) {
-        if (s->ready_buffers[j] == -1) {
-          s->ready_buffers[j] = buffers[i];
-          break;
-        }
-      }
-    }
+    for (int i=0; i<3; i++)
+      s->ready_buffers[i] = s->buffers[i];
   }
 
   alSourcePlay(s->id);

@@ -167,7 +167,6 @@ ctrl_end:
     e->velocity[1] = -50.0f;
   if (ex_keys_down[SDL_SCANCODE_SPACE] && e->grounded == 1) {
     e->velocity[1] = 20.0f;
-    ex_sound_restart(sound);
   }
   ex_sound_play(sound);
   move_speed = 100.0f;
@@ -217,6 +216,7 @@ void game_keypressed(uint32_t key)
 void game_mousepressed(uint8_t button)
 {
   // printf("button %i\n", button);
+  ex_sound_restart(sound);
 }
 
 void game_mousemoition(int xrel, int yrel)
