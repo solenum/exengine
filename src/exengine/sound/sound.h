@@ -25,8 +25,9 @@
 #include "AL/alc.h"
 
 typedef enum {
-  EX_SOURCE_STATIC = 0,
+  EX_SOURCE_STATIC    = 0,
   EX_SOURCE_STREAMING = 1,
+  EX_SOURCE_LOOPING   = 1,
   EX_SOURCE_LEN
 } ex_source_type_e;
 
@@ -38,9 +39,14 @@ typedef struct {
 typedef struct {
   ALuint id, buffers[3];
   ALint  ready_buffers[3];
+  int looping, stopped;
+
+  // for streaming source
   void *decoder;
-  int streaming, channels, rate, looping;
-  size_t sample, samples, last_buffer;
+  int streaming, channels, rate;
+  size_t sample, samples;
+  short *decode_buffer;
+  size_t decode_buffer_bytes, decode_buffer_shorts;
 } ex_source_t;
 
 typedef enum {
@@ -79,7 +85,13 @@ void ex_sound_set_output(const ALCchar *device);
  * @param  loop   [1 if the sound is looping]
  * @return        [the new sound]
  */
-ex_source_t* ex_sound_load(const char *path, int type);
+ex_source_t* ex_sound_load(const char *path, int type, int looping);
+
+/**
+ * [ex_sound_restart restart a sound]
+ * @param s [sound to restart]
+ */
+void ex_sound_restart(ex_source_t *s);
 
 /**
  * [ex_sound_play play a sound source]

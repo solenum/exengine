@@ -88,7 +88,7 @@ void ex_sound_set_output(const ALCchar *device)
   printf("Output device set as %s\n", device);
 }
 
-ex_source_t* ex_sound_load(const char *path, int type)
+ex_source_t* ex_sound_load(const char *path, int type, int looping)
 {
   printf("Loading audio file %s\n", path);
   int channels, rate;
@@ -137,11 +137,12 @@ ex_source_t* ex_sound_load(const char *path, int type)
   // create the source container
   ex_source_t *s = malloc(sizeof(ex_source_t));
   s->channels    = channels;
-  s->rate        = rate;
-  s->sample      = 0;
+  s->rate        = rate / 2;
   s->streaming   = type;
-  s->last_buffer = 0;
-  s->looping     = AL_FALSE;
+  s->looping     = looping;
+  s->sample      = 0;
+  s->samples     = 0;
+  s->stopped     = 0;
 
   // init the al source
   alGenSources(1, &s->id);
@@ -173,11 +174,16 @@ ex_source_t* ex_sound_load(const char *path, int type)
     s->samples  = stb_vorbis_stream_length_in_samples((stb_vorbis*)s->decoder);
     s->rate     = info.sample_rate / 2;
     s->channels = info.channels;
+
+    // malloc a buffer for decoding
+    s->decode_buffer_shorts = 0x4000;
+    s->decode_buffer_bytes  = s->decode_buffer_shorts * sizeof(short);
+    s->decode_buffer        = malloc(s->decode_buffer_bytes);
   } else {
     // single buffer
     uint32_t length = decode_len * channels * (sizeof(int16_t) / sizeof(uint8_t));
     alGenBuffers(1, &s->buffers[0]);
-    alBufferData(s->buffers[0], AL_FORMAT_STEREO16, data, length, rate);
+    alBufferData(s->buffers[0], AL_FORMAT_STEREO16, data, length, s->rate);
     
     // bind buffer to source
     alSourcei(s->id, AL_BUFFER, s->buffers[0]);
@@ -188,10 +194,52 @@ ex_source_t* ex_sound_load(const char *path, int type)
   return s;
 }
 
+void ex_sound_restart(ex_source_t *s)
+{
+  alSourceStop(s->id);
+  s->sample  = 0;
+  s->stopped = 0;
+
+  // unqueue any buffers that are left
+  if (s->streaming) {
+    // find out how many buffers are still queued
+    ALint buffers_done = 0;
+    alGetSourcei(s->id, AL_BUFFERS_PROCESSED, &buffers_done);
+
+    // unqueue those buffers
+    ALuint buffers[3];
+    alSourceUnqueueBuffers(s->id, buffers_done, buffers);
+
+    // add done buffers back to ready buffers
+    for (int i=0; i<buffers_done; i++) {
+      for (int j=0; j<3; j++) {
+        if (s->ready_buffers[j] == -1) {
+          s->ready_buffers[j] = buffers[i];
+          break;
+        }
+      }
+    }
+  }
+
+  alSourcePlay(s->id);
+}
+
 void ex_sound_play(ex_source_t *s)
 {
+  // dont continue stopped stream until restarted
+  if (s->streaming && s->stopped)
+    return;
+
+  // restart source if static
+  if (!s->streaming)
+    ex_sound_restart(s);
+
   if (!ex_sound_playing(s))
     alSourcePlay(s->id);
+
+  // only streaming buffers after this
+  if (!s->streaming)
+    return;
 
   // find out how many buffers are done
   ALint buffers_done = 0;
@@ -211,10 +259,9 @@ void ex_sound_play(ex_source_t *s)
     }
   }
 
-  // buffer to decode into
-  size_t shorts = 0x4000;
-  size_t len = shorts * sizeof(short);
-  short *data = malloc(len);
+  short *data   = s->decode_buffer;
+  size_t shorts = s->decode_buffer_shorts;
+  size_t len    = s->decode_buffer_bytes;
 
   // decode and queue more PCM data
   for (int i=0; i<3; i++) {
@@ -232,27 +279,31 @@ void ex_sound_play(ex_source_t *s)
 
     // end of stream
     if (s->sample >= s->samples) {
-      if (s->looping)
-        s->sample = 0;
-      else
+      if (s->looping) {
+        s->sample  = 0;
+      } else {
         alSourceStop(s->id);
+        s->stopped = 1;
+        s->sample  = 0;
+      }
     }
 
     // queue buffer
     alSourceQueueBuffers(s->id, 1, &buff);
   }
-
-  free(data);
 }
 
 void ex_sound_destroy(ex_source_t *s)
 {
   alDeleteSources(1, &s->id);
   
-  if (s->streaming)
+  if (s->streaming) {
     alDeleteBuffers(1, &s->buffers[0]);
-  else
+    free(s->decode_buffer);
+    s->decode_buffer = NULL;
+  } else {
     alDeleteBuffers(3, &s->buffers[0]);
+  }
 
   free(s);
   s = NULL;
@@ -263,4 +314,10 @@ void ex_sound_exit()
   alcMakeContextCurrent(NULL);
   alcDestroyContext(ex_sound.context);
   alcCloseDevice(ex_sound.output);
+
+  free(ex_sound_outputs);
+  ex_sound_outputs = NULL;
+
+  free(ex_sound_inputs);
+  ex_sound_inputs = NULL;
 }
