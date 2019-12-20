@@ -37,7 +37,7 @@ UNAME   = $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 FLAGS   =-g -lstdc++ -framework OpenGl -framework Foundation \
 -framework IOKit -lSDL2 \
--I. $(IDIRS) -Wno-unused-command-line-argument
+-I. $(IDIRS) -Wno-unused-command-line-argument -L$(SDL2_LIBRARY_DIR)
 #
 CFLAGS  =$(FLAGS)
 CFLAGS +=-std=c99 -O2
