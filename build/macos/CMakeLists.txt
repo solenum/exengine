@@ -101,7 +101,7 @@ endif()
 add_custom_command(
         TARGET game POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${SRC_ROOT_DIR}/resources/*
+                ${SRC_ROOT_DIR}/misc/resources/*
                 ${OUTPUT_DIR}/)
 
 
