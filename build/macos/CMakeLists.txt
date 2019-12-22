@@ -66,10 +66,12 @@ file(GLOB APPLICATION_SOURCES
     ${SRC_ROOT_DIR}/src/exengine/util/*.c
     ${SRC_ROOT_DIR}/src/exengine/math/*.c
     ${SRC_ROOT_DIR}/src/exengine/input/*.c
-    ${SRC_ROOT_DIR}/src/exengine/sound/*.c
+    ${SRC_ROOT_DIR}/src/exengine/sound/sound.c
     )
 
-
+if (APPLE)
+    set (APPLICATION_SOURCES "${APPLICATION_SOURCES};${SRC_ROOT_DIR}/src/lib/physfs/physfs_platform_apple.m")
+endif()
 message(STATUS "Files are:${APPLICATION_SOURCES} ")
 
 add_executable(game ${APPLICATION_SOURCES})
@@ -82,8 +84,24 @@ if (APPLE)
             "-framework OpenGl"
             "-framework Foundation"
             "-framework IOKit"
+            "-framework CoreAudio"
+            "-framework AudioToolBox"
+            "-framework CoreGraphics"
+            "-framework CoreVideo"
+            "-framework ForceFeedback"
+            "-framework Carbon"
+            "-framework Metal"
+            "-framework AppKit"
+            -liconv
+            -lstdc++
             
             )
 endif()
+#Copy resources to build directory:
+add_custom_command(
+        TARGET game POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${SRC_ROOT_DIR}/resources/*
+                ${OUTPUT_DIR}/)
 
 
